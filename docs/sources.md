@@ -25,8 +25,8 @@ https://github.com/marxgoo/Wazuh-SOC-Lab
 - **Apport** : lab SOC complet sous VMware (Wazuh OVA, Windows 11 + Sysmon, Kali,
   pfSense, Suricata) ; intégrations VirusTotal, FIM, pfSense, Suricata ; scénario de
   brute force SSH avec Hydra.
-- **Limites** : le détail est dans des PDF (`docs/*.pdf`) non relus ici ; pas d'IP, de
-  versions ni de mapping MITRE dans le README.
+- **Limites** : pas de version Wazuh ni de mapping MITRE ; plusieurs erreurs de chemins et
+  de services dans les PDF. Notes de lecture et corrections : [lab-marxgoo.md](lab-marxgoo.md).
 
 ## UsmanPrime/Wazuh-Setup
 
@@ -41,4 +41,3 @@ https://github.com/UsmanPrime/Wazuh-Setup
 ## À explorer
 
 - Guide de preuve de concept Wazuh, pour des scénarios officiels reproductibles.
-- PDF du dépôt marxgoo (décodeurs pfSense, intégration Suricata).

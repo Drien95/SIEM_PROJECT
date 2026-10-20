@@ -24,7 +24,19 @@ Documentation : https://documentation.wazuh.com/current/user-manual/capabilities
 | **Suricata** | IDS/IPS sur Windows (Npcap), alertes envoyées à Wazuh | marxgoo |
 | **pfSense** | Syslog vers Wazuh + décodeurs et règles personnalisés (autorisé, bloqué, authentification) | marxgoo |
 
-Clé API VirusTotal : **jamais dans git**.
+Clé API VirusTotal : **jamais dans git**. Bloc à placer sur le **manager**
+(`/var/ossec/etc/ossec.conf`), puis `systemctl restart wazuh-manager` :
+
+```xml
+<integration>
+  <name>virustotal</name>
+  <api_key>API_KEY</api_key>
+  <group>syscheck</group>
+  <alert_format>json</alert_format>
+</integration>
+```
+
+API publique : 4 requêtes/min, 500/jour. Détails et erreurs à éviter : [lab-marxgoo.md](lab-marxgoo.md).
 
 ## Exemples de configuration (à valider)
 
@@ -71,10 +83,14 @@ consigner (alerte, `rule.id`, niveau, capture).
 
 | # | Scénario | Outil | Détection attendue | MITRE ATT&CK |
 |---|---|---|---|---|
-| 1 | Brute force SSH / RDP | Hydra depuis Kali | Échecs d'authentification répétés (Windows Event ID 4625, sshd), corrélation, réponse active | T1110 (déduit) |
+| 1 | Brute force SSH / RDP | Hydra depuis Kali | Linux sshd : règles 5551, 5712 ; Windows RDP : 60122, 60204 (Event ID 4625) ; réponse active | T1110 (déduit) |
 | 2 | Modification de fichiers surveillés | Manuel | Alertes FIM (niveaux 5 et 7 selon UsmanPrime) | T1565 (déduit) |
 | 3 | Fichier malveillant de test | EICAR | Alerte Defender et/ou VirusTotal | T1204 (déduit) |
 | 4 | Exécution de processus | `powershell.exe` | Règle personnalisée Sysmon niveau 8 | T1059.001 |
 | 5 | Trafic réseau suspect | Scan nmap depuis Kali | Alerte Suricata / pfSense | T1046 (déduit) |
 
 « Déduit » : correspondance MITRE établie par nous, absente des sources.
+
+Scénario 1 : IDs de règles et requêtes repris du guide de preuve de concept officiel
+(`proof-of-concept-guide/detect-brute-force-attack.html`). Recherche dans *Threat Hunting* :
+`rule.id:(5551 OR 5712)` pour Linux, `rule.id:(60122 OR 60204)` pour Windows.

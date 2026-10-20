@@ -7,6 +7,9 @@ client.keys
 .env
 *.secret
 
+# Documents tiers sans licence de redistribution (téléchargés localement)
+references/
+
 # Images de VM et gros binaires
 *.ova
 *.vmdk

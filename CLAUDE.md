@@ -20,6 +20,8 @@ dans un environnement isolé. Ce dépôt est la base de connaissance du projet.
 - Arborescence : `docs/` pour la connaissance, un fichier par sujet
   (`architecture`, `installation`, `detection`, `sources`). Ajouter un sujet = ajouter
   un fichier et l'indexer dans `README.md`.
+- Documents tiers téléchargés : `references/<auteur-depot>/`, **non versionnés** (licence
+  inconnue) ; on versionne seulement nos notes de lecture dans `docs/`.
 - Configurations d'exemple futures : `configs/<composant>/` (ex. `configs/manager/local_rules.xml`).
 - **Vérifié vs supposé** : toute affirmation non testée dans notre lab ou non issue de la
   documentation officielle est marquée « à valider ». Toute déduction est signalée comme telle.

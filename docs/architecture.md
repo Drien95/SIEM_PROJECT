@@ -51,7 +51,7 @@ Synthèse des deux labs de référence (voir [sources.md](sources.md)). Proposit
 | VM Wazuh (OVA ou Ubuntu 24.04 all-in-one) | Serveur + indexeur + dashboard | les deux dépôts |
 | Windows 11 | Agent Wazuh + Sysmon (+ Suricata en option) | marxgoo |
 | Kali Linux | Attaquant (Hydra) et/ou endpoint Linux avec agent | les deux dépôts |
-| pfSense (optionnel) | Pare-feu, logs envoyés en syslog | marxgoo |
+| pfSense (optionnel) | Pare-feu ; WAN en NAT, LAN host-only `192.168.1.1/24` ; logs envoyés en syslog | marxgoo |
 
 Hyperviseur : VMware Workstation ou VirtualBox. Réseau : mode **pont** (UsmanPrime) pour
 que l'hôte joigne la VM, ou réseau host-only/NAT dédié pour isoler les attaques

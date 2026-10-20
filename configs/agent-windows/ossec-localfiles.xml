@@ -1,0 +1,34 @@
+<!--
+  Extraits à insérer dans <ossec_config> de C:\Program Files (x86)\ossec-agent\ossec.conf
+  Puis (PowerShell administrateur) : Restart-Service -Name WazuhSvc
+-->
+
+<!-- Sysmon -->
+<localfile>
+  <location>Microsoft-Windows-Sysmon/Operational</location>
+  <log_format>eventchannel</log_format>
+</localfile>
+
+<!-- PowerShell Script Block Logging (Event ID 4104) -->
+<localfile>
+  <location>Microsoft-Windows-PowerShell/Operational</location>
+  <log_format>eventchannel</log_format>
+</localfile>
+
+<!-- Windows Defender -->
+<localfile>
+  <location>Microsoft-Windows-Windows Defender/Operational</location>
+  <log_format>eventchannel</log_format>
+</localfile>
+
+<!-- Suricata (si installé sur ce poste) -->
+<localfile>
+  <log_format>json</log_format>
+  <location>C:\Program Files\Suricata\log\eve.json</location>
+</localfile>
+
+<!-- FIM : dossier de test général et dossier de dépôt VirusTotal -->
+<syscheck>
+  <directories check_all="yes" report_changes="yes" realtime="yes">C:\Users\Public\fim-test</directories>
+  <directories realtime="yes">C:\Users\Public\vt-test</directories>
+</syscheck>

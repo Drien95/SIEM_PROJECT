@@ -18,11 +18,17 @@ dans un environnement isolé. Ce dépôt est la base de connaissance du projet.
 - Langue : **français** pour la documentation ; commandes, chemins, identifiants et
   extraits de configuration tels quels.
 - Arborescence : `docs/` pour la connaissance, un fichier par sujet
-  (`architecture`, `installation`, `detection`, `sources`). Ajouter un sujet = ajouter
-  un fichier et l'indexer dans `README.md`.
+  (`architecture`, `installation`, `detection`, `sources`) ; `docs/integrations/` un
+  fichier par source de données ; `docs/scenarios/` un fichier par attaque simulée, avec un
+  tableau « Résultats dans notre lab ». Ajouter un sujet = ajouter un fichier et l'indexer
+  dans `README.md`.
+- Avant d'écrire un décodeur ou une règle, vérifier le **ruleset natif** de la version
+  (`wazuh/wazuh`, `ruleset/rules` et `ruleset/decoders`) : on étend par des règles enfants
+  (`if_sid`) plutôt que de redéfinir.
 - Documents tiers téléchargés : `references/<auteur-depot>/`, **non versionnés** (licence
   inconnue) ; on versionne seulement nos notes de lecture dans `docs/`.
-- Configurations d'exemple futures : `configs/<composant>/` (ex. `configs/manager/local_rules.xml`).
+- Configurations d'exemple : `configs/<composant>/` (ex. `configs/manager/local_rules.xml`) ;
+  extraits XML à insérer dans `<ossec_config>`, jamais de secret réel.
 - **Vérifié vs supposé** : toute affirmation non testée dans notre lab ou non issue de la
   documentation officielle est marquée « à valider ». Toute déduction est signalée comme telle.
 - **Citer la source** (URL) de chaque fait technique repris ; les sources sont listées dans

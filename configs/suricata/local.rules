@@ -1,0 +1,8 @@
+# Règles Suricata locales du lab — C:\Program Files\Suricata\rules\local.rules
+# SIDs locaux : plage 1000000-1999999. À valider dans le lab.
+
+# Test : tout ICMP echo request vers le réseau du lab (remplacer le réseau si besoin)
+alert icmp any any -> 192.168.1.0/24 any (msg:"LAB test ICMP echo"; itype:8; sid:1000001; rev:1;)
+
+# Scan SYN : plus de 20 SYN de la même source en 10 s
+alert tcp any any -> $HOME_NET any (msg:"LAB scan SYN probable"; flags:S,12; threshold:type both, track by_src, count 20, seconds 10; sid:1000002; rev:1;)

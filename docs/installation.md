@@ -38,7 +38,20 @@ sudo tar -O -xvf wazuh-install-files.tar wazuh-install-files/wazuh-passwords.txt
 ## Option B — OVA officielle
 
 Utilisée par les deux dépôts de référence : importer l'OVA dans VMware/VirtualBox,
-adaptateur réseau en **pont**, récupérer l'IP avec `ip a`, puis ouvrir `https://<IP>`.
+puis récupérer l'IP avec `ip a` et ouvrir `https://<IP>`.
+
+- Ressources de l'OVA : 4 vCPU, 8 Go RAM, 50 Go ; base Amazon Linux 2023 (x86_64).
+- Réseau par défaut : adaptateur en **pont**, IP en DHCP.
+- Console / SSH de la VM : `wazuh-user` / `wazuh` (`sudo -i` pour root). Le PDF marxgoo
+  indique `admin`/`admin`, qui sont en réalité les identifiants du **dashboard**.
+- Dashboard : `admin` / `admin`.
+- Ces identifiants sont les mêmes sur toutes les copies de l'OVA : les **changer dès le
+  premier accès** (`passwd` pour `wazuh-user`, gestion des mots de passe Wazuh pour le
+  dashboard).
+- VirtualBox : contrôleur graphique `VMSVGA`, horloge matérielle en UTC.
+- VMware avec un CPU AMD : si la VM refuse de démarrer, voir le dépannage de la page
+  officielle (lignes `cpuid.*` dans le `.vmx`).
+
 Voir https://documentation.wazuh.com/current/deployment-options/index.html
 
 ## Machine modeste (4-8 Go de RAM)
@@ -91,5 +104,6 @@ Test-NetConnection -ComputerName <IP_SERVEUR> -Port 1514
 | Pas de ping vers la VM | Adaptateur pas en mode pont | Corriger le réseau de la VM |
 | Agent enregistré mais déconnecté | Port 1514 bloqué | Vérifier le pare-feu, `Test-NetConnection`, lire `ossec.log` |
 | `WazuhSvc` ne s'arrête pas | Processus bloqué | `Stop-Process` puis redémarrer le service |
+| Un service Wazuh est inactif après un redémarrage | Démarrage lent ou échec | `systemctl status` puis `systemctl start` sur `wazuh-indexer`, `wazuh-manager`, `wazuh-dashboard`, dans cet ordre |
 
 Sources : UsmanPrime/Wazuh-Setup, documentation Wazuh (quickstart, architecture).

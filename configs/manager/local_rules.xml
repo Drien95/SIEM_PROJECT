@@ -1,0 +1,38 @@
+<!--
+  Règles locales du lab — /var/ossec/etc/rules/local_rules.xml (manager)
+  Plage d'IDs réservée aux règles locales : 100000-120000.
+  Parents vérifiés dans le ruleset Wazuh 4.14 ; chaque règle reste À VALIDER avec
+  /var/ossec/bin/wazuh-logtest avant déploiement.
+-->
+
+<group name="local,sysmon,">
+  <!-- Sysmon EID 1 (parent natif 61603, niveau 0) : exécution de PowerShell.
+       MITRE T1059.001. Idée reprise d'UsmanPrime (Sysmon EID 1 élevé au niveau 8). -->
+  <rule id="100100" level="8">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\powershell\.exe$</field>
+    <description>Sysmon : exécution de PowerShell sur $(win.system.computer)</description>
+    <mitre>
+      <id>T1059.001</id>
+    </mitre>
+  </rule>
+</group>
+
+<group name="local,suricata,">
+  <!-- Suricata (parent natif 86601, niveau 3) : alertes de sévérité 1 (la plus haute). -->
+  <rule id="100200" level="10">
+    <if_sid>86601</if_sid>
+    <field name="alert.severity">^1$</field>
+    <description>Suricata (sévérité 1) : $(alert.signature)</description>
+  </rule>
+</group>
+
+<group name="local,pfsense,">
+  <!-- pfSense (parent natif 87700, niveau 0) : trafic autorisé, journalisé à bas niveau.
+       Remplace la règle « pass » du PDF marxgoo, qui faisait un match sur tout le message. -->
+  <rule id="100300" level="3">
+    <if_sid>87700</if_sid>
+    <action>pass</action>
+    <description>pfSense : trafic autorisé $(srcip) -> $(dstip):$(dstport)</description>
+  </rule>
+</group>

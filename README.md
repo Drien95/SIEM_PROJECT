@@ -16,6 +16,9 @@ simulation d'attaques.
 | [docs/installation.md](docs/installation.md) | Prérequis, installation (OVA / all-in-one), agents, dépannage |
 | [docs/detection.md](docs/detection.md) | Capacités de détection, intégrations, règles personnalisées, scénarios de test |
 | [docs/sources.md](docs/sources.md) | Sources utilisées, ce qu'on en retient, limites |
+| [docs/integrations/](docs/integrations/) | Un guide par intégration : Windows/Sysmon, FIM, VirusTotal, Suricata, pfSense |
+| [docs/scenarios/](docs/scenarios/) | Scénarios d'attaque et détection attendue (brute force) |
+| [configs/](configs/) | Configurations d'exemple : règles locales, syslog, VirusTotal, agent Windows, Suricata |
 | [docs/lab-marxgoo.md](docs/lab-marxgoo.md) | Notes de lecture des PDF du lab marxgoo, avec les erreurs corrigées |
 | [CLAUDE.md](CLAUDE.md) | Objectif, conventions et règles de contribution (humains et Claude) |
 

@@ -16,6 +16,9 @@ le dépôt d'origine n'a pas de licence, on ne les redistribue pas.
   20 Go disque, 1-2 Go RAM, 1-2 vCPU. Exemple d'IP du serveur Wazuh : `192.168.200.50`.
 - Aucune version de Wazuh n'est indiquée.
 
+Le contenu utile est intégré dans [integrations/](integrations/) et [scenarios/](scenarios/) ;
+ce fichier garde la trace de la source et de ses erreurs.
+
 ## Ce qu'on retient, par PDF
 
 | PDF | Points utiles |
@@ -42,6 +45,8 @@ le dépôt d'origine n'a pas de licence, on ne les redistribue pas.
 | Suricata | `ping google.com` pour générer une alerte | Un ping ne déclenche en général aucune signature ; préférer une règle de test dans `local.rules` ou un scan nmap | à valider |
 | pfSense | Fichier `/var/ossec/etc/ossec.cfg` | `/var/ossec/etc/ossec.conf` | doc officielle |
 | pfSense | Règles `<match>pass</match>` / `block` | Correspondance sur une sous-chaîne de tout le log : faux positifs possibles ; mieux vaut décoder le champ action | déduit |
+| pfSense | Décodeur personnalisé `pfsense-custom` sur `filterlog` | Wazuh fournit déjà le décodeur `pf` et les règles 87700-87702 ; le natif matche en premier, donc les règles du PDF ne se déclencheraient pas | ruleset 4.14 lu, comportement à valider |
+| Wazuh_configuration | Connexion à la VM avec `admin`/`admin` | Console de l'OVA : `wazuh-user`/`wazuh` ; `admin`/`admin` = dashboard | doc officielle |
 | Logs | 4741 = « compte utilisateur modifié » | 4741 = compte **ordinateur** créé ; compte utilisateur modifié = 4738 | doc Microsoft (connu) |
 | Logs | Sysmon : `net start wazuh` | `Restart-Service WazuhSvc` | UsmanPrime |
 

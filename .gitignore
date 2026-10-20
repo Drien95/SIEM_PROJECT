@@ -1,0 +1,19 @@
+# Secrets Wazuh générés à l'installation
+wazuh-install-files.tar
+wazuh-passwords.txt
+*.key
+*.pem
+client.keys
+.env
+*.secret
+
+# Images de VM et gros binaires
+*.ova
+*.vmdk
+*.iso
+
+# OS / éditeurs
+Thumbs.db
+.DS_Store
+.vscode/
+.idea/

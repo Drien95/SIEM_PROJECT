@@ -46,7 +46,7 @@ interface, de **haut en bas** : la première qui correspond décide. Une interfa
 faut, et on journalise (*Log packets*) ce qui compte pour Wazuh.
 
 Règles de l'interface **ATTACK**, dans cet ordre (une règle pfSense n'accepte qu'un port ou une
-plage, d'où 6a et 6b ; un alias de ports les regrouperait) :
+plage, d'où 6 et 7 ; un alias de ports les regrouperait) :
 
 | # | Action | Source | Destination | Port | Log | Pourquoi |
 |---|---|---|---|---|---|---|
@@ -55,8 +55,8 @@ plage, d'où 6a et 6b ; un alias de ports les regrouperait) :
 | 3 | Block | ATTACK net | LAN net (`10.10.10.0/24`) | any | **oui** | Wazuh, l'hôte et le reste du LAN : interdit |
 | 4 | Block | ATTACK net | This Firewall (self) | any | **oui** | administration de pfSense (443, 22) : interdite |
 | 5 | Block | ATTACK net | WAN net (`192.168.30.0/24`) | any | **oui** | l'hôte côté NAT : interdit |
-| 6a | Pass | ATTACK net | any | 80 TCP | non | mises à jour de Kali (HTTP) |
-| 6b | Pass | ATTACK net | any | 443 TCP | non | mises à jour de Kali (HTTPS) |
+| 6 | Pass | ATTACK net | any | 80 TCP | non | mises à jour de Kali (HTTP) |
+| 7 | Pass | ATTACK net | any | 443 TCP | non | mises à jour de Kali (HTTPS) |
 
 Le sens retour (Windows 11 qui répond à Kali) est autorisé automatiquement : pfSense est
 **stateful**, il mémorise chaque connexion ouverte et laisse passer ses réponses.
@@ -120,11 +120,52 @@ Accès Internet de Kali : en mode NAT sortant **automatique** (défaut de pfSens
 d'une nouvelle interface est traduit automatiquement vers le WAN. Rien à ajouter
 (*Firewall > NAT > Outbound* pour le vérifier).
 
-### 2.4 Règles (à faire)
+### 2.4 Règles : en ligne de commande
 
-*Firewall > Rules > ATTACK*, créer les six règles du § 1.3 dans l'ordre (*Add* avec la flèche
-vers le bas ajoute en fin de liste), cocher *Log packets that are handled by this rule* pour
-2 à 5, puis *Apply Changes*.
+Deux voies possibles :
+
+- **interface web** (la voie supportée) : *Firewall > Rules > ATTACK*, une règle à la fois,
+  dans l'ordre du § 1.3, *Log packets* coché pour 2 à 5, puis *Apply Changes* ;
+- **ligne de commande**, retenue le 2026-10-22 à la demande d'Adrien. pfSense n'a pas de
+  commande officielle pour créer des règles. On passe par son **API PHP interne** : la même
+  que l'interface web utilise pour lire et écrire `/cf/conf/config.xml`.
+
+Le script versionné [configs/pfsense/regles-attack.php](../../configs/pfsense/regles-attack.php)
+ajoute les 7 règles à l'interface `opt1`, enregistre la configuration (`write_config`, avec
+historique dans *Diagnostics > Backup & Restore > Config History*) puis recharge le pare-feu
+(`filter_configure`). Il refuse de s'exécuter si ATTACK a déjà des règles. Exécution depuis
+l'hôte, grâce au SSH par clé (writeup 03) :
+
+```bash
+ssh siem-pfsense 'cp /cf/conf/config.xml /cf/conf/config.xml.avant-attack && php' < configs/pfsense/regles-attack.php
+```
+
+Pourquoi ça marche : l'utilisateur `admin` de pfSense est en réalité **root** (uid 0). Sa
+« shell » est le menu console (`/etc/rc.initial`), mais une commande passée à `ssh` est
+exécutée directement. Revers de la médaille : la clé de l'hôte donne les pleins pouvoirs sur
+le pare-feu ; elle doit rester protégée.
+
+**Vérification** : les règles réellement chargées dans le moteur `pf` :
+
+```bash
+ssh siem-pfsense 'pfctl -sr | grep em0'
+```
+
+```
+pass in quick on em0 inet proto udp from <OPT1__NETWORK> to 10.10.20.254 port = domain … "DNS vers pfSense"
+pass in log quick on em0 inet from <OPT1__NETWORK> to 10.10.10.101 … "Scenarios : Kali vers Windows 11"
+block drop in log quick on em0 inet from <OPT1__NETWORK> to <LAN__NETWORK> … "Interdit : LAN (Wazuh, hote)"
+block drop in log quick on em0 inet from <OPT1__NETWORK> to (self) … "Interdit : administration pfSense"
+block drop in log quick on em0 inet from <OPT1__NETWORK> to <WAN__NETWORK> … "Interdit : reseau NAT de l hote"
+pass in quick on em0 inet proto tcp from <OPT1__NETWORK> to any port = http … "Mises a jour Kali (HTTP)"
+pass in quick on em0 inet proto tcp from <OPT1__NETWORK> to any port = https … "Mises a jour Kali (HTTPS)"
+```
+
+Lecture : `in` = trafic entrant par ATTACK ; `quick` = la première règle qui correspond
+s'applique (d'où l'importance de l'ordre) ; `log` = journalisé, donc envoyé à Wazuh ;
+`block drop` = jeté sans réponse. pfSense ajoute lui-même, avant nos règles, celles qui
+autorisent le DHCP sur l'interface. Retour arrière : restaurer `config.xml.avant-attack` ou
+une version de *Config History*.
 
 ### 2.5 Kali (à faire)
 
@@ -162,6 +203,7 @@ Wazuh doit apparaître, avec l'interface ATTACK.
 | pfSense ATTACK `10.10.20.254` | interface active, DHCP `.100`-`.199` | ✅ (captures 74-77) |
 | Kali reçoit `10.10.20.1xx`, passerelle `.254` | oui | à faire |
 | Kali → Windows 11 | autorisé, journalisé | à faire |
+| 7 règles ATTACK chargées dans `pf` | oui | ✅ `pfctl -sr` (2026-10-22) |
 | Kali → Wazuh 443 | bloqué, alerte 100302 | à faire |
 | Kali → administration pfSense | bloqué | à faire |
 

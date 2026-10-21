@@ -9,7 +9,7 @@ Statut : **proposition**, à valider au montage. Les écarts constatés se noten
 | CPU | AMD Ryzen 5 5600X (6 cœurs / 12 threads) |
 | RAM | 32 Go |
 | Hyperviseur | VMware Workstation Pro 17.0.0 (`D:\Logiciel\VMware\`, avec `vmrun.exe` et `OVFTool\ovftool.exe`) |
-| Dossier des VM | `C:\VMs\SIEM_LAB\` (hors dépôt git ; ~513 Go libres sur C:) |
+| Dossier des VM | `D:\VM\SIEM_LAB\` (hors dépôt git ; ~343 Go libres sur D:) |
 
 ## Réseau
 
@@ -76,5 +76,8 @@ visible dans *Threat Hunting*.
 | Windows 11 | https://www.microsoft.com/software-download/windows11 | ~6 Go | — |
 | Kali (VMware) | https://www.kali.org/get-kali/#kali-virtual-machines | ~3 Go (7z) | SHA256 publié |
 
-Les images restent dans `C:\VMs\SIEM_LAB\images\`, hors git (`*.ova` et `*.iso` sont dans
+Une VM Kali 2024.3 existe déjà dans `D:\VM\kali-linux-2024.3-vmware-amd64.vmwarevm` :
+on peut la réutiliser, en passant sa carte réseau sur VMnet10 pendant les tests.
+
+Les images restent dans `D:\VM\SIEM_LAB\images\`, hors git (`*.ova` et `*.iso` sont dans
 `.gitignore`).

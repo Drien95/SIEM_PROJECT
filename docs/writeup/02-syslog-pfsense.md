@@ -174,7 +174,7 @@ un en-tête syslog BSD, que Wazuh sait découper.
 | Test | Attendu | Obtenu |
 |---|---|---|
 | `remoted` écoute en UDP 514 | ligne `wazuh-remoted` dans `ss` | ✅ OK |
-| Blocages visibles dans pfSense | ICMP bloqué sur WAN | à faire |
+| Syslog reçu par Wazuh (`tcpdump`) | `10.10.10.254 > 10.10.10.100.syslog` | ✅ OK : `local0.info`, ~1 paquet/s pendant la rafale |
 | `wazuh-logtest` sur une ligne `filterlog` | décodeur `pf`, règle 87701 | à faire |
 | Rafale `ping -n 60 -w 200` | alerte **87702** (niveau 10) | à faire |
 

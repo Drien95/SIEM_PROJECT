@@ -224,3 +224,7 @@ après avoir libéré de la place, puis vérifier avec `sudo filebeat test outpu
 Déblocage des index (2026-10-21) : le `curl` sur `_all` a renvoyé un 403, car `_all` inclut
 l'index de sécurité de l'indexeur, protégé même pour `admin`. En ciblant seulement
 `wazuh-*,.kibana*`, l'indexeur a répondu `{"acknowledged":true}`.
+
+Mot de passe `admin` changé avec `wazuh-passwords-tool.sh`. `sudo filebeat test output` répond
+`talk to server... OK` : Filebeat et l'indexeur utilisent bien le même mot de passe. Les
+captures de cette étape ne sont pas versionnées, car elles montrent le mot de passe.

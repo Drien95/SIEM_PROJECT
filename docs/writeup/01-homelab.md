@@ -429,6 +429,7 @@ Prochaines étapes :
 | 5 | Ne jamais lancer d'outil qui modifie la configuration sur un disque plein : il peut échouer à mi-parcours et laisser un état incohérent. |
 | 6 | Sur OpenSearch, viser des motifs d'index précis plutôt que `_all` (index de sécurité protégé). |
 | 7 | Aucun mot de passe en clair dans les captures, l'historique ou git. |
+| 8 | Après un changement de mot de passe, une erreur 500 du dashboard peut venir du cookie de l'ancienne session : essayer d'abord une fenêtre privée. |
 
 Sources : [docs/sources.md](../sources.md) ; journal détaillé :
 [docs/homelab/plan.md](../homelab/plan.md).

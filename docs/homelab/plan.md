@@ -228,3 +228,6 @@ l'index de sécurité de l'indexeur, protégé même pour `admin`. En ciblant se
 Mot de passe `admin` changé avec `wazuh-passwords-tool.sh`. `sudo filebeat test output` répond
 `talk to server... OK` : Filebeat et l'indexeur utilisent bien le même mot de passe. Les
 captures de cette étape ne sont pas versionnées, car elles montrent le mot de passe.
+
+Erreur 500 du dashboard juste après le changement du mot de passe : le cookie de l'ancienne
+session dans Brave. Après suppression des cookies du site, la connexion fonctionne.

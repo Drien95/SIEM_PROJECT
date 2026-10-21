@@ -239,3 +239,27 @@ Première installation interrompue : au redémarrage, la VM repartait sur l'ISO 
 (captures 51 et 52). Correctif, VM éteinte : `bios.bootOrder = "hdd,cdrom"` ajouté au `.vmx`
 (sauvegarde `.vmx.bak-bootorder`), puis réinstallation propre (partitions supprimées).
 Effet de `bios.bootOrder` avec un firmware EFI : à valider.
+
+### 2026-10-21 — Cause racine de l'échec de Windows 11 : disque D: mécanique
+
+Trois installations échouent de la même façon : installation jusqu'à ~60 %, écran noir,
+redémarrage, puis « No compatible bootloader found » sur le disque NVMe virtuel.
+
+Diagnostic (`D:\VM\SIEM_LAB\SIEM-Win11\vmware.log`, 2026-10-21 16:53 → 17:04 UTC) :
+
+- écritures sur le disque virtuel de **2 à 9 s** chacune (`nvme0:0: Command WRITE(10) took 7.913 seconds`) ;
+- à 17:01:48, `NVME-VMM: Controller level reset via CC.EN bit transition` : Windows réinitialise
+  le contrôleur, faute de réponse du disque ;
+- à 17:04:15, `The guest has requested that the virtual machine be hard reset`, puis
+  `No compatible bootloader found` : l'installation n'a pas terminé, le disque n'est pas amorçable ;
+- même motif dans `vmware-1.log` (installation précédente).
+
+Causes :
+
+1. `D:` est un **disque dur mécanique** (Seagate ST1000DM003, 7200 tr/min), partagé par les trois
+   VM, dont l'indexeur Wazuh qui écrit en continu.
+2. Hyper-V est actif sur l'hôte : VMware 17.0.0 tourne en `Monitor Mode: ULM` (au-dessus de
+   l'hyperviseur Windows), plus lent.
+
+Correctif proposé : VM Windows 11 sur `C:` (SSD NVMe WD_BLACK SN7100), à valider par Adrien.
+Leçon : vérifier le **type de disque** de l'hôte avant d'y placer des VM (`Get-PhysicalDisk`).

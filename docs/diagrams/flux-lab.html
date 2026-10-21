@@ -194,8 +194,8 @@ footer { color: var(--muted); font-size: 13px; }
       <text x="140" y="453" text-anchor="end" class="mono">10.10.10.1</text>
 
       <text x="1232" y="762" class="b" style="font-size: 15px">Kali Linux</text>
-      <text x="1232" y="779" class="mono">10.10.20.1xx</text>
-      <text x="1232" y="796" class="muted">l'attaquant (DHCP)</text>
+      <text x="1232" y="779" class="mono">10.10.20.10</text>
+      <text x="1232" y="796" class="muted">l'attaquant</text>
       <text x="900" y="796" class="t-ok b" style="font-size: 12px">DNS 53 → pfSense · 80, 443 → Internet</text>
       <text x="900" y="811" class="t-ok" style="font-size: 12px">règles 1, 6, 7 : mises à jour, sans journal</text>
 
@@ -234,7 +234,7 @@ footer { color: var(--muted); font-size: 13px; }
       <text x="665" y="576" text-anchor="end" class="t-no">il reçoit seulement</text>
 
       <g class="badge" transform="translate(560 770)"><circle r="11" style="fill: var(--f-plan)"/><text>7</text></g>
-      <text x="580" y="760" class="b t-plan">SSH 22 · piloter Kali (optionnel)</text>
+      <text x="580" y="760" class="b t-plan">SSH 22 · piloter Kali (clé, route via pfSense)</text>
 
       <!-- Légende -->
       <g transform="translate(30 915)">
@@ -262,7 +262,7 @@ footer { color: var(--muted); font-size: 13px; }
         <li><strong>Windows 11 → Wazuh</strong> 1514 et 1515/TCP : l'agent, en place (writeup 04).</li>
         <li><strong>Kali → Windows 11</strong> : les attaques des scénarios, dans le lab seulement. Règle 2 de l'interface ATTACK, journalisée.</li>
         <li><strong>Kali → pfSense</strong> 53 et <strong>Internet</strong> 80, 443 : DNS et mises à jour (règles 1, 6, 7), sans journal.</li>
-        <li><strong>Hôte → Kali</strong> 22 : optionnel. L'hôte n'a pas de carte sur VMnet11 : il passerait par pfSense, avec une route vers <code>10.10.20.0/24</code> par <code>10.10.10.254</code> (à valider).</li>
+        <li><strong>Hôte → Kali</strong> 22 par clé (<code>ssh siem-kali</code>). L'hôte n'a pas de carte sur VMnet11 : il passe par pfSense grâce à une route vers <code>10.10.20.0/24</code> par <code>10.10.10.254</code> (writeup 05, § 2.7). Kali ne peut pas ouvrir de connexion vers l'hôte (règle 3).</li>
       </ol>
     </section>
     <section class="card" style="--c: var(--f-no)">

@@ -165,7 +165,7 @@ footer { color: var(--muted); font-size: 13px; }
     </section>
   </div>
 
-  <footer>Source : <code>docs/diagrams/regles-attack.html</code> du dépôt SIEM_PROJECT ; règles dans <code>configs/pfsense/regles-attack.php</code> et le writeup 05. Kali reçoit son adresse du DHCP de pfSense (<code>10.10.20.100</code> à <code>.199</code>), notée <code>10.10.20.1xx</code>. Ports de destination des exemples choisis pour l'illustration.</footer>
+  <footer>Source : <code>docs/diagrams/regles-attack.html</code> du dépôt SIEM_PROJECT ; règles dans <code>configs/pfsense/regles-attack.php</code> et le writeup 05. Kali a une réservation DHCP sur pfSense : <code>10.10.20.10</code>. Ports de destination des exemples choisis pour l'illustration.</footer>
 </div>
 
 <script>
@@ -234,7 +234,7 @@ footer { color: var(--muted); font-size: 13px; }
     el("text", { x: p.x, y: 116, "text-anchor": "middle", class: "b sm" }, heads, p.t);
     el("text", { x: p.x, y: 136, "text-anchor": "middle", class: "mono", style: "font-size: 11.5px" }, heads, p.ip);
     el("text", { x: p.x, y: 153, "text-anchor": "middle", class: "mono", style: "font-size: 11.5px" }, heads, p.port);
-    el("text", { x: p.x, y: 170, "text-anchor": "middle", class: "mono muted", style: "font-size: 10.5px" }, heads, "de 10.10.20.1xx");
+    el("text", { x: p.x, y: 170, "text-anchor": "middle", class: "mono muted", style: "font-size: 10.5px" }, heads, "de 10.10.20.10");
 
     // Parcours : de l'en-tête jusqu'à la règle qui correspond
     const r = RULES[p.match], pass = r.act === "pass";

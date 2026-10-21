@@ -74,8 +74,8 @@ l'exception pour Windows 11.
 
 ![Règles de l'interface ATTACK, cinq paquets d'exemple](../diagrams/regles-attack.png)
 
-*Source : [`regles-attack.html`](../diagrams/regles-attack.html). Kali est noté `10.10.20.1xx` :
-son adresse viendra du DHCP.*
+*Source : [`regles-attack.html`](../diagrams/regles-attack.html). Kali a l'adresse
+réservée `10.10.20.10` (§ 2.7).*
 
 Chaque colonne est un paquet de Kali qui **entre** par `em0`. pfSense descend la liste et
 s'arrête à la **première** règle qui correspond :
@@ -102,7 +102,7 @@ Trois points à retenir :
 
 **Valeur pour l'analyste SOC** : chaque tentative de l'attaquant vers la supervision (B, C)
 devient une alerte, et l'attaque autorisée (A) laisse aussi une trace horodatée. Une rafale de
-blocages depuis `10.10.20.1xx` (balayage de ports) déclenche 100303 (T1046). Pour suivre ces
+blocages depuis `10.10.20.10` (balayage de ports) déclenche 100303 (T1046). Pour suivre ces
 paquets un par un, avec les en-têtes, voir le scénario « Kali face aux règles ATTACK » du
 [simulateur de paquets](annexe-simulateur-paquets.md).
 

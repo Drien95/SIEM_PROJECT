@@ -68,9 +68,9 @@ Décidé le 2026-10-21 pour notre homelab (voir [homelab/plan.md](homelab/plan.m
 | Hôte `10.10.10.1` | Wazuh `10.10.10.100` | 443/tcp, 22/tcp (clé) | dashboard, administration | OK |
 | pfSense `10.10.10.254` | Wazuh `10.10.10.100` | 514/udp | syslog du pare-feu | ✅ validé (writeup 02) |
 | Windows 11 `10.10.10.101` | Wazuh `10.10.10.100` | 1514/tcp, 1515/tcp | agent : événements, enrôlement | ✅ validé (writeup 04) |
-| Kali `10.10.20.1xx` (VMnet11) | Windows 11 `10.10.10.101` | tout (règle 2 d'ATTACK, journalisée) | scénarios (22, 3389, 445…) | règle en place (writeup 05), Kali à installer |
+| Kali `10.10.20.10` (VMnet11, réservation DHCP) | Windows 11 `10.10.10.101` | tout (règle 2 d'ATTACK, journalisée) | scénarios (22, 3389, 445…) | règle en place (writeup 05), Kali à installer |
 | Kali | pfSense `10.10.20.254` 53 ; Internet 80, 443 | TCP/UDP 53, TCP 80, 443 | DNS, mises à jour (règles 1, 6, 7, sans journal) | règles en place |
-| Hôte | Kali | 22/tcp | piloter Kali (optionnel) | plus tard ; via pfSense, route vers `10.10.20.0/24` à ajouter sur l'hôte (à valider) |
+| Hôte `10.10.10.1` | Kali `10.10.20.10` | 22/tcp (clé) | piloter Kali (`ssh siem-kali`) | route `10.10.20.0/24` via `10.10.10.254` sur l'hôte, règle LAN par défaut (writeup 05, § 2.7) |
 | LAN | Internet via pfSense | 80, 443, 53 | mises à jour | OK (règle LAN par défaut) |
 
 À **ne pas** autoriser :

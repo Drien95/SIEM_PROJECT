@@ -129,10 +129,12 @@ Depuis l'hôte Windows, viser le **WAN** de pfSense : tout trafic entrant y est 
 journalisé par défaut.
 
 ```powershell
-ping -n 40 192.168.30.131
+ping -n 60 -w 200 192.168.30.131
 ```
 
-40 pings bloqués en 40 s depuis la même IP dépassent le seuil de 87702 (18 en 45 s).
+Piège rencontré : sans `-w`, chaque ping bloqué attend 4 s de timeout, soit environ 11 paquets
+en 45 s, sous le seuil de 87702 (18 en 45 s). Avec `-w 200` (200 ms de timeout), le rythme
+dépasse le seuil.
 
 Vérifications, de la source vers l'alerte :
 
@@ -147,10 +149,10 @@ Vérifications, de la source vers l'alerte :
 
 | Test | Attendu | Obtenu |
 |---|---|---|
-| `remoted` écoute en UDP 514 | ligne `wazuh-remoted` dans `ss` | à faire |
+| `remoted` écoute en UDP 514 | ligne `wazuh-remoted` dans `ss` | ✅ OK |
 | Blocages visibles dans pfSense | ICMP bloqué sur WAN | à faire |
 | `wazuh-logtest` sur une ligne `filterlog` | décodeur `pf`, règle 87701 | à faire |
-| Rafale de 40 pings | alerte **87702** (niveau 10) | à faire |
+| Rafale `ping -n 60 -w 200` | alerte **87702** (niveau 10) | à faire |
 
 Sources : https://documentation.wazuh.com/current/user-manual/capabilities/log-data-collection/syslog.html,
 ruleset Wazuh 4.14 (`0455-pfsense_decoders.xml`, `0540-pfsense_rules.xml`), voir

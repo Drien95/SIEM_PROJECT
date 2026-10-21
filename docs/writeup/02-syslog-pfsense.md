@@ -70,6 +70,70 @@ insiste. C'est la *corrélation* (`frequency` + `timeframe` + `same_source_ip`).
 - **Contexte pour l'enquête** : une alerte sur Windows (par exemple une connexion suspecte)
   se recoupe avec les journaux du pare-feu pour la même IP et la même heure.
 
+### 1.6 Comprendre le réseau du lab : WAN, LAN et chemin d'un paquet
+
+Un pare-feu sépare deux mondes :
+
+- le **WAN** (*Wide Area Network*) : le côté « extérieur », d'où viennent les menaces. Par
+  défaut, pfSense **bloque tout** ce qui y entre sans avoir été demandé de l'intérieur ;
+- le **LAN** (*Local Area Network*) : le côté « intérieur », nos machines protégées. Par
+  défaut, le LAN peut sortir vers le WAN.
+
+Dans notre lab, ces deux côtés sont deux **réseaux virtuels VMware**, comme deux switchs
+virtuels :
+
+```
+                         PC hôte (Windows)
+             ┌───────────────────┴───────────────────┐
+     carte VMnet8 192.168.30.1            carte VMnet10 10.10.10.1
+             │                                       │
+ ════════ VMnet8 (NAT) ════════          ════════ VMnet10 (host-only) ═════════════
+  192.168.30.0/24 : le « WAN »            10.10.10.0/24 : le « LAN » du lab
+  sortie Internet via le NAT              pas de sortie directe vers Internet
+             │                                       │                    │
+     vmx0 = WAN 192.168.30.131           vmx1 = LAN 10.10.10.254    Wazuh 10.10.10.100
+             └──────────── pfSense ──────────────────┘              (Win11, Kali ensuite)
+```
+
+- **VMnet8 (NAT)** : VMware fait office de box Internet. Les VM de ce réseau sortent sur
+  Internet en partageant l'adresse du PC, comme les appareils derrière une box. pfSense y
+  branche son WAN et reçoit `192.168.30.131` du DHCP de VMware.
+- **VMnet10 (host-only)** : un switch privé entre les VM et le PC, sans accès Internet direct.
+  C'est pfSense qui y distribue les adresses (DHCP `.100`-`.199`) et qui sert de passerelle
+  (`10.10.10.254`) : pour sortir, une VM du LAN passe par pfSense.
+- Le **PC hôte** a une « patte » dans chaque réseau (`192.168.30.1` et `10.10.10.1`). C'est
+  pour cela qu'il peut ouvrir le dashboard Wazuh, et aussi jouer l'attaquant côté WAN.
+
+**Pourquoi le ping de test déclenche une alerte.** `ping 192.168.30.131` part de la carte
+VMnet8 du PC (`192.168.30.1`) et arrive sur le **WAN** de pfSense. Personne ne l'a demandé
+depuis le LAN, donc la règle par défaut du WAN le **bloque** et le **journalise**. Vu de
+pfSense, c'est exactement ce que ferait un attaquant venu d'Internet qui sonde le pare-feu.
+
+**Chemin d'un journal, de pfSense au dashboard :**
+
+```
+1. pfSense bloque le ping sur vmx0 (WAN)
+2. filterlog écrit une ligne : "...,vmx0,match,block,in,4,...,icmp,...,192.168.30.1,192.168.30.131,..."
+3. syslogd de pfSense l'emballe en syslog (RFC 5424) et l'envoie en UDP
+      source 10.10.10.254:514 (vmx1, LAN)  ──▶  destination 10.10.10.100:514
+4. le datagramme traverse le switch VMnet10 et arrive sur eth0 de Wazuh
+5. wazuh-remoted écoute UDP 514, vérifie allowed-ips (10.10.10.254 : accepté)
+6. wazuh-analysisd : pré-décodage → décodeur pfsense-filterlog → règles 100300/100302/100303
+7. l'alerte est écrite dans /var/ossec/logs/alerts/alerts.json
+8. Filebeat la lit et l'envoie à l'indexer (OpenSearch, port 9200)
+9. le dashboard (443) interroge l'indexer ; le navigateur du PC l'affiche via 10.10.10.1
+```
+
+Points à retenir :
+
+- Le ping arrive sur le **WAN**, mais le journal part par le **LAN** : pfSense choisit la
+  carte qui mène à la destination (`10.10.10.100` est sur le LAN). Nous avons aussi fixé
+  *Source Address* = `LAN`.
+- Le PC joint le dashboard **directement** sur VMnet10, sans passer par pfSense : ils sont
+  dans le même sous-réseau `10.10.10.0/24`, donc sur le même « switch ».
+- UDP n'attend pas de réponse : pfSense envoie sans savoir si Wazuh écoute. D'où l'intérêt de
+  `tcpdump` pour vérifier la réception.
+
 ## 2. Mise en œuvre
 
 ### 2.1 Côté Wazuh : ouvrir l'écoute syslog

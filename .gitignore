@@ -20,3 +20,6 @@ Thumbs.db
 .DS_Store
 .vscode/
 .idea/
+
+# Images déposées localement
+install_tools/

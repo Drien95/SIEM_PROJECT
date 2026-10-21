@@ -81,3 +81,41 @@ on peut la réutiliser, en passant sa carte réseau sur VMnet10 pendant les test
 
 Les images restent dans `D:\VM\SIEM_LAB\images\`, hors git (`*.ova` et `*.iso` sont dans
 `.gitignore`).
+
+## Journal de montage
+
+### 2026-10-21 — VM créées (non démarrées)
+
+| VM | Fichier | État |
+|---|---|---|
+| SIEM-Wazuh | `D:\VM\SIEM_LAB\SIEM-Wazuh\SIEM-Wazuh.vmx` | OVA 4.14.9 importée (SHA512 vérifié), correctif AMD ajouté, `virtualHW.version` passé de 99 à 20, carte sur VMnet10. Original : `.vmx.orig`. |
+| SIEM-pfSense | `D:\VM\SIEM_LAB\SIEM-pfSense\SIEM-pfSense.vmx` | 2 vCPU, 2 Go, 20 Go, UEFI ; `vmx0` = NAT (WAN), `vmx1` = VMnet10 (LAN) ; ISO Netgate Installer v1.2 montée. |
+| SIEM-Win11 | `D:\VM\SIEM_LAB\SIEM-Win11\SIEM-Win11.vmx` | 2 vCPU, 4 Go, 64 Go NVMe, UEFI + Secure Boot, carte sur VMnet10 ; ISO Windows 11 FR (build 26300) montée. |
+
+Pour ouvrir une VM : *File > Open* dans VMware, puis choisir le `.vmx`.
+
+### Installation de pfSense
+
+Le **Netgate Installer** télécharge pfSense CE pendant l'installation : le WAN (`vmx0`, NAT)
+doit avoir Internet.
+
+1. Démarrer SIEM-pfSense et suivre l'installeur : WAN = `vmx0` (DHCP), LAN = `vmx1`.
+2. Choisir **pfSense CE** et l'installation par défaut (ZFS).
+3. Après le redémarrage, dans la console : option 2, LAN `10.10.10.254/24`, serveur DHCP
+   activé sur `10.10.10.100`–`10.10.10.199`.
+4. Depuis une VM du LAN : `https://10.10.10.254`, `admin` / `pfsense`, puis assistant et
+   **changement du mot de passe**.
+
+Les interfaces vmxnet3 s'appellent `vmx0` / `vmx1` sous pfSense. Le PDF marxgoo utilise des
+cartes e1000, d'où ses noms `em0` / `em1`.
+
+### Windows 11 sans vTPM
+
+Workstation 17.0 n'offre un TPM virtuel que si la VM est chiffrée. Pour un lab, on
+contourne la vérification au début de l'installation (à valider) :
+
+1. Sur l'écran de sélection de langue : `Maj+F10`, puis `regedit`.
+2. Créer la clé `HKEY_LOCAL_MACHINE\SYSTEM\Setup\LabConfig` avec les DWORD
+   `BypassTPMCheck = 1` et `BypassSecureBootCheck = 1`.
+3. Fermer, puis continuer l'installation. Choisir un **compte local** (« Je n'ai pas
+   Internet » ou `oobe\bypassnro` si l'option manque).

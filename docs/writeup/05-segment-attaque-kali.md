@@ -29,7 +29,7 @@ sa **passerelle**, pfSense. On gagne trois choses :
 | Élément | Valeur |
 |---|---|
 | Réseau VMware | **VMnet11**, host-only, `10.10.20.0/24`, **sans** carte sur l'hôte, **sans** DHCP VMware |
-| pfSense | 3ᵉ carte `vmx2` → interface **OPT1** renommée **ATTACK**, `10.10.20.254/24` |
+| pfSense | 3ᵉ carte `em0` → interface **OPT1** renommée **ATTACK**, `10.10.20.254/24` |
 | DHCP | serveur DHCP de pfSense sur ATTACK, plage `10.10.20.100` à `.199` |
 | Kali | carte réseau sur VMnet11, adresse reçue par DHCP |
 
@@ -81,11 +81,18 @@ de carte associée). Il faut donc bien le créer dans l'éditeur.
 ### 2.2 Ajouter la 3ᵉ carte à pfSense (à faire)
 
 pfSense **éteint** (*Shut Down*, pas *Suspend*) : *VM > Settings > Add… > Network Adapter*,
-*Custom* : **VMnet11**. Démarrer pfSense. La carte apparaît comme `vmx2`.
+*Custom* : **VMnet11**. Démarrer pfSense.
+
+Constaté le 2026-10-21 : la carte apparaît comme **`em0`**, pas `vmx2`. VMware ajoute une
+nouvelle carte avec le modèle par défaut **e1000** (pilote FreeBSD `em`), alors que les deux
+premières sont des **vmxnet3** (pilote `vmx`). Les deux fonctionnent ; vmxnet3 est plus
+performant. Pour l'uniformité, on pourrait mettre `ethernet2.virtualDev = "vmxnet3"` dans
+`SIEM-pfSense.vmx`, VM éteinte, avant l'affectation (la carte deviendrait alors `vmx2`). Choix
+du lab : on garde `em0`, suffisant pour du trafic de test.
 
 ### 2.3 Interface ATTACK et DHCP (à faire)
 
-1. *Interfaces > Assignments* : ajouter `vmx2` → OPT1, *Save*.
+1. *Interfaces > Assignments* : ajouter `em0` → OPT1, *Save*.
 2. *Interfaces > OPT1* : *Enable*, *Description* `ATTACK`, *IPv4 Configuration Type*
    **Static IPv4**, `10.10.20.254` / `24`, *Save*, *Apply Changes*.
 3. *Services > DHCP Server > ATTACK* : *Enable*, plage `10.10.20.100` à `10.10.20.199`,

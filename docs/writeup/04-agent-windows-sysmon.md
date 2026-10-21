@@ -24,7 +24,40 @@ Deux ports, côté manager (voir la [matrice des flux](../architecture.md)) :
 La clé d'agent est stockée dans `client.keys`, des deux côtés. C'est un secret : jamais dans
 git.
 
-### 1.2 Pourquoi Sysmon
+### 1.2 Le réseau : qui voit passer quoi
+
+![Chemins réseau du lab](../diagrams/reseau-chemins.png)
+
+**Switch ou routeur.** VMnet10 est un **switch** virtuel : il relie les machines d'un même
+sous-réseau et livre chaque trame d'après l'**adresse MAC** du destinataire. Quand Windows 11
+(`10.10.10.101`) parle à Wazuh (`10.10.10.100`), il applique son **masque** `/24` : les trois
+premiers nombres sont identiques, la cible est donc « chez lui ». Il demande la MAC de
+`10.10.10.100` à tout le réseau (**ARP**), puis envoie directement. pfSense, branché sur le même
+switch, ne voit **rien** de ce trafic : il n'est pas sur le chemin (scène 1).
+
+**Passer par la passerelle.** Si la cible est sur un autre réseau, la machine envoie le paquet
+à sa **passerelle**, ici pfSense. pfSense est un **routeur** : il reçoit sur une interface,
+applique ses règles (passer, bloquer, journaliser dans `filterlog`) et ressort par une autre
+(scène 2). C'est pourquoi on prévoit de mettre Kali sur son propre réseau VMnet11 : ses
+attaques traverseront pfSense, qui pourra les filtrer et les journaliser.
+
+**Et l'agent sur un autre réseau ?** Il fonctionne, à deux conditions : une route existe
+(pfSense relie les deux réseaux) et les règles autorisent **TCP 1514 et 1515** vers Wazuh.
+L'agent ne dépend pas du sous-réseau, seulement de pouvoir joindre ces ports. C'est le cas
+réel d'une entreprise, où les postes et le SIEM sont rarement sur le même réseau.
+
+**DHCP : comment Windows 11 a obtenu son adresse.** Au démarrage, la VM n'a pas d'adresse. Elle
+diffuse un **DISCOVER** ; le serveur DHCP de pfSense (plage `.100` à `.199`) répond par une
+**OFFER** (adresse, masque, passerelle et DNS `10.10.10.254`) ; la VM la **REQUEST** ; pfSense
+confirme par un **ACK** et enregistre le **bail** (scène 3). Plus tôt, pfSense était éteint :
+personne n'a répondu et Windows s'est attribué seul une adresse **APIPA** `169.254.x.x`, qui ne
+permet de joindre personne. Règle du lab : démarrer pfSense en premier.
+
+**Ce qui reste à faire côté pfSense** : le syslog (writeup 02) et le SSH par clé (writeup 03)
+sont faits. Restent le segment VMnet11 pour Kali (3ᵉ interface et règles) et les règles qui
+font respecter la [matrice des flux](../architecture.md) pour ce qui traverse pfSense.
+
+### 1.3 Pourquoi Sysmon
 
 Les journaux Windows natifs (Security, System, Application) disent surtout **qui** s'est
 connecté. Ils disent mal **ce qui s'est exécuté**. **Sysmon** (System Monitor, Microsoft

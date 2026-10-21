@@ -162,6 +162,21 @@ Accès Internet de Kali : en mode NAT sortant **automatique** (défaut de pfSens
 d'une nouvelle interface est traduit automatiquement vers le WAN. Rien à ajouter
 (*Firewall > NAT > Outbound* pour le vérifier).
 
+**Incident (2026-10-22) : Kali sans adresse.** Kali restait en « getting IP configuration »,
+avec seulement une adresse IPv6 locale. Diagnostic par `ssh siem-pfsense` : `ifconfig em0`
+ne montrait **ni le drapeau `UP` ni l'adresse `10.10.20.254`**. L'interface était enregistrée
+dans la configuration, mais jamais **appliquée** (le bouton *Apply Changes* de la page
+*Interfaces* n'avait pas pris). dhcpd écoutait, mais sur une carte éteinte : les DISCOVER de
+Kali n'arrivaient nulle part. Correction, en appliquant la configuration enregistrée :
+
+```bash
+ssh siem-pfsense 'php -r "require_once(\"config.inc\"); require_once(\"interfaces.inc\"); require_once(\"services.inc\"); require_once(\"filter.inc\"); interface_configure(\"opt1\", true); services_dhcpd_configure(); filter_configure();"'
+ssh siem-pfsense 'ifconfig em0'   # flags=…<UP,…,RUNNING…>  inet 10.10.20.254
+```
+
+Leçon : sur pfSense, « enregistré » (*Save*) n'est pas « appliqué » (*Apply Changes*). Une
+capture d'écran de la page de configuration ne prouve pas l'état réel ; `ifconfig` si.
+
 ### 2.4 Règles : en ligne de commande
 
 Deux voies possibles :

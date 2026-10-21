@@ -14,17 +14,46 @@
   publique** est déposée sur le serveur (`~/.ssh/authorized_keys`). Le serveur envoie un défi,
   que seul le détenteur de la clé privée sait signer. Rien de réutilisable ne passe sur le
   réseau.
-- **ed25519** : algorithme de clé moderne, court et rapide. On protège la clé privée par une
+- **ECDSA P-384** : l'algorithme retenu pour le lab, parce que Wazuh tourne en mode **FIPS**, qui
+  refuse ed25519 (voir § 1.1). On protège la clé privée par une
   **phrase de passe** : volée seule, elle ne suffit pas.
 - Une fois les clés en place, on **désactive le mot de passe** côté serveur : la force brute
   SSH devient inutile. C'est exactement l'attaque que le scénario brute force simulera ensuite.
+
+### 1.1 Le piège FIPS : pourquoi pas ed25519
+
+Première tentative (2026-10-21) avec une clé ed25519 : la clé était bien déposée, bien proposée
+par le client (`ssh -v` : `Offering public key … ED25519`), droits et SELinux corrects
+(`ssh_home_t`), et pourtant Wazuh demandait le mot de passe. Les journaux de sshd donnaient la
+raison :
+
+```
+sshd-session[5039]: userauth_pubkey: signature algorithm ssh-ed25519 not in PubkeyAcceptedAlgorithms [preauth]
+```
+
+et `ssh-keygen -lf ~/.ssh/authorized_keys` sur le serveur : `Ed25519 keys are not allowed in FIPS mode`.
+
+- **FIPS 140** est une norme du gouvernement américain (NIST) qui liste les algorithmes
+  cryptographiques **validés**. En mode FIPS, le système n'accepte que ceux-là : RSA (≥ 2048),
+  ECDSA sur les courbes NIST P-256/P-384/P-521, AES, SHA-2… Ed25519 n'a été ajouté à la norme
+  (FIPS 186-5) qu'en 2023, et les modules cryptographiques validés de la distribution ne
+  l'acceptent pas encore pour SSH. L'OVA Wazuh 4.14.9 (Amazon Linux 2023) est livrée avec ce
+  mode actif, ce qu'on peut vérifier avec `cat /proc/sys/crypto/fips_enabled` (`1` = actif).
+- **Conséquence** : on utilise une clé **ECDSA P-384** (`-t ecdsa -b 384`). Pour garder une seule
+  clé de lab, elle sert aussi pour pfSense, qui l'accepte.
+- **Leçon de méthode** : quand l'authentification par clé échoue, la vérité est dans les
+  journaux du **serveur** (`journalctl -u sshd`), pas dans le client, qui ne voit qu'un refus.
+
+Sources : https://csrc.nist.gov/pubs/fips/186-5/final (FIPS 186-5, ajout d'EdDSA),
+https://docs.aws.amazon.com/linux/al2023/ug/fips-mode.html (mode FIPS d'Amazon Linux 2023).
+Le fait que l'OVA soit livrée en FIPS est constaté dans notre lab, pas lu dans la documentation Wazuh.
 
 **Qui se connecte à quoi** (aligné sur la [matrice des flux](../architecture.md#matrice-des-flux-du-lab-moindre-privilège),
 schéma : [`docs/diagrams/flux-lab.png`](../diagrams/flux-lab.png)) :
 
 | Client | Clé | Vers | Usage |
 |---|---|---|---|
-| Hôte (PC, `10.10.10.1`) | `id_ed25519_siemlab` | Wazuh `wazuh-user@10.10.10.100`, pfSense `admin@10.10.10.254` | administration |
+| Hôte (PC, `10.10.10.1`) | `id_ecdsa_siemlab` | Wazuh `wazuh-user@10.10.10.100`, pfSense `admin@10.10.10.254` | administration |
 | VM Windows 11 (`10.10.10.101`) | aucune | — | poste **cible** : il parle à Wazuh par l'agent (1514/1515), jamais en SSH |
 
 ![Matrice des flux du lab](../diagrams/flux-lab.png)
@@ -44,7 +73,7 @@ schéma : [`docs/diagrams/flux-lab.png`](../diagrams/flux-lab.png)) :
 Sur l'**hôte** :
 
 ```powershell
-ssh-keygen -t ed25519 -f $env:USERPROFILE\.ssh\id_ed25519_siemlab -C "adrien@hote-siemlab"
+ssh-keygen -t ecdsa -b 384 -f $env:USERPROFILE\.ssh\id_ecdsa_siemlab -C "adrien@hote-siemlab"
 ```
 
 Phrase de passe recommandée. La clé privée (sans `.pub`) ne se copie ni ne se versionne jamais.
@@ -55,13 +84,13 @@ Alias ajoutés au `~/.ssh/config` de l'hôte (sauvegarde `config.bak-siemlab`) :
 Host siem-wazuh
     HostName 10.10.10.100
     User wazuh-user
-    IdentityFile ~/.ssh/id_ed25519_siemlab
+    IdentityFile ~/.ssh/id_ecdsa_siemlab
     IdentitiesOnly yes
 
 Host siem-pfsense
     HostName 10.10.10.254
     User admin
-    IdentityFile ~/.ssh/id_ed25519_siemlab
+    IdentityFile ~/.ssh/id_ecdsa_siemlab
     IdentitiesOnly yes
 ```
 
@@ -73,7 +102,7 @@ Windows n'a pas `ssh-copy-id`. Équivalent, depuis l'hôte (le mot de passe est 
 accepté à ce stade) :
 
 ```powershell
-type $env:USERPROFILE\.ssh\id_ed25519_siemlab.pub | ssh wazuh-user@10.10.10.100 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+type $env:USERPROFILE\.ssh\id_ecdsa_siemlab.pub | ssh wazuh-user@10.10.10.100 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
 ```
 
 Contrôle, une ligne par clé (le 3e champ est le commentaire `-C`) :
@@ -176,7 +205,7 @@ Attendu : `Permission denied (publickey…)`. Le mot de passe est bien refusé.
 
 ## 3. pfSense
 
-1. *System > User Manager > admin* : coller le contenu de `id_ed25519_siemlab.pub` (sur l'hôte : `type $env:USERPROFILE\.ssh\id_ed25519_siemlab.pub`) dans
+1. *System > User Manager > admin* : coller le contenu de `id_ecdsa_siemlab.pub` (sur l'hôte : `type $env:USERPROFILE\.ssh\id_ecdsa_siemlab.pub`) dans
    **Authorized SSH Keys**, puis *Save*.
 2. *System > Advanced > Admin Access*, section *Secure Shell* : cocher **Enable Secure Shell**,
    *SSHd Key Only* = **Public Key Only**, puis *Save*.
@@ -199,7 +228,7 @@ L'interface web garde son mot de passe : ce réglage ne concerne que SSH.
 | Clé VM Windows → Wazuh | retirée (hors matrice des flux) | ✅ absente du fichier |
 | Clé Vagrant dans `authorized_keys` de `wazuh-user` | absente | ❌ trouvée, suppression en cours |
 | Clé Vagrant sur `root` et autres comptes | absente | à vérifier |
-| Clé hôte `id_ed25519_siemlab` → Wazuh | session sans mot de passe | déposée (en double, à dédoublonner) ; test à confirmer |
+| Clé hôte `id_ecdsa_siemlab` → Wazuh | session sans mot de passe | ❌ ed25519 refusée (mode FIPS) ; refaite en ECDSA P-384 : à tester |
 | Mot de passe refusé sur Wazuh | `Permission denied (publickey)` | à faire |
 | Connexion par clé à pfSense | menu console pfSense | à faire |
 

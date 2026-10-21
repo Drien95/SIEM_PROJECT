@@ -101,6 +101,8 @@ sudo /var/ossec/bin/wazuh-control restart        # ou : sudo systemctl restart w
 sudo ss -ulpn | grep ':514'                      # attendu : wazuh-remoted à l'écoute en UDP 514
 ```
 
+![remoted en UDP 514](../homelab/screenshots/48-wazuh-remoted-514-firewalld-inactif.png)
+
 Si `firewalld` est actif sur la VM (`sudo systemctl is-active firewalld`), ouvrir le port.
 Sur l'OVA, il n'est a priori pas installé (à vérifier) :
 
@@ -123,6 +125,10 @@ sudo firewall-cmd --permanent --add-port=514/udp && sudo firewall-cmd --reload
 Garder le format de message par défaut (BSD / RFC 3164), attendu par le décodeur natif (à
 valider). Puis *Save*.
 
+![Remote Logging pfSense](../homelab/screenshots/49-pfsense-remote-logging.png)
+
+> Résultat : le format BSD par défaut ne convient pas, voir 2.5. Réglage final : **RFC 5424**.
+
 ### 2.3 Générer du trafic bloqué et vérifier
 
 Depuis l'hôte Windows, viser le **WAN** de pfSense : tout trafic entrant y est bloqué et
@@ -141,6 +147,8 @@ Vérifications, de la source vers l'alerte :
 1. pfSense : *Status > System Logs > Firewall* montre les blocages ICMP sur WAN.
 2. Wazuh reçoit le syslog (si `tcpdump` est présent sur la VM) :
    `sudo tcpdump -ni any udp port 514 -c 5`
+
+   ![tcpdump](../homelab/screenshots/54-wazuh-tcpdump-514.png)
 3. Le décodage fonctionne : `sudo /var/ossec/bin/wazuh-logtest`, puis coller une ligne
    `filterlog` copiée depuis pfSense. Attendu : décodeur `pf`, règle 87700 ou 87701.
 4. Dashboard, *Threat Hunting* : filtre `rule.groups:pfsense` ou `rule.id:87702`.
@@ -173,6 +181,8 @@ un en-tête syslog BSD, que Wazuh sait découper.
 
 Vraie ligne capturée avec `tcpdump -A` (format BSD / RFC 3164, réglage par défaut) :
 
+![tcpdump BSD](../homelab/screenshots/55-wazuh-tcpdump-bsd-sans-hostname.png)
+
 ```
 <134>Oct 21 02:33:00 filterlog[34901]: 1,6,,1000000103,vmx0,match,block,in,4,0x0,,128,22534,0,none,1,icmp,60,192.168.30.1,192.168.30.131,request,1,16140
 ```
@@ -204,6 +214,8 @@ programme :
 
 Mais le pré-décodeur Wazuh 4.14.9 ne reconnaît que le timestamp : pas de hostname, pas de
 `program_name`, « No decoder matched ».
+
+![logtest RFC 5424](../homelab/screenshots/57-wazuh-logtest-rfc5424-aucun-decodeur.png)
 
 **Correctif 2 : décodeur et règles locaux.** On garde le format RFC 5424, où le nom du
 programme apparaît en clair, et on reconnaît la ligne par son contenu.
@@ -253,6 +265,10 @@ PCRE2 dans le `prematch` d'un décodeur parent. On a changé deux choses à la f
 `\s` initial), donc la cause exacte reste à confirmer. Les enfants, eux, fonctionnent bien en
 PCRE2.
 
+| Prematch PCRE2 (échec) | Prematch OS_Regex (succès) |
+|---|---|
+| ![](../homelab/screenshots/58-wazuh-logtest-decodeur-pcre2-echec.png) | ![](../homelab/screenshots/59-wazuh-logtest-decodeur-local-ok.png) |
+
 ### 2.7 Déploiement du correctif
 
 Depuis l'hôte (PowerShell, à la racine du dépôt) :
@@ -299,8 +315,19 @@ règle, index), et ne changer qu'une chose à la fois quand c'est possible.
 | `wazuh-logtest` sur la ligne d'exemple | décodeur `pf`, règle 87701 | ✅ OK : `action: block`, `srcip: 192.168.30.1`, 87701 niveau 5 (logtest affiche « Alert to be generated » ; il n'applique probablement pas `no_log`, déduit) |
 | `wazuh-logtest` sur une vraie ligne pfSense 2.9 (BSD) | idem | ❌ `hostname: 'filterlog[34901]:'`, « No decoder matched » (voir 2.5) |
 | `wazuh-logtest`, décodeur local, ligne RFC 5424 réelle | `pfsense-filterlog`, règle 100302 | ✅ OK : `action: block`, `direction: in`, `interface: vmx0`, `protocol: icmp`, `srcip: 192.168.30.1`, `dstip: 192.168.30.131`, 100302 niveau 5 |
-| Rafale `ping -n 60 -w 200` | alertes 100302, puis **100303** (niveau 10) dans le dashboard | à faire |
+| Rafale `ping -n 60 -w 200` | alertes 100302, puis **100303** (niveau 10) dans le dashboard | ✅ OK : 100302 par paquet, puis **100303** à 04:45:53 (niveau 10, « blocages répétés depuis 192.168.30.1 ») |
 
 Sources : https://documentation.wazuh.com/current/user-manual/capabilities/log-data-collection/syslog.html,
 ruleset Wazuh 4.14 (`0455-pfsense_decoders.xml`, `0540-pfsense_rules.xml`), voir
 [docs/integrations/pfsense.md](../integrations/pfsense.md).
+
+### Preuve finale
+
+![Alertes 100302](../homelab/screenshots/62-wazuh-events-100302.png)
+
+![Alerte 100303](../homelab/screenshots/63-wazuh-alerte-100303.png)
+
+La chaîne complète fonctionne : pfSense, syslog UDP 514, décodeur local `pfsense-filterlog`,
+règles 100302 / 100303, indexer, dashboard. Remarque de lecture : la liste est triée par
+date décroissante, et l'alerte 100303 (04:45:53) apparaît sous les 100302 plus récentes. Il
+faut faire défiler, ou filtrer `rule.id:100303`.

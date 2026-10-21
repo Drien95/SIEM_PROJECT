@@ -49,3 +49,34 @@ de clé API.
 
 Captures volontairement **non versionnées** (mot de passe visible) : les sorties de
 `wazuh-passwords-tool.sh` et de `filebeat test output` de 03:42, 03:43 et 03:47.
+
+### Windows 11 (première tentative) et syslog pfSense
+
+| # | Fichier | Étape |
+|---|---|---|
+| 38 | [38-win11-efi-network-timeout.png](38-win11-efi-network-timeout.png) | Win11 : le firmware EFI tente un démarrage réseau (« Time out ») |
+| 39 | [39-win11-demarrage-iso.png](39-win11-demarrage-iso.png) | Win11 : démarrage sur l'ISO |
+| 40 | [40-win11-langue.png](40-win11-langue.png) | Choix de la langue (Français) |
+| 41 | [41-win11-labconfig-reg-add.png](41-win11-labconfig-reg-add.png) | `Maj+F10` : `reg add …\LabConfig` `BypassTPMCheck` et `BypassSecureBootCheck` |
+| 42 | [42-win11-option-installation.png](42-win11-option-installation.png) | « Installer Windows 11 » |
+| 43 | [43-win11-preparation.png](43-win11-preparation.png) | Préparation de l'installation |
+| 44 | [44-win11-image-pro.png](44-win11-image-pro.png) | Image Windows 11 Professionnel |
+| 45 | [45-win11-disque-64go.png](45-win11-disque-64go.png) | Disque NVMe de 64 Go non alloué |
+| 46 | [46-win11-installation-en-cours.png](46-win11-installation-en-cours.png) | Installation en cours |
+| 47 | [47-wazuh-remote-secure-1514.png](47-wazuh-remote-secure-1514.png) | Bloc `<remote>` existant (agents, TCP 1514) dans `ossec.conf` |
+| 48 | [48-wazuh-remoted-514-firewalld-inactif.png](48-wazuh-remoted-514-firewalld-inactif.png) | `wazuh-remoted` écoute en UDP 514 ; `firewalld` inactif |
+| 49 | [49-pfsense-remote-logging.png](49-pfsense-remote-logging.png) | pfSense : Remote Logging vers `10.10.10.100:514`, System et Firewall Events |
+| 50 | [50-hote-ping-40-timeout.png](50-hote-ping-40-timeout.png) | Premier test : `ping -n 40`, timeouts de 4 s (rythme trop lent) |
+| 51 | [51-win11-dialogue-mise-a-niveau.png](51-win11-dialogue-mise-a-niveau.png) | Win11 : redémarrage sur l'ISO, « mise à niveau » proposée |
+| 52 | [52-win11-pas-de-chargeur.png](52-win11-pas-de-chargeur.png) | Win11 : « No compatible bootloader found » sur le NVMe, installation relancée |
+| 53 | [53-wazuh-threat-hunting-vide.png](53-wazuh-threat-hunting-vide.png) | `rule.groups:pfsense` : aucun résultat |
+| 54 | [54-wazuh-tcpdump-514.png](54-wazuh-tcpdump-514.png) | `tcpdump` : syslog de `10.10.10.254` reçu (~1/s) |
+| 55 | [55-wazuh-tcpdump-bsd-sans-hostname.png](55-wazuh-tcpdump-bsd-sans-hostname.png) | `tcpdump -A` : ligne BSD sans hostname (`filterlog[34901]:`) |
+| 56 | [56-wazuh-tcpdump-rfc5424.png](56-wazuh-tcpdump-rfc5424.png) | `tcpdump -A` : même événement en RFC 5424 |
+| 57 | [57-wazuh-logtest-rfc5424-aucun-decodeur.png](57-wazuh-logtest-rfc5424-aucun-decodeur.png) | logtest RFC 5424 : seul le timestamp, « No decoder matched » |
+| 58 | [58-wazuh-logtest-decodeur-pcre2-echec.png](58-wazuh-logtest-decodeur-pcre2-echec.png) | Décodeur local v1 (prematch PCRE2) : toujours « No decoder matched » |
+| 59 | [59-wazuh-logtest-decodeur-local-ok.png](59-wazuh-logtest-decodeur-local-ok.png) | Décodeur local v2 : `pfsense-filterlog`, champs extraits, règle 100302 |
+| 60 | [60-hote-ping-60-w200.png](60-hote-ping-60-w200.png) | `ping -n 60 -w 200` : 60 paquets bloqués |
+| 61 | [61-wazuh-dashboard-17-alertes.png](61-wazuh-dashboard-17-alertes.png) | Threat Hunting : premières alertes 100302 |
+| 62 | [62-wazuh-events-100302.png](62-wazuh-events-100302.png) | Events : alertes 100302 `192.168.30.1 -> 192.168.30.131 (icmp)` |
+| 63 | [63-wazuh-alerte-100303.png](63-wazuh-alerte-100303.png) | **Alerte 100303** niveau 10 : « blocages répétés depuis 192.168.30.1 (scan probable) » |

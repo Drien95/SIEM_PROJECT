@@ -84,7 +84,7 @@ footer { color: var(--muted); font-size: 13px; }
 
   <figure id="flux">
     <svg viewBox="0 0 1400 1000" role="img" aria-labelledby="svg-title">
-      <title id="svg-title">Matrice des flux du homelab Wazuh : flux autorisés, interdits et prévus entre l'hôte, pfSense, Wazuh, Windows 11 et Kali</title>
+      <title id="svg-title">Matrice des flux du homelab Wazuh : flux autorisés et interdits entre l'hôte, pfSense, Wazuh, Windows 11 et Kali</title>
       <defs>
         <marker id="m-ok" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-ok)"/></marker>
         <marker id="m-atk" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-atk)"/></marker>
@@ -158,7 +158,7 @@ footer { color: var(--muted); font-size: 13px; }
       <path class="flow ok" d="M700 240 V395" marker-end="url(#m-ok)"/>
       <path class="flow ok" d="M1135 445 H762" marker-end="url(#m-ok)"/>
       <path class="flow atk" d="M1180 725 V522" marker-end="url(#m-atk)"/>
-      <path class="flow plan" d="M190 505 V770 H1125" marker-end="url(#m-plan)"/>
+      <path class="flow ok" d="M190 505 V770 H1125" marker-end="url(#m-ok)"/>
 
       <!-- Flux interdits -->
       <path class="flow no" d="M1135 492 H762" marker-end="url(#m-no)"/>
@@ -233,14 +233,15 @@ footer { color: var(--muted); font-size: 13px; }
       <text x="665" y="560" text-anchor="end" class="b t-no">Wazuh n'initie rien</text>
       <text x="665" y="576" text-anchor="end" class="t-no">il reçoit seulement</text>
 
-      <g class="badge" transform="translate(560 770)"><circle r="11" style="fill: var(--f-plan)"/><text>7</text></g>
-      <text x="580" y="760" class="b t-plan">SSH 22 · piloter Kali (clé, route via pfSense)</text>
+      <g class="badge" transform="translate(560 770)"><circle r="11" style="fill: var(--f-ok)"/><text>7</text></g>
+      <text x="580" y="760" class="b t-ok">SSH 22 · piloter Kali (clé seule)</text>
+      <text x="580" y="790" class="t-ok" style="font-size: 12px">route persistante via pfSense · LAN → ATTACK</text>
 
       <!-- Légende -->
       <g transform="translate(30 915)">
         <text x="0" y="0" class="ztitle muted">LÉGENDE</text>
         <path class="flow ok" d="M0 26 H40" marker-end="url(#m-ok)"/><text x="52" y="30">flux autorisé</text>
-        <path class="flow plan" d="M0 52 H40" marker-end="url(#m-plan)"/><text x="52" y="56">autorisé, pas encore en place</text>
+        <text x="1340" y="30" text-anchor="end" class="muted">SSH : une clé ECDSA P-384 de l'hôte vers pfSense, Wazuh, Kali</text>
         <path class="flow atk" d="M300 26 H340" marker-end="url(#m-atk)"/><text x="352" y="30">attaque autorisée (lab uniquement)</text>
         <path class="flow no" d="M300 52 H340" marker-end="url(#m-no)"/><text x="352" y="56">interdit</text>
         <use href="#x-no" x="404" y="41" width="22" height="22"/>
@@ -262,7 +263,7 @@ footer { color: var(--muted); font-size: 13px; }
         <li><strong>Windows 11 → Wazuh</strong> 1514 et 1515/TCP : l'agent, en place (writeup 04).</li>
         <li><strong>Kali → Windows 11</strong> : les attaques des scénarios, dans le lab seulement. Règle 2 de l'interface ATTACK, journalisée.</li>
         <li><strong>Kali → pfSense</strong> 53 et <strong>Internet</strong> 80, 443 : DNS et mises à jour (règles 1, 6, 7), sans journal.</li>
-        <li><strong>Hôte → Kali</strong> 22 par clé (<code>ssh siem-kali</code>). L'hôte n'a pas de carte sur VMnet11 : il passe par pfSense grâce à une route vers <code>10.10.20.0/24</code> par <code>10.10.10.254</code> (writeup 05, § 2.7). Kali ne peut pas ouvrir de connexion vers l'hôte (règle 3).</li>
+        <li><strong>Hôte → Kali</strong> 22 par clé (<code>ssh siem-kali</code>). L'hôte n'a pas de carte sur VMnet11 : il passe par pfSense grâce à une route vers <code>10.10.20.0/24</code> par <code>10.10.10.254</code> (writeup 05, § 2.7). pfSense laisse passer le SSH de LAN vers ATTACK et garde la connexion dans sa table d'états : les réponses de Kali reviennent, mais Kali ne peut pas ouvrir de connexion vers l'hôte (règle 3).</li>
       </ol>
     </section>
     <section class="card" style="--c: var(--f-no)">

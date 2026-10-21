@@ -163,6 +163,10 @@ footer { color: var(--muted); font-size: 13px; }
       <h2>L'angle mort assumé</h2>
       <p>Les règles 1, 6 et 7 (DNS, HTTP, HTTPS vers Internet) ne journalisent pas, pour éviter le bruit des mises à jour. Conséquence pour l'analyste : une exfiltration de Kali en HTTPS (paquet D) n'apparaît pas dans Wazuh. À activer le temps d'un scénario si besoin.</p>
     </section>
+    <section class="card" style="--c: var(--pass)">
+      <h2>Et le SSH de l'hôte vers Kali ?</h2>
+      <p>L'hôte pilote Kali par <code>ssh siem-kali</code> (clé seule), grâce à une route persistante vers <code>10.10.20.0/24</code> par <code>10.10.10.254</code>. Le SYN entre par l'interface <strong>LAN</strong> et passe par sa règle « allow LAN to any » ; pfSense crée une entrée dans sa table d'états. Les réponses de Kali correspondent à cette entrée et repassent <strong>sans être évaluées par les règles ATTACK</strong>. Si Kali tente d'ouvrir une connexion vers l'hôte, il n'y a pas d'entrée d'état : la règle 3 la bloque.</p>
+    </section>
   </div>
 
   <footer>Source : <code>docs/diagrams/regles-attack.html</code> du dépôt SIEM_PROJECT ; règles dans <code>configs/pfsense/regles-attack.php</code> et le writeup 05. Kali a une réservation DHCP sur pfSense : <code>10.10.20.10</code>. Ports de destination des exemples choisis pour l'illustration.</footer>

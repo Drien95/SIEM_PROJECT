@@ -38,3 +38,14 @@ de clé API.
 | 27 | [27-pfsense-assistant-wan-dhcp-suite.png](27-pfsense-assistant-wan-dhcp-suite.png) | WAN : paramètres DHCP / PPPoE laissés vides |
 | 28 | [28-pfsense-assistant-wan-rfc1918-bogons.png](28-pfsense-assistant-wan-rfc1918-bogons.png) | RFC1918 et bogons (valeurs par défaut ; RFC1918 ensuite décoché) |
 | 29 | [29-pfsense-assistant-lan.png](29-pfsense-assistant-lan.png) | LAN `10.10.10.254/24` |
+| 30 | [30-wazuh-console-connexion.png](30-wazuh-console-connexion.png) | Connexion console `wazuh-user` (bannière de l'OVA avec les identifiants par défaut publics) |
+| 31 | [31-wazuh-dashboard-inactif.png](31-wazuh-dashboard-inactif.png) | `wazuh-indexer` actif, `wazuh-dashboard` « inactive (dead) » ; mémoire libre |
+| 32 | [32-wazuh-dashboard-enable.png](32-wazuh-dashboard-enable.png) | `systemctl enable --now wazuh-dashboard` |
+| 33 | [33-wazuh-flood-stage-read-only.png](33-wazuh-flood-stage-read-only.png) | Index patterns refusés : flood-stage watermark, index en lecture seule |
+| 34 | [34-wazuh-disque-25g-plein.png](34-wazuh-disque-25g-plein.png) | `sda1` de 25 Go sur un disque de 50 Go, pleine à 100 % |
+| 35 | [35-wazuh-growpart-xfs-growfs.png](35-wazuh-growpart-xfs-growfs.png) | `growpart` + `xfs_growfs` : `/` passe à 50 Go (51 %) |
+| 36 | [36-wazuh-curl-all-403.png](36-wazuh-curl-all-403.png) | Déblocage sur `_all` refusé (403, index de sécurité protégé) |
+| 37 | [37-wazuh-curl-index-acknowledged.png](37-wazuh-curl-index-acknowledged.png) | Déblocage sur `wazuh-*,.kibana*` : `{"acknowledged":true}` |
+
+Captures volontairement **non versionnées** (mot de passe visible) : les sorties de
+`wazuh-passwords-tool.sh` et de `filebeat test output` de 03:42, 03:43 et 03:47.

@@ -56,3 +56,47 @@ Synthèse des deux labs de référence (voir [sources.md](sources.md)). Proposit
 Hyperviseur : VMware Workstation ou VirtualBox. Réseau : mode **pont** (UsmanPrime) pour
 que l'hôte joigne la VM, ou réseau host-only/NAT dédié pour isoler les attaques
 (recommandation de notre part, à valider).
+
+## Matrice des flux du lab (moindre privilège)
+
+Principe : chaque machine n'ouvre que les flux dont elle a besoin. Tout le reste est refusé.
+Décidé le 2026-10-21 pour notre homelab (voir [homelab/plan.md](homelab/plan.md)).
+
+| Source | Destination | Port / proto | Usage | État |
+|---|---|---|---|---|
+| Hôte `10.10.10.1` | pfSense `10.10.10.254` | 443/tcp, 22/tcp (clé) | administration | 443 OK, 22 à activer |
+| Hôte `10.10.10.1` | Wazuh `10.10.10.100` | 443/tcp, 22/tcp (clé) | dashboard, administration | OK |
+| pfSense `10.10.10.254` | Wazuh `10.10.10.100` | 514/udp | syslog du pare-feu | ✅ validé (writeup 02) |
+| Windows 11 `10.10.10.101` | Wazuh `10.10.10.100` | 1514/tcp, 1515/tcp | agent : événements, enrôlement | à faire |
+| Kali | Windows 11 | ports attaqués (22, 3389, 445…) | scénarios | plus tard |
+| Hôte | Kali | 22/tcp | piloter Kali (optionnel) | plus tard |
+| LAN | Internet via pfSense | 80, 443, 53 | mises à jour | OK (règle LAN par défaut) |
+
+À **ne pas** autoriser :
+
+- Kali vers Wazuh ou pfSense (22, 443, 55000) : l'attaquant ne doit pas atteindre la
+  supervision ;
+- Wazuh vers les postes : le manager reçoit, il n'initie rien ;
+- Windows 11 vers Wazuh en SSH (22) : Windows est la **cible** du lab ; s'il est compromis, sa
+  clé SSH donne l'accès au SIEM. Recommandation : agent seulement (1514/1515). Adrien a demandé
+  ce flux ; à trancher, et si on le garde, révoquer la clé dès qu'elle ne sert plus.
+
+### Qui peut faire respecter cette matrice ?
+
+Point clé : **pfSense ne voit pas le trafic interne au LAN**. Windows 11, Wazuh, Kali et l'hôte
+sont sur le même switch virtuel (VMnet10, même sous-réseau `10.10.10.0/24`). Entre eux, les
+paquets vont directement de machine à machine sans passer par la passerelle. Une règle pfSense
+ne peut donc filtrer que :
+
+- ce qui sort vers Internet ou le WAN ;
+- ce qui vise pfSense lui-même (22, 443).
+
+Pour filtrer à l'intérieur du LAN, deux options (à décider) :
+
+1. **Pare-feu local sur chaque machine** : `firewalld` sur Wazuh, qui n'accepte 22 que depuis
+   l'hôte, 1514/1515 que depuis les agents et 514 que depuis pfSense ; pare-feu Windows sur
+   Windows 11.
+2. **Segmenter le réseau** (recommandé pour la suite) : mettre Kali sur un réseau virtuel séparé
+   (par exemple VMnet11, une 3ᵉ carte sur pfSense), pour que ses attaques **traversent**
+   pfSense. Elles sont alors filtrées, journalisées et visibles dans Wazuh, comme dans une vraie
+   architecture où l'attaquant vient de l'extérieur.

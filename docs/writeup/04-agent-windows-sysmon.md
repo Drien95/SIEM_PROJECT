@@ -28,6 +28,9 @@ git.
 
 ![Chemins réseau du lab](../diagrams/reseau-chemins.png)
 
+Pour voir ces échanges paquet par paquet (ARP, DORA, enrôlement de l'agent), voir le
+[simulateur de paquets](annexe-simulateur-paquets.md).
+
 **Switch ou routeur.** VMnet10 est un **switch** virtuel : il relie les machines d'un même
 sous-réseau et livre chaque trame d'après l'**adresse MAC** du destinataire. Quand Windows 11
 (`10.10.10.101`) parle à Wazuh (`10.10.10.100`), il applique son **masque** `/24` : les trois

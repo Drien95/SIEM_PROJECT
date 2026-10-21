@@ -1,0 +1,977 @@
+<title>Simulateur de paquets du lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Mise en page : mode « Simulation » de Packet Tracer. Choix du scénario, canevas animé + panneau de lecture du paquet, puis liste d'événements et lecture SOC. */
+:root {
+  --bg: #f3f5f8;
+  --canvas: #ffffff;
+  --fg: #1c2633;
+  --muted: #5a6778;
+  --line: #d5dbe3;
+  --soft: #eef1f5;
+  --cable: #27313d;
+  --wan: #c46a1b;
+  --wan-bg: #fdf3e8;
+  --lan: #2c8a4b;
+  --lan-bg: #ecf7ef;
+  --host: #4d6a8f;
+  --host-bg: #eef2f8;
+  --kali: #3b6fd0;
+  --kali-bg: #edf2fc;
+  --accent: #2f6fb7;
+  --ok: #23854a;
+  --bad: #d23c3c;
+  --changed: #fff1c7;
+  --changed-fg: #7a5200;
+  --f-ping: #d23c3c;
+  --f-syslog: #7445c9;
+  --f-dash: #0b8587;
+  --p-arp: #c48a00;
+  --p-dhcp: #2f6fb7;
+  --p-dns: #2c8a4b;
+  --p-agent: #b5478f;
+  --p-ssh: #3a4757;
+  --p-tcp: #4d6a8f;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --soft: #1f2833;
+    --cable: #c9d3de; --wan: #e9954d; --wan-bg: #2a2119; --lan: #5cc27d; --lan-bg: #17271d;
+    --host: #8fb0d8; --host-bg: #1a2230; --kali: #7fa6f0; --kali-bg: #19213a; --accent: #6fa8ea;
+    --ok: #5cc27d; --bad: #ff6b6b; --changed: #4a3b12; --changed-fg: #ffd77a;
+    --f-ping: #ff6b6b; --f-syslog: #a98bf0; --f-dash: #3cc6c8;
+    --p-arp: #e8b53a; --p-dhcp: #6fa8ea; --p-dns: #5cc27d; --p-agent: #e07bbf; --p-ssh: #b9c4d2; --p-tcp: #8fb0d8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --soft: #1f2833;
+  --cable: #c9d3de; --wan: #e9954d; --wan-bg: #2a2119; --lan: #5cc27d; --lan-bg: #17271d;
+  --host: #8fb0d8; --host-bg: #1a2230; --kali: #7fa6f0; --kali-bg: #19213a; --accent: #6fa8ea;
+  --ok: #5cc27d; --bad: #ff6b6b; --changed: #4a3b12; --changed-fg: #ffd77a;
+  --f-ping: #ff6b6b; --f-syslog: #a98bf0; --f-dash: #3cc6c8;
+  --p-arp: #e8b53a; --p-dhcp: #6fa8ea; --p-dns: #5cc27d; --p-agent: #e07bbf; --p-ssh: #b9c4d2; --p-tcp: #8fb0d8;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 22px 40px;
+}
+.wrap { max-width: 1440px; margin: 0 auto; display: grid; gap: 16px; }
+header { display: grid; gap: 4px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(22px, 2.6vw, 30px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 80ch; color: var(--muted); }
+code, .mono { font-family: var(--font-mono); font-size: .9em; }
+
+/* Choix du scénario */
+.scenarios { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.scenarios button {
+  font: inherit; font-size: 14px; cursor: pointer; color: var(--fg); background: var(--canvas);
+  border: 1px solid var(--line); border-radius: 4px; padding: 6px 12px; display: inline-flex; gap: 8px; align-items: center;
+}
+.scenarios button:hover { border-color: var(--accent); }
+.scenarios button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 -3px 0 var(--accent); font-weight: 600; }
+.scenarios .sw { width: 10px; height: 10px; border-radius: 2px; background: var(--c); flex: none; }
+.scenarios .tag { font-family: var(--font-mono); font-size: 11px; color: var(--muted); border: 1px dashed var(--line); border-radius: 3px; padding: 0 4px; font-weight: 400; }
+button:focus-visible, select:focus-visible, tr:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Scène : canevas + panneau */
+.stage { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 16px; align-items: start; }
+.board { display: grid; gap: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; min-width: 0; }
+.board .scroll { overflow-x: auto; }
+#canvas { display: block; width: 100%; min-width: 720px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 12px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .zt { font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+.cable { stroke: var(--cable); stroke-width: 2.2; fill: none; }
+.cable.planned { stroke-dasharray: 7 6; }
+.dim { opacity: .28; }
+.node.off .icon { opacity: .3; filter: grayscale(1); }
+.ring { fill: none; stroke: var(--accent); stroke-width: 3; opacity: .9; }
+@media (prefers-reduced-motion: no-preference) { .ring { animation: pulse 1.4s ease-in-out infinite; } }
+@keyframes pulse { 50% { stroke-opacity: .25; } }
+.pkt rect { stroke: var(--canvas); stroke-width: 1.5; }
+.pkt path { stroke: #fff; stroke-width: 1.6; fill: none; }
+.pkt text { font-family: var(--font-mono); font-size: 11px; font-weight: 600; text-anchor: middle; }
+.badge text { font-weight: 700; text-anchor: middle; dominant-baseline: central; font-size: 13px; }
+.badge .lbl { font-family: var(--font-mono); font-size: 11px; font-weight: 600; dominant-baseline: auto; }
+
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--line); }
+.controls button, .controls select {
+  font: inherit; font-size: 14px; color: var(--fg); background: var(--soft); border: 1px solid var(--line); border-radius: 4px;
+  padding: 6px 12px; cursor: pointer; min-height: 34px;
+}
+.controls button:hover { border-color: var(--accent); }
+.controls #play { background: var(--accent); color: var(--canvas); border-color: var(--accent); font-weight: 600; min-width: 112px; }
+.controls .spacer { flex: 1; }
+.controls label { color: var(--muted); font-size: 13px; display: inline-flex; gap: 6px; align-items: center; }
+.progress { flex-basis: 100%; height: 4px; background: var(--soft); border-radius: 2px; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s; }
+.counter { font-family: var(--font-mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+aside { display: grid; gap: 12px; min-width: 0; }
+.card { background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0; }
+.card h2 { margin: 0; font-size: 13px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+.card h3 { margin: 0; font-size: 18px; line-height: 1.25; text-wrap: balance; }
+.card p { margin: 0; }
+#explain { border-top: 4px solid var(--c, var(--accent)); }
+#explain .txt { display: grid; gap: 8px; }
+.route { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.layers { display: grid; gap: 8px; }
+.layer { border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.layer b { display: block; font-size: 12px; padding: 4px 8px; background: var(--soft); border-bottom: 1px solid var(--line); }
+.layer dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); }
+.layer dt, .layer dd { margin: 0; padding: 3px 8px; font-size: 13px; }
+.layer dt { color: var(--muted); }
+.layer dd { font-family: var(--font-mono); font-size: 12.5px; overflow-wrap: anywhere; }
+.layer .chg { background: var(--changed); color: var(--changed-fg); }
+.layer dd.chg::after { content: " modifié"; font-family: var(--font-sans); font-size: 11px; font-weight: 600; }
+.empty { color: var(--muted); font-size: 14px; }
+.tables { display: grid; gap: 8px; }
+.tables div b { font-size: 12px; color: var(--muted); }
+.tables ul { margin: 2px 0 0; padding: 0; list-style: none; font-family: var(--font-mono); font-size: 12.5px; }
+.tables li { padding: 2px 0; border-bottom: 1px dashed var(--line); overflow-wrap: anywhere; }
+
+/* Bas de page : liste d'événements + lecture SOC */
+.lower { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.events { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-family: var(--font-mono); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+td.n { font-family: var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+tbody tr { cursor: pointer; }
+tbody tr.future { color: var(--muted); }
+tbody tr.cur { background: var(--soft); box-shadow: inset 3px 0 0 var(--accent); }
+.sq { display: inline-block; width: 11px; height: 11px; border-radius: 2px; background: var(--c); vertical-align: -1px; margin-right: 6px; }
+.res-ok { color: var(--ok); font-weight: 600; } .res-drop { color: var(--bad); font-weight: 600; }
+.soc ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.soc pre { margin: 0; font-family: var(--font-mono); font-size: 12.5px; background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; overflow-x: auto; white-space: pre; }
+footer { color: var(--muted); font-size: 13px; }
+
+@media (max-width: 1100px) {
+  .stage, .lower { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · homelab · mode simulation</span>
+    <h1>Simulateur de paquets du lab</h1>
+    <p>Comme le mode Simulation de Cisco Packet Tracer : choisis un scénario, puis avance paquet par paquet. À chaque étape, le panneau montre les en-têtes (MAC, IP, ports) et ce que fait l'équipement traversé.</p>
+  </header>
+
+  <ul class="scenarios" id="scenarios" aria-label="Scénarios"></ul>
+
+  <section class="stage">
+    <div class="board">
+      <div class="scroll">
+        <svg id="canvas" viewBox="0 0 1200 650" role="img" aria-labelledby="cv-title">
+          <title id="cv-title">Topologie du lab : Internet, NAT VMware, pfSense, switch VMnet10 avec Wazuh, Windows 11 et le PC hôte, segment Kali prévu</title>
+          <defs>
+            <symbol id="i-cloud" viewBox="-100 -55 200 110" overflow="visible">
+              <path d="M-70 35 C-98 35 -98 -2 -70 -4 C-72 -32 -38 -44 -20 -26 C-10 -52 34 -50 40 -22 C66 -30 88 -6 74 12 C96 16 92 35 70 35 Z" fill="#dfeefc" stroke="#4f86c6" stroke-width="3"/>
+            </symbol>
+            <symbol id="i-switch" viewBox="-55 -30 110 60" overflow="visible">
+              <polygon points="-50,-8 -34,-24 52,-24 36,-8" fill="#6aa6e4"/>
+              <polygon points="36,-8 52,-24 52,4 36,20" fill="#1e4f8a"/>
+              <rect x="-50" y="-8" width="86" height="28" fill="#2f6fb7"/>
+              <g stroke="#ffffff" stroke-width="2.2" fill="none" stroke-linecap="round">
+                <path d="M-26 -12 L-6 -12 M-12 -15.5 L-6 -12 L-12 -8.5"/>
+                <path d="M24 -19 L4 -19 M10 -22.5 L4 -19 L10 -15.5"/>
+                <path d="M-20 -19 L0 -19 M-14 -22.5 L-20 -19 L-14 -15.5"/>
+                <path d="M30 -12 L10 -12 M24 -15.5 L30 -12 L24 -8.5"/>
+              </g>
+              <g fill="#bcd6f2"><rect x="-42" y="6" width="7" height="6"/><rect x="-31" y="6" width="7" height="6"/><rect x="-20" y="6" width="7" height="6"/><rect x="-9" y="6" width="7" height="6"/><rect x="2" y="6" width="7" height="6"/><rect x="13" y="6" width="7" height="6"/><rect x="24" y="6" width="7" height="6"/></g>
+            </symbol>
+            <symbol id="i-firewall" viewBox="-55 -45 110 90" overflow="visible">
+              <polygon points="-44,-22 -30,-36 50,-36 36,-22" fill="#e46b55"/>
+              <polygon points="36,-22 50,-36 50,26 36,40" fill="#7d2417"/>
+              <rect x="-44" y="-22" width="80" height="62" fill="#b8392a"/>
+              <g stroke="#f4c9bf" stroke-width="1.6">
+                <path d="M-44 -6 H36 M-44 10 H36 M-44 25 H36"/>
+                <path d="M-24 -22 V-6 M4 -22 V-6 M-38 -6 V10 M-10 -6 V10 M18 -6 V10 M-24 10 V25 M4 10 V25 M-38 25 V40 M-10 25 V40 M18 25 V40"/>
+              </g>
+            </symbol>
+            <symbol id="i-server" viewBox="-35 -50 70 100" overflow="visible">
+              <polygon points="-24,-34 -12,-46 30,-46 18,-34" fill="#9aa9bd"/>
+              <polygon points="18,-34 30,-46 30,34 18,46" fill="#3e4b5c"/>
+              <rect x="-24" y="-34" width="42" height="80" fill="#64748a"/>
+              <g fill="#2a3442"><rect x="-18" y="-26" width="30" height="7"/><rect x="-18" y="-15" width="30" height="7"/><rect x="-18" y="-4" width="30" height="7"/></g>
+              <circle cx="-12" cy="30" r="3" fill="#57e389"/><circle cx="-2" cy="30" r="3" fill="#f5c542"/>
+            </symbol>
+            <symbol id="i-pc" viewBox="-40 -40 80 80" overflow="visible">
+              <rect x="-32" y="-32" width="64" height="44" rx="3" fill="#33414f"/>
+              <rect x="-27" y="-27" width="54" height="34" fill="#8cc4f0"/>
+              <rect x="-5" y="12" width="10" height="9" fill="#5b6876"/>
+              <rect x="-20" y="21" width="40" height="5" rx="2" fill="#33414f"/>
+              <rect x="-30" y="29" width="60" height="7" rx="2" fill="#a6b2bf"/>
+            </symbol>
+            <symbol id="i-kali" viewBox="-40 -40 80 80" overflow="visible">
+              <rect x="-32" y="-32" width="64" height="44" rx="3" fill="#33414f"/>
+              <rect x="-27" y="-27" width="54" height="34" fill="#1d2b3a"/>
+              <path d="M-18 0 C-8 -18 10 -20 18 -8 M6 -12 L14 -2" stroke="#4fa3f7" stroke-width="2.4" fill="none"/>
+              <rect x="-5" y="12" width="10" height="9" fill="#5b6876"/>
+              <rect x="-20" y="21" width="40" height="5" rx="2" fill="#33414f"/>
+              <rect x="-30" y="29" width="60" height="7" rx="2" fill="#a6b2bf"/>
+            </symbol>
+          </defs>
+          <g id="zones"></g>
+          <g id="cables"></g>
+          <g id="rings"></g>
+          <g id="nodes"></g>
+          <g id="badges"></g>
+          <g id="packets"></g>
+        </svg>
+      </div>
+      <div class="controls">
+        <button id="reset" type="button" title="Revenir au début du scénario">⟲ Début</button>
+        <button id="prev" type="button" title="Étape précédente (←)">◀ Précédent</button>
+        <button id="play" type="button" title="Lecture ou pause (espace)">▶ Lecture</button>
+        <button id="next" type="button" title="Étape suivante (→)">Suivant ▶</button>
+        <span class="spacer"></span>
+        <label for="speed">Vitesse
+          <select id="speed">
+            <option value="0.5">0,5×</option>
+            <option value="1" selected>1×</option>
+            <option value="2">2×</option>
+          </select>
+        </label>
+        <span class="counter" id="counter">0 / 0</span>
+        <div class="progress"><i id="bar"></i></div>
+      </div>
+    </div>
+
+    <aside>
+      <div class="card" id="explain" aria-live="polite">
+        <h2 id="ex-step">Scénario</h2>
+        <h3 id="ex-title"></h3>
+        <div class="route" id="ex-route"></div>
+        <div class="txt" id="ex-text"></div>
+      </div>
+      <div class="card">
+        <h2>Le paquet sur le câble</h2>
+        <div class="layers" id="pdu"></div>
+      </div>
+      <div class="card" id="tables-card" hidden>
+        <h2>Tables des équipements</h2>
+        <div class="tables" id="tables"></div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="lower">
+    <div class="card events">
+      <h2>Liste des événements</h2>
+      <table>
+        <thead><tr><th>#</th><th>De</th><th>À</th><th>Type</th><th>Résultat</th></tr></thead>
+        <tbody id="events"></tbody>
+      </table>
+    </div>
+    <div class="card soc">
+      <h2>Pour l'analyste SOC</h2>
+      <ul id="soc"></ul>
+      <h2>Le voir dans le vrai lab</h2>
+      <pre id="verify"></pre>
+    </div>
+  </section>
+
+  <footer>Source : <code>docs/diagrams/simulateur-paquets.html</code> du dépôt SIEM_PROJECT. IP du lab réelles. Adresses MAC d'exemple au format VMware (<code>00:0c:29</code> pour les VM, <code>00:50:56:c0:00:0a</code> pour la carte VMnet10 de l'hôte) : relever les vraies avec <code>arp -a</code>. <code>203.0.113.10</code> est une adresse de documentation qui remplace l'IP réelle du site. Le segment Kali (VMnet11, <code>10.10.20.0/24</code>) est prévu, pas encore construit.</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Topologie ---------- */
+  const NODES = {
+    inet: { x: 110, y: 80, icon: "cloud", w: 180, h: 99, name: "Internet" },
+    sw8:  { x: 110, y: 300, icon: "switch", w: 110, h: 60, name: "VMnet8 / NAT" },
+    pf:   { x: 400, y: 300, icon: "firewall", w: 110, h: 90, name: "pfSense" },
+    sw10: { x: 740, y: 300, icon: "switch", w: 110, h: 60, name: "Switch VMnet10" },
+    wazuh:{ x: 980, y: 175, icon: "server", w: 70, h: 100, name: "Wazuh", bx: -62, by: -48 },
+    win:  { x: 980, y: 455, icon: "pc", w: 80, h: 80, name: "Windows 11", bx: -64, by: -44 },
+    host: { x: 400, y: 540, icon: "pc", w: 80, h: 80, name: "PC hôte" },
+    sw11: { x: 400, y: 95, icon: "switch", w: 110, h: 60, name: "Switch VMnet11", planned: true },
+    kali: { x: 530, y: 95, icon: "kali", w: 80, h: 80, name: "Kali", planned: true }
+  };
+  const LABELS = [
+    { at: [110, 86], t: "Internet", cls: "b", anchor: "middle", style: "fill: #1c2633" },
+    { at: [125, 352], t: "VMnet8 · NAT VMware", cls: "b" },
+    { at: [125, 368], t: "passerelle 192.168.30.2", cls: "mono" },
+    { at: [400, 372], t: "pfSense CE 2.9.0", cls: "b", anchor: "middle" },
+    { at: [400, 388], t: "routeur · DHCP · DNS", cls: "muted", anchor: "middle" },
+    { at: [165, 290], t: "vmx0 · 192.168.30.131", cls: "mono" },
+    { at: [458, 290], t: "vmx1 · 10.10.10.254", cls: "mono" },
+    { at: [412, 205], t: "vmx2 · 10.10.20.254", cls: "mono", planned: true },
+    { at: [722, 252], t: "Switch VMnet10", cls: "b", anchor: "end" },
+    { at: [722, 268], t: "10.10.10.0/24", cls: "mono", anchor: "end" },
+    { at: [1040, 140], t: "Wazuh 4.14.9", cls: "b" },
+    { at: [1040, 157], t: "10.10.10.100", cls: "mono b" },
+    { at: [1040, 175], t: "1514-1515/tcp agent", cls: "mono" },
+    { at: [1040, 191], t: "514/udp syslog", cls: "mono" },
+    { at: [1040, 207], t: "443 · 22 · 55000/tcp", cls: "mono" },
+    { at: [1040, 440], t: "Windows 11", cls: "b" },
+    { at: [1040, 457], t: "10.10.10.101", cls: "mono b" },
+    { at: [1040, 474], t: "agent 001 SIEM-Win11", cls: "muted" },
+    { at: [400, 604], t: "PC hôte (Windows, VMware)", cls: "b", anchor: "middle" },
+    { at: [400, 621], t: "VMnet10 10.10.10.1 · VMnet8 192.168.30.1", cls: "mono", anchor: "middle" },
+    { at: [445, 152], t: "Kali Linux (prévu)", cls: "b", planned: true },
+    { at: [445, 168], t: "10.10.20.10", cls: "mono b", planned: true }
+  ];
+  const LINKS = [
+    { a: "inet", b: "sw8", pts: [[110, 80], [110, 300]] },
+    { a: "sw8", b: "pf", pts: [[110, 300], [400, 300]] },
+    { a: "pf", b: "sw10", pts: [[400, 300], [740, 300]] },
+    { a: "sw10", b: "wazuh", pts: [[740, 300], [980, 175]] },
+    { a: "sw10", b: "win", pts: [[740, 300], [980, 455]] },
+    { a: "host", b: "sw10", pts: [[400, 540], [740, 540], [740, 300]] },
+    { a: "host", b: "sw8", pts: [[400, 540], [110, 540], [110, 300]] },
+    { a: "pf", b: "sw11", pts: [[400, 300], [400, 95]], planned: true },
+    { a: "sw11", b: "kali", pts: [[400, 95], [530, 95]], planned: true }
+  ];
+
+  /* ---------- Protocoles (couleur de l'enveloppe) ---------- */
+  const PROTO = {
+    arp: { n: "ARP", c: "var(--p-arp)" },
+    dhcp: { n: "DHCP", c: "var(--p-dhcp)" },
+    icmp: { n: "ICMP", c: "var(--f-ping)" },
+    dns: { n: "DNS", c: "var(--p-dns)" },
+    tcp: { n: "TCP", c: "var(--p-tcp)" },
+    https: { n: "HTTPS", c: "var(--f-dash)" },
+    syslog: { n: "Syslog", c: "var(--f-syslog)" },
+    enroll: { n: "1515", c: "var(--p-agent)" },
+    agent: { n: "1514", c: "var(--p-agent)" },
+    ssh: { n: "SSH", c: "var(--p-ssh)" },
+    think: { n: "Décision", c: "var(--muted)" }
+  };
+
+  /* ---------- Adresses ---------- */
+  const M = {
+    win: "00:0c:29:3a:51:0b", wazuh: "00:0c:29:7e:10:64", pfLan: "00:0c:29:c4:0a:fe", pfWan: "00:0c:29:c4:0a:f4",
+    pfKali: "00:0c:29:c4:0a:08", host10: "00:50:56:c0:00:0a", host8: "00:50:56:c0:00:08", nat: "00:50:56:e2:4d:91",
+    kali: "00:0c:29:9b:20:0a", bc: "ff:ff:ff:ff:ff:ff (diffusion)", zero: "00:00:00:00:00:00"
+  };
+  const ETH = (s, d, t) => ({ n: "Ethernet II · couche 2", f: [["MAC source", s], ["MAC destination", d], ["EtherType", t]] });
+  const IP4 = (s, d, ttl, p) => ({ n: "IPv4 · couche 3", f: [["IP source", s], ["IP destination", d], ["TTL", ttl], ["Protocole", p]] });
+  const UDP = (s, d) => ({ n: "UDP · couche 4", f: [["Port source", s], ["Port destination", d]] });
+  const TCP = (s, d, fl) => ({ n: "TCP · couche 4", f: [["Port source", s], ["Port destination", d], ["Drapeaux", fl]] });
+  const ARP = (op, sha, spa, tha, tpa) => ({ n: "ARP", f: [["Opération", op], ["MAC émetteur", sha], ["IP émetteur", spa], ["MAC cible", tha], ["IP cible", tpa]] });
+  const ICMP = (t) => ({ n: "ICMP", f: [["Type", t]] });
+  const APP = (n, f) => ({ n: n, f: f });
+  const E_ARP = "0x0806 (ARP)", E_IP = "0x0800 (IPv4)";
+  const FILTERLOG = "1,6,,1000000103,vmx0,match,block,in,4,0x0,,128,22597,0,none,1,icmp,60,192.168.30.1,192.168.30.131,request,1,22440";
+
+  /* Un déplacement : "a>b>c" et un sort à l'arrivée (ok, drop, ignore, lost). */
+  const mv = (path, f) => ({ path: path.split(">"), f: f || null });
+
+  /* ---------- Scénarios ---------- */
+  const SCENARIOS = [
+    {
+      id: "arp", name: "ARP et trafic local", color: "var(--p-arp)", status: "réel",
+      intro: "Windows 11 envoie un ping à Wazuh. Les deux sont branchés sur le même switch VMnet10 : on va voir ARP trouver l'adresse MAC, puis le ping aller directement d'une machine à l'autre, sans passer par pfSense.",
+      soc: [
+        "Le trafic entre machines d'un même réseau (est-ouest) ne traverse pas le pare-feu : pfSense ne peut ni le bloquer ni le journaliser. Pour le voir, il faut des sources sur les machines : agent Wazuh, Sysmon (événement 3, connexion réseau).",
+        "ARP n'a aucune authentification : n'importe quelle machine peut répondre « 10.10.10.100, c'est moi ». C'est l'empoisonnement ARP (T1557.002), base d'une interception. Une même IP qui change de MAC est un indicateur à surveiller.",
+        "Le TTL trahit le système : 128 au départ pour Windows, 64 pour Linux. Utile pour deviner l'OS d'une source inconnue dans une alerte."
+      ],
+      verify: "# Windows 11 (PowerShell)\narp -a                       # cache ARP\nping 10.10.10.100\n\n# Wazuh (SSH depuis l'hôte)\nsudo tcpdump -eni eth0 arp or icmp",
+      steps: [
+        { t: "Local ou distant ?", focus: ["win"], p: "think",
+          d: "<p>Commande : <code>ping 10.10.10.100</code>. Windows applique son masque <code>/24</code> : <code>10.10.10.101</code> et <code>10.10.10.100</code> commencent par les mêmes trois octets, <code>10.10.10</code>. Même réseau, donc pas de passerelle.</p><p>Il lui manque l'adresse MAC de la cible, car un switch ne livre une trame que d'après la MAC. Son cache ARP est vide.</p>",
+          pdu: [ETH(M.win, "??:??:??:??:??:?? (inconnue)", E_IP), IP4("10.10.10.101", "10.10.10.100", "128", "ICMP (1)"), ICMP("8 · echo request")],
+          tb: { "Cache ARP de Windows 11": ["(vide)"], "Table MAC du switch VMnet10": ["(vide)"] } },
+        { t: "La question ARP part en diffusion", mv: [mv("win>sw10")], p: "arp",
+          d: "<p>Windows met le ping de côté et pose la question dans une trame ARP adressée à <code>ff:ff:ff:ff:ff:ff</code>, l'adresse de diffusion : tout le monde sur le switch la recevra.</p><p>« Qui a <code>10.10.10.100</code> ? Répondez à <code>10.10.10.101</code>. »</p>",
+          pdu: [ETH(M.win, M.bc, E_ARP), ARP("1 · request (qui a ?)", M.win, "10.10.10.101", M.zero, "10.10.10.100")],
+          tb: { "Table MAC du switch VMnet10": [M.win + " → port Windows 11 (appris)"] } },
+        { t: "Le switch inonde tous ses ports", mv: [mv("sw10>wazuh", "ok"), mv("sw10>pf", "ignore"), mv("sw10>host", "ignore")], p: "arp",
+          d: "<p>En lisant la MAC source, le switch a appris sur quel port se trouve Windows. La destination est la diffusion : il copie la trame sur <strong>tous</strong> ses autres ports.</p><p>pfSense et le PC hôte la lisent, voient que <code>10.10.10.100</code> n'est pas à eux et l'ignorent. Wazuh se reconnaît.</p>",
+          pdu: [ETH(M.win, M.bc, E_ARP), ARP("1 · request (qui a ?)", M.win, "10.10.10.101", M.zero, "10.10.10.100")] },
+        { t: "Wazuh répond en unicast", mv: [mv("wazuh>sw10")], p: "arp",
+          d: "<p>La réponse n'est pas diffusée : Wazuh connaît la MAC de Windows (elle était dans la question) et répond directement. « <code>10.10.10.100</code>, c'est <code>" + M.wazuh + "</code>. »</p><p>Au passage, Wazuh a noté la MAC de Windows dans son propre cache.</p>",
+          pdu: [ETH(M.wazuh, M.win, E_ARP), ARP("2 · reply (c'est moi)", M.wazuh, "10.10.10.100", M.win, "10.10.10.101")],
+          tb: { "Table MAC du switch VMnet10": [M.win + " → port Windows 11", M.wazuh + " → port Wazuh (appris)"] } },
+        { t: "Le switch livre sur un seul port", mv: [mv("sw10>win", "ok")], p: "arp",
+          d: "<p>Cette fois le switch connaît le port de la destination (appris à l'étape 2) : il n'envoie la trame que vers Windows. Personne d'autre ne la voit.</p><p>Windows range la MAC dans son cache : <code>arp -a</code> l'affiche comme entrée « dynamique ».</p>",
+          pdu: [ETH(M.wazuh, M.win, E_ARP), ARP("2 · reply (c'est moi)", M.wazuh, "10.10.10.100", M.win, "10.10.10.101")],
+          tb: { "Cache ARP de Windows 11": ["10.10.10.100 → " + M.wazuh + " (dynamique)"], "Table MAC du switch VMnet10": [M.win + " → port Windows 11", M.wazuh + " → port Wazuh"] } },
+        { t: "Le ping part enfin", mv: [mv("win>sw10>wazuh", "ok")], p: "icmp",
+          d: "<p>Couche 2 : la MAC de Wazuh. Couche 3 : l'IP de Wazuh. Les deux désignent la même machine, parce qu'elle est sur le même réseau. Retiens bien ce point, le scénario Internet montre le cas où elles diffèrent.</p><p>TTL 128 : la valeur de départ de Windows.</p>",
+          pdu: [ETH(M.win, M.wazuh, E_IP), IP4("10.10.10.101", "10.10.10.100", "128", "ICMP (1)"), ICMP("8 · echo request")] },
+        { t: "Wazuh renvoie l'écho", mv: [mv("wazuh>sw10>win", "ok")], p: "icmp",
+          d: "<p>Wazuh (Linux, TTL de départ 64) répond. Il n'a pas besoin de refaire ARP : il a appris la MAC de Windows à l'étape 4. Aller-retour terminé.</p>",
+          pdu: [ETH(M.wazuh, M.win, E_IP), IP4("10.10.10.100", "10.10.10.101", "64", "ICMP (1)"), ICMP("0 · echo reply")] },
+        { t: "Et pfSense dans tout ça ?", focus: ["pf"], p: "think",
+          d: "<p>pfSense n'a vu passer que la diffusion ARP de l'étape 3, qu'il a ignorée. Le ping ne l'a jamais traversé : aucune règle pfSense ne peut le bloquer et <code>filterlog</code> n'en garde aucune trace.</p><p>C'est pour cela que Kali aura son propre réseau (scénario « Kali bloqué »).</p>" }
+      ]
+    },
+    {
+      id: "dhcp", name: "DHCP (DORA)", color: "var(--p-dhcp)", status: "réel",
+      intro: "Windows 11 démarre sans adresse IP. En quatre messages, Discover, Offer, Request, Ack (DORA), le serveur DHCP de pfSense lui donne son adresse, son masque, sa passerelle et son DNS.",
+      soc: [
+        "Le bail DHCP relie, à un instant donné, une IP, une MAC et un nom de machine. Une alerte ne donne souvent qu'une IP : sans l'historique des baux, impossible de dire quel poste l'avait à 14 h 02.",
+        "pfSense peut envoyer ses journaux DHCP à Wazuh par le même syslog que filterlog (à activer, Status > System Logs > Settings).",
+        "Un second serveur DHCP sur le réseau peut répondre plus vite et se déclarer passerelle : c'est l'usurpation DHCP (T1557.003), qui fait passer tout le trafic par l'attaquant."
+      ],
+      verify: "# Windows 11\nipconfig /all\nipconfig /release\nipconfig /renew\n\n# pfSense : Status > DHCP Leases\n# Wazuh\nsudo tcpdump -eni eth0 port 67 or port 68",
+      steps: [
+        { t: "Démarrage sans adresse", focus: ["win"], p: "think",
+          d: "<p>La carte de Windows est en DHCP. Il n'a ni IP, ni masque, ni passerelle, et ne connaît pas le serveur DHCP. Seule possibilité : parler à tout le réseau local en diffusion.</p><p>Il utilise <code>0.0.0.0</code> comme IP source : « je n'ai pas encore d'adresse ».</p>" },
+        { t: "D comme Discover", mv: [mv("win>sw10")], p: "dhcp",
+          d: "<p>Diffusion à deux niveaux : MAC <code>ff:ff:ff:ff:ff:ff</code> et IP <code>255.255.255.255</code>. Le client écoute sur le port UDP 68, les serveurs sur le 67.</p><p>Le message porte la MAC du client (<code>chaddr</code>) et un identifiant de transaction (<code>xid</code>) qui reliera les quatre messages.</p>",
+          pdu: [ETH(M.win, M.bc, E_IP), IP4("0.0.0.0", "255.255.255.255", "128", "UDP (17)"), UDP("68", "67"), APP("DHCP", [["Message", "DHCPDISCOVER (53=1)"], ["xid", "0x3f2a91c4"], ["chaddr", M.win], ["Nom d'hôte (12)", "SIEM-Win11"]])] },
+        { t: "Qui est serveur DHCP ?", mv: [mv("sw10>pf", "ok"), mv("sw10>wazuh", "ignore"), mv("sw10>host", "ignore")], p: "dhcp",
+          d: "<p>Le switch inonde. Wazuh n'a pas de serveur DHCP. Le PC hôte non plus : le DHCP de VMware est désactivé sur VMnet10 (writeup 01), c'est pfSense qui distribue les adresses.</p><p>pfSense, qui écoute sur le port 67 de son interface LAN, prend la demande.</p>",
+          pdu: [ETH(M.win, M.bc, E_IP), IP4("0.0.0.0", "255.255.255.255", "128", "UDP (17)"), UDP("68", "67"), APP("DHCP", [["Message", "DHCPDISCOVER (53=1)"], ["xid", "0x3f2a91c4"], ["chaddr", M.win], ["Nom d'hôte (12)", "SIEM-Win11"]])] },
+        { t: "O comme Offer", mv: [mv("pf>sw10>win", "ok")], p: "dhcp",
+          d: "<p>pfSense choisit une adresse libre de sa plage <code>.100</code> à <code>.199</code> et la propose avec tout ce qu'il faut pour vivre sur le réseau : masque, passerelle, DNS, domaine <code>siem.lab</code>, durée du bail.</p><p>Envoyée ici directement à la MAC du client. Selon un drapeau du Discover, elle peut aussi partir en diffusion.</p>",
+          pdu: [ETH(M.pfLan, M.win, E_IP), IP4("10.10.10.254", "10.10.10.101", "64", "UDP (17)"), UDP("67", "68"), APP("DHCP", [["Message", "DHCPOFFER (53=2)"], ["xid", "0x3f2a91c4"], ["Adresse proposée (yiaddr)", "10.10.10.101"], ["Masque (1)", "255.255.255.0"], ["Routeur (3)", "10.10.10.254"], ["DNS (6)", "10.10.10.254"], ["Domaine (15)", "siem.lab"], ["Serveur (54)", "10.10.10.254"]])] },
+        { t: "R comme Request", mv: [mv("win>sw10")], p: "dhcp",
+          d: "<p>Windows accepte, mais toujours en diffusion et toujours avec <code>0.0.0.0</code> : il n'a pas encore le droit d'utiliser l'adresse.</p><p>La diffusion a un rôle : s'il y avait plusieurs serveurs, elle dit à tous lequel a été choisi (option 54), et les autres retirent leur offre.</p>",
+          pdu: [ETH(M.win, M.bc, E_IP), IP4("0.0.0.0", "255.255.255.255", "128", "UDP (17)"), UDP("68", "67"), APP("DHCP", [["Message", "DHCPREQUEST (53=3)"], ["xid", "0x3f2a91c4"], ["Adresse demandée (50)", "10.10.10.101"], ["Serveur choisi (54)", "10.10.10.254"]])] },
+        { t: "Le Request atteint pfSense", mv: [mv("sw10>pf", "ok"), mv("sw10>wazuh", "ignore"), mv("sw10>host", "ignore")], p: "dhcp",
+          d: "<p>Même inondation qu'au Discover. Seul pfSense est concerné.</p>",
+          pdu: [ETH(M.win, M.bc, E_IP), IP4("0.0.0.0", "255.255.255.255", "128", "UDP (17)"), UDP("68", "67"), APP("DHCP", [["Message", "DHCPREQUEST (53=3)"], ["xid", "0x3f2a91c4"], ["Adresse demandée (50)", "10.10.10.101"], ["Serveur choisi (54)", "10.10.10.254"]])] },
+        { t: "A comme Ack : le bail est signé", mv: [mv("pf>sw10>win", "ok")], p: "dhcp",
+          d: "<p>pfSense confirme et enregistre le bail : IP, MAC, nom d'hôte, heure de fin. On le retrouve dans <em>Status &gt; DHCP Leases</em>.</p><p>Windows configure sa carte : <code>10.10.10.101/24</code>, passerelle et DNS <code>10.10.10.254</code>.</p>",
+          pdu: [ETH(M.pfLan, M.win, E_IP), IP4("10.10.10.254", "10.10.10.101", "64", "UDP (17)"), UDP("67", "68"), APP("DHCP", [["Message", "DHCPACK (53=5)"], ["xid", "0x3f2a91c4"], ["Adresse attribuée", "10.10.10.101"], ["Routeur (3)", "10.10.10.254"], ["DNS (6)", "10.10.10.254"]])],
+          tb: { "Baux DHCP de pfSense": ["10.10.10.101 · " + M.win + " · SIEM-Win11"] } },
+        { t: "Dernière vérification : sonde ARP", mv: [mv("win>sw10>pf", "ignore"), mv("win>sw10>wazuh", "ignore"), mv("win>sw10>host", "ignore")], p: "arp",
+          d: "<p>Avant d'utiliser l'adresse, Windows demande « quelqu'un a-t-il déjà <code>10.10.10.101</code> ? » avec une IP émettrice à <code>0.0.0.0</code>. Personne ne répond : pas de conflit, l'adresse est à lui.</p>",
+          pdu: [ETH(M.win, M.bc, E_ARP), ARP("1 · request (sonde)", M.win, "0.0.0.0", M.zero, "10.10.10.101")],
+          tb: { "Baux DHCP de pfSense": ["10.10.10.101 · " + M.win + " · SIEM-Win11"], "Windows 11 (ipconfig)": ["IPv4 10.10.10.101 / 255.255.255.0", "Passerelle 10.10.10.254", "DNS 10.10.10.254 · suffixe siem.lab"] } }
+      ]
+    },
+    {
+      id: "apipa", name: "DHCP sans pfSense (APIPA)", color: "var(--bad)", status: "réel", off: ["pf"],
+      intro: "Ce qui est arrivé au premier démarrage de Windows 11 : pfSense était éteint. Personne ne répond au Discover, et Windows finit par s'attribuer une adresse APIPA en 169.254.x.x, qui ne mène nulle part.",
+      soc: [
+        "Une machine en 169.254.x.x n'a pas obtenu de bail : elle est coupée du reste du réseau. Son agent Wazuh ne joint plus le manager et apparaît « Disconnected » (règle 504).",
+        "Plusieurs postes en APIPA en même temps signalent un serveur DHCP en panne, ou épuisé par une attaque qui réserve toutes les adresses (privation DHCP).",
+        "Règle du lab qui en découle : démarrer pfSense en premier."
+      ],
+      verify: "# Windows 11\nipconfig /all     # « Adresse IPv4 de configuration automatique »\nipconfig /renew   # une fois pfSense démarré\n\n# Wazuh\nsudo /var/ossec/bin/agent_control -l",
+      steps: [
+        { t: "pfSense est éteint", focus: ["pf"], p: "think",
+          d: "<p>La VM pfSense n'est pas démarrée. Plus de serveur DHCP, plus de passerelle, plus de DNS sur VMnet10. Le switch, lui, fonctionne : c'est VMware qui le fournit.</p>" },
+        { t: "Discover", mv: [mv("win>sw10")], p: "dhcp",
+          d: "<p>Windows démarre et diffuse son Discover, exactement comme dans le scénario DORA.</p>",
+          pdu: [ETH(M.win, M.bc, E_IP), IP4("0.0.0.0", "255.255.255.255", "128", "UDP (17)"), UDP("68", "67"), APP("DHCP", [["Message", "DHCPDISCOVER (53=1)"], ["chaddr", M.win]])] },
+        { t: "Personne ne répond", mv: [mv("sw10>pf", "lost"), mv("sw10>wazuh", "ignore"), mv("sw10>host", "ignore")], p: "dhcp",
+          d: "<p>La trame arrive sur le port de pfSense, mais la VM est éteinte. Wazuh et l'hôte ne sont pas serveurs DHCP. Aucune Offer ne revient.</p>",
+          pdu: [ETH(M.win, M.bc, E_IP), IP4("0.0.0.0", "255.255.255.255", "128", "UDP (17)"), UDP("68", "67"), APP("DHCP", [["Message", "DHCPDISCOVER (53=1)"], ["chaddr", M.win]])] },
+        { t: "Nouvelles tentatives", mv: [mv("win>sw10>pf", "lost"), mv("win>sw10>wazuh", "ignore"), mv("win>sw10>host", "ignore")], p: "dhcp",
+          d: "<p>Windows réessaie plusieurs fois en espaçant les tentatives. Toujours rien.</p>",
+          pdu: [ETH(M.win, M.bc, E_IP), IP4("0.0.0.0", "255.255.255.255", "128", "UDP (17)"), UDP("68", "67"), APP("DHCP", [["Message", "DHCPDISCOVER (53=1), nouvelle tentative"], ["chaddr", M.win]])] },
+        { t: "Windows se donne une adresse APIPA", mv: [mv("win>sw10>wazuh", "ignore"), mv("win>sw10>host", "ignore")], p: "arp",
+          d: "<p>Faute de serveur, Windows tire au hasard une adresse dans <code>169.254.0.0/16</code> (APIPA, « link-local »), par exemple <code>169.254.37.112</code>, et vérifie par une sonde ARP que personne ne l'a.</p><p>Pas de passerelle, pas de DNS : cette adresse ne sert qu'à parler à d'autres machines en APIPA.</p>",
+          pdu: [ETH(M.win, M.bc, E_ARP), ARP("1 · request (sonde)", M.win, "0.0.0.0", M.zero, "169.254.37.112")],
+          tb: { "Windows 11 (ipconfig)": ["IPv4 169.254.37.112 / 255.255.0.0 (autoconfiguration)", "Passerelle : aucune", "DNS : aucun"] } },
+        { t: "Le ping vers Wazuh échoue", focus: ["win"], p: "think", badges: [["win", "drop"]],
+          d: "<p><code>ping 10.10.10.100</code> : avec un masque <code>/16</code> sur <code>169.254</code>, la cible est sur un autre réseau. Il faudrait une passerelle, et il n'y en a pas.</p><p>Windows ne peut même pas envoyer le paquet : l'erreur est locale, rien ne part sur le câble.</p>",
+          pdu: [ETH(M.win, "(aucune : pas de route)", E_IP), IP4("169.254.37.112", "10.10.10.100", "128", "ICMP (1)"), ICMP("8 · echo request, jamais envoyé")] },
+        { t: "La correction", focus: ["pf", "win"], p: "think",
+          d: "<p>Démarrer pfSense, puis <code>ipconfig /renew</code> sur Windows : le DORA du scénario précédent se déroule et Windows obtient <code>10.10.10.101</code>. Windows retente aussi seul le DHCP toutes les quelques minutes.</p>" }
+      ]
+    },
+    {
+      id: "internet", name: "Sortie vers Internet (routage + NAT)", color: "var(--f-dash)", status: "réel",
+      intro: "Windows 11 télécharge l'agent depuis packages.wazuh.com (writeup 04). Le paquet change de réseau : il passe par la passerelle pfSense, qui le route et le traduit (NAT), puis par le NAT de VMware. On suit ce qui change dans les en-têtes à chaque saut.",
+      soc: [
+        "Le NAT cache l'IP interne. Vue d'Internet, tout vient de l'IP publique. Pour retrouver le poste, il faut croiser la table d'états ou filterlog de pfSense (10.10.10.101:50123 ↔ 192.168.30.131:41722) puis le bail DHCP.",
+        "La sortie est l'endroit où se voient les communications de commande et contrôle (T1071) : connexions régulières vers la même IP, requêtes DNS vers des domaines rares. Journaliser la règle LAN « pass » (règle locale 100301) en garde la trace.",
+        "Le pare-feu à états laisse revenir les réponses sans règle sur le WAN. Une connexion entrante non sollicitée, elle, est bloquée (scénario syslog)."
+      ],
+      verify: "# Windows 11\nResolve-DnsName packages.wazuh.com\nTest-NetConnection packages.wazuh.com -Port 443\ntracert -d packages.wazuh.com\n\n# pfSense : Diagnostics > States, filtre 10.10.10.101",
+      steps: [
+        { t: "D'abord, quelle adresse ?", focus: ["win"], p: "think",
+          d: "<p>Windows connaît un nom, <code>packages.wazuh.com</code>, pas une IP. Il interroge son DNS, <code>10.10.10.254</code>, reçu par DHCP.</p><p>pfSense est sur le même réseau et sa MAC est déjà dans le cache ARP : pas besoin de refaire ARP.</p>",
+          tb: { "Cache ARP de Windows 11": ["10.10.10.254 → " + M.pfLan + " (passerelle)"] } },
+        { t: "Requête DNS vers pfSense", mv: [mv("win>sw10>pf", "ok")], p: "dns",
+          d: "<p>Une question en UDP 53 : « adresse IPv4 (type A) de <code>packages.wazuh.com</code> ? ». Le résolveur de pfSense (Unbound) répond depuis son cache ou interroge Internet pour nous, par son WAN.</p>",
+          pdu: [ETH(M.win, M.pfLan, E_IP), IP4("10.10.10.101", "10.10.10.254", "128", "UDP (17)"), UDP("52814", "53"), APP("DNS", [["Question", "packages.wazuh.com, type A"]])] },
+        { t: "Réponse DNS", mv: [mv("pf>sw10>win", "ok")], p: "dns",
+          d: "<p>pfSense renvoie l'adresse. On utilise ici <code>203.0.113.10</code>, une adresse de documentation, à la place de l'IP réelle du site.</p>",
+          pdu: [ETH(M.pfLan, M.win, E_IP), IP4("10.10.10.254", "10.10.10.101", "64", "UDP (17)"), UDP("53", "52814"), APP("DNS", [["Réponse", "packages.wazuh.com → 203.0.113.10"]])] },
+        { t: "Pas sur mon réseau : direction la passerelle", focus: ["win"], p: "think",
+          d: "<p><code>203.0.113.10</code> n'est pas dans <code>10.10.10.0/24</code>. Windows envoie donc le paquet à sa passerelle.</p><p><strong>Point clé du routage :</strong> l'IP de destination reste celle du site, mais la MAC de destination est celle de pfSense. Couche 3 = destination finale, couche 2 = prochain saut.</p>" },
+        { t: "SYN vers le site, déposé chez pfSense", mv: [mv("win>sw10>pf", "ok")], p: "https",
+          d: "<p>Premier paquet de la connexion TCP vers le port 443 (HTTPS). Compare les deux destinations : MAC de pfSense, IP du site.</p>",
+          pdu: [ETH(M.win, M.pfLan, E_IP), IP4("10.10.10.101", "203.0.113.10", "128", "TCP (6)"), TCP("50123", "443", "SYN")] },
+        { t: "pfSense filtre, route et traduit", mv: [mv("pf>sw8", "ok")], p: "https", diff: true,
+          d: "<p>1. <strong>Règle</strong> : sur le LAN, « Default allow LAN to any » laisse passer.<br>2. <strong>Routage</strong> : route par défaut vers <code>192.168.30.2</code> (NAT VMware) par <code>vmx0</code>. TTL moins 1.<br>3. <strong>NAT sortant</strong> : l'IP privée <code>10.10.10.101:50123</code> devient <code>192.168.30.131:41722</code>, noté dans la table d'états.<br>4. <strong>Nouvel en-tête Ethernet</strong> pour le nouveau réseau.</p>",
+          pdu: [ETH(M.pfWan, M.nat + " (NAT VMware)", E_IP), IP4("192.168.30.131", "203.0.113.10", "127", "TCP (6)"), TCP("41722", "443", "SYN")],
+          tb: { "Table d'états de pfSense": ["tcp 10.10.10.101:50123 → (192.168.30.131:41722) → 203.0.113.10:443 · SYN_SENT"] } },
+        { t: "Le NAT de VMware, puis la box", mv: [mv("sw8>inet", "ok")], p: "https", diff: true,
+          d: "<p>Deuxième traduction : le service NAT de VMware remplace <code>192.168.30.131</code> par l'IP du PC sur ton réseau domestique. Troisième : ta box la remplace par ton IP publique. Le site ne voit que cette dernière.</p><p>Chaque NAT garde sa propre table de correspondance.</p>",
+          pdu: [ETH("(MAC de la box)", "(MAC du routeur suivant)", E_IP), IP4("IP publique de la box", "203.0.113.10", "≤ 126", "TCP (6)"), TCP("(choisi par la box)", "443", "SYN")] },
+        { t: "La réponse revient au WAN", mv: [mv("inet>sw8>pf", "ok")], p: "https", diff: true,
+          d: "<p>Le site répond SYN-ACK. Chaque NAT défait sa traduction en sens inverse : la box, puis VMware, qui renvoie le paquet vers <code>192.168.30.131:41722</code>.</p>",
+          pdu: [ETH(M.nat, M.pfWan, E_IP), IP4("203.0.113.10", "192.168.30.131", "(selon le serveur)", "TCP (6)"), TCP("443", "41722", "SYN, ACK")] },
+        { t: "Le pare-feu à états laisse entrer la réponse", mv: [mv("pf>sw10>win", "ok")], p: "https", diff: true,
+          d: "<p>Le WAN bloque tout ce qui entre sans y avoir été invité. Ce paquet correspond à une entrée de la table d'états : il passe sans règle WAN, pfSense remet <code>10.10.10.101:50123</code> en destination et la MAC de Windows en couche 2.</p>",
+          pdu: [ETH(M.pfLan, M.win, E_IP), IP4("203.0.113.10", "10.10.10.101", "(moins 1)", "TCP (6)"), TCP("443", "50123", "SYN, ACK")],
+          tb: { "Table d'états de pfSense": ["tcp 10.10.10.101:50123 → (192.168.30.131:41722) → 203.0.113.10:443 · ESTABLISHED"] } },
+        { t: "La suite prend le même chemin", focus: ["win", "pf"], p: "think",
+          d: "<p>ACK, puis TLS : le ClientHello contient le nom du site en clair (SNI), puis tout est chiffré. Chaque paquet refait le même trajet et les mêmes traductions, guidé par la table d'états.</p>" }
+      ]
+    },
+    {
+      id: "syslog", name: "pfSense syslog vers Wazuh", color: "var(--f-syslog)", status: "réel",
+      intro: "Le test du writeup 02. Le PC hôte pingue le WAN de pfSense, qui bloque et journalise. La ligne filterlog part en syslog UDP 514 vers Wazuh, qui la décode et lève une alerte visible dans le dashboard.",
+      soc: [
+        "UDP n'a pas d'accusé de réception : si Wazuh est arrêté ou le paquet perdu, la ligne disparaît sans erreur. Surveiller l'absence de journaux (« plus rien de pfSense depuis 10 min ») compte autant que les alertes.",
+        "Syslog circule en clair : n'importe qui sur VMnet10 peut le lire, ou en forger avec l'IP de pfSense. D'où allowed-ips, et en production syslog sur TLS ou un agent.",
+        "Une alerte 100302 isolée, c'est du bruit. 18 en 45 s depuis la même IP (100303, T1046), c'est un balayage."
+      ],
+      verify: "# Hôte (PowerShell)\nping -n 4 192.168.30.131\n\n# Wazuh\nsudo tcpdump -ni eth0 udp port 514 -A\n# Dashboard : rule.id:100302",
+      steps: [
+        { t: "Un ping non sollicité sur le WAN", mv: [mv("host>sw8>pf", "drop")], p: "icmp",
+          d: "<p>Depuis sa carte VMnet8 <code>192.168.30.1</code>, le PC hôte pingue le WAN de pfSense. Aucune règle WAN ne l'autorise : la règle de blocage par défaut le jette et le journalise.</p><p>L'hôte n'aura jamais de réponse (block, pas reject).</p>",
+          pdu: [ETH(M.host8, M.pfWan, E_IP), IP4("192.168.30.1", "192.168.30.131", "128", "ICMP (1)"), ICMP("8 · echo request")] },
+        { t: "filterlog écrit une ligne", focus: ["pf"], p: "think",
+          d: "<p>Une ligne CSV par paquet bloqué : numéro de règle <code>1000000103</code>, interface <code>vmx0</code>, action <code>block</code>, sens <code>in</code>, protocole, IP source et destination. C'est la vraie ligne du lab.</p>",
+          pdu: [APP("Ligne filterlog (pfSense)", [["Ligne", FILTERLOG], ["Interface", "vmx0 (WAN)"], ["Action", "block, in"], ["Source → destination", "192.168.30.1 → 192.168.30.131"]])] },
+        { t: "Le journal part en syslog, par le LAN", mv: [mv("pf>sw10")], p: "syslog",
+          d: "<p>pfSense emballe la ligne au format syslog RFC 5424. <code>&lt;134&gt;</code> = facility local0 (16 × 8) + gravité info (6).</p><p>Le ping est arrivé par le WAN, mais le journal sort par le LAN (<code>vmx1</code>) : c'est la table de routage qui choisit l'interface, d'après la destination <code>10.10.10.100</code>.</p>",
+          pdu: [ETH(M.pfLan, M.wazuh, E_IP), IP4("10.10.10.254", "10.10.10.100", "64", "UDP (17)"), UDP("514", "514"), APP("Syslog", [["Message", "<134>1 2026-10-21T02:36:42.498630+00:00 pfSense.siem.lab filterlog 34901 - - " + FILTERLOG]])] },
+        { t: "wazuh-remoted reçoit", mv: [mv("sw10>wazuh", "ok")], p: "syslog",
+          d: "<p><code>wazuh-remoted</code> écoute <code>514/udp</code> et n'accepte que les IP de <code>allowed-ips</code>, ici <code>10.10.10.254</code>. Pas d'accusé de réception : pfSense ne saura jamais si la ligne est arrivée.</p>",
+          pdu: [ETH(M.pfLan, M.wazuh, E_IP), IP4("10.10.10.254", "10.10.10.100", "64", "UDP (17)"), UDP("514", "514"), APP("Syslog", [["Message", "<134>1 … pfSense.siem.lab filterlog 34901 - - 1,6,,1000000103,vmx0,match,block,in,…"]])] },
+        { t: "Décodage et alerte", focus: ["wazuh"], p: "think", badges: [["wazuh", "ok"]],
+          d: "<p><code>wazuh-analysisd</code> : pré-décodage, décodeur local <code>pfsense-filterlog</code>, puis règles <code>100300</code> → <code>100302</code> (niveau 5, paquet bloqué). L'alerte va dans <code>alerts.json</code>, puis dans l'indexer.</p><p>Une rafale de 18 blocages en 45 s depuis la même IP déclenche <code>100303</code> (niveau 10, T1046).</p>",
+          pdu: [APP("Alerte Wazuh", [["rule.id", "100302"], ["rule.level", "5"], ["decoder.name", "pfsense-filterlog"], ["data.srcip", "192.168.30.1"], ["data.dstip", "192.168.30.131"], ["data.action", "block"], ["data.interface", "vmx0"]])] },
+        { t: "L'analyste ouvre le dashboard", mv: [mv("host>sw10>wazuh", "ok")], p: "https",
+          d: "<p>Le navigateur de l'hôte part de sa carte VMnet10 <code>10.10.10.1</code> vers <code>https://10.10.10.100</code>. Même réseau : pfSense n'est pas sur le chemin. L'alerte <code>100302</code> s'affiche.</p>",
+          pdu: [ETH(M.host10, M.wazuh, E_IP), IP4("10.10.10.1", "10.10.10.100", "128", "TCP (6)"), TCP("51544", "443", "PSH, ACK"), APP("TLS", [["Contenu", "requête HTTP chiffrée vers le dashboard"]])] }
+      ]
+    },
+    {
+      id: "agent", name: "Agent Wazuh : enrôlement et événements", color: "var(--p-agent)", status: "réel",
+      intro: "L'agent de Windows 11 s'enrôle sur 1515/TCP (il reçoit un ID et une clé), puis envoie ses événements chiffrés sur 1514/TCP. Même réseau : tout passe par le switch, sans pfSense.",
+      soc: [
+        "L'agent voit ce que le réseau ne voit pas : journaux Windows, Sysmon, intégrité des fichiers. Et il chiffre tout : un tcpdump sur VMnet10 ne montre rien de lisible.",
+        "Un agent qui se tait est une information : poste éteint, réseau coupé, ou attaquant qui a arrêté le service pour agir sans témoin (T1562.001). La règle 504 « agent disconnected » mérite une vraie attention.",
+        "Le port d'enrôlement 1515 ne doit être ouvert qu'aux réseaux des postes : sinon n'importe qui peut enregistrer un faux agent et injecter de faux événements."
+      ],
+      verify: "# Windows 11\nTest-NetConnection 10.10.10.100 -Port 1514\nGet-Service WazuhSvc\n\n# Wazuh\nsudo /var/ossec/bin/agent_control -l\nsudo tcpdump -ni eth0 tcp port 1514 -A   # illisible : chiffré",
+      steps: [
+        { t: "Ouverture de connexion vers 1515", mv: [mv("win>sw10>wazuh", "ok")], p: "enroll",
+          d: "<p>Au premier démarrage du service, l'agent contacte <code>WAZUH_MANAGER</code> (<code>10.10.10.100</code>) sur le port d'enrôlement <code>1515</code>, servi par <code>wazuh-authd</code>. Poignée de main TCP : SYN.</p>",
+          pdu: [ETH(M.win, M.wazuh, E_IP), IP4("10.10.10.101", "10.10.10.100", "128", "TCP (6)"), TCP("49812", "1515", "SYN")] },
+        { t: "SYN-ACK puis ACK", mv: [mv("wazuh>sw10>win", "ok")], p: "enroll",
+          d: "<p><code>wazuh-authd</code> accepte (SYN-ACK), Windows confirme (ACK). La connexion est ouverte, puis protégée par TLS.</p>",
+          pdu: [ETH(M.wazuh, M.win, E_IP), IP4("10.10.10.100", "10.10.10.101", "64", "TCP (6)"), TCP("1515", "49812", "SYN, ACK")] },
+        { t: "Demande d'enrôlement", mv: [mv("win>sw10>wazuh", "ok")], p: "enroll",
+          d: "<p>Dans le tunnel TLS, l'agent se présente avec son nom. Sans mot de passe d'enrôlement configuré, le manager accepte toute demande : c'est le réglage par défaut, acceptable dans un lab isolé.</p>",
+          pdu: [ETH(M.win, M.wazuh, E_IP), IP4("10.10.10.101", "10.10.10.100", "128", "TCP (6)"), TCP("49812", "1515", "PSH, ACK"), APP("TLS → wazuh-authd", [["Demande", "OSSEC A:'SIEM-Win11'"]])] },
+        { t: "ID et clé reçus", mv: [mv("wazuh>sw10>win", "ok")], p: "enroll",
+          d: "<p>Le manager attribue l'ID <code>001</code> et génère une clé, enregistrée dans <code>client.keys</code> des deux côtés. La clé est un secret : masquée ici, jamais dans git. La connexion 1515 se ferme.</p>",
+          pdu: [ETH(M.wazuh, M.win, E_IP), IP4("10.10.10.100", "10.10.10.101", "64", "TCP (6)"), TCP("1515", "49812", "PSH, ACK"), APP("TLS → agent", [["Réponse", "OSSEC K:'001 SIEM-Win11 any ••••••••'"]])] },
+        { t: "Connexion au canal d'événements 1514", mv: [mv("win>sw10>wazuh", "ok")], p: "agent",
+          d: "<p>L'agent ouvre une connexion durable vers <code>1514</code> (<code>wazuh-remoted</code>). Chaque message commence par son ID en clair, pour que le manager sache quelle clé utiliser, puis le contenu chiffré en AES.</p><p>Premier message : « agent démarré », règle <code>503</code>.</p>",
+          pdu: [ETH(M.win, M.wazuh, E_IP), IP4("10.10.10.101", "10.10.10.100", "128", "TCP (6)"), TCP("49820", "1514", "PSH, ACK"), APP("Message agent", [["En-tête", "!001!#AES:"], ["Contenu", "(chiffré avec la clé de client.keys)"]])] },
+        { t: "Un événement Windows remonte", mv: [mv("win>sw10>wazuh", "ok")], p: "agent",
+          d: "<p>Un échec d'ouverture de session sur Windows produit l'événement <code>4625</code> dans le journal Security. L'agent le lit et l'envoie, toujours chiffré, sur la même connexion.</p><p>Côté manager : déchiffrement, décodeur <code>windows_eventchannel</code>, règle <code>60122</code> (niveau 5). Plusieurs échecs rapprochés : <code>60204</code>.</p>",
+          pdu: [ETH(M.win, M.wazuh, E_IP), IP4("10.10.10.101", "10.10.10.100", "128", "TCP (6)"), TCP("49820", "1514", "PSH, ACK"), APP("Message agent", [["En-tête", "!001!#AES:"], ["Contenu déchiffré", "EventChannel Security, EventID 4625"]])] },
+        { t: "Battement de cœur", mv: [mv("win>sw10>wazuh", "ok")], p: "agent",
+          d: "<p>À intervalle régulier, l'agent envoie un keepalive (version, état, empreinte de sa configuration). C'est ce qui fait passer l'agent en « Active » dans le dashboard. Sans keepalive pendant un délai, il passe « Disconnected ».</p>",
+          pdu: [ETH(M.win, M.wazuh, E_IP), IP4("10.10.10.101", "10.10.10.100", "128", "TCP (6)"), TCP("49820", "1514", "PSH, ACK"), APP("Message agent", [["En-tête", "!001!#AES:"], ["Contenu déchiffré", "keepalive : version, OS, hash de configuration"]])] }
+      ]
+    },
+    {
+      id: "ssh", name: "SSH d'administration", color: "var(--p-ssh)", status: "réel",
+      intro: "Depuis le PC hôte, ssh siem-wazuh ouvre une session sur Wazuh avec la clé ECDSA P-384 du writeup 03. Seul l'hôte a ce droit, et le mot de passe est refusé.",
+      soc: [
+        "Chaque connexion laisse une ligne « Accepted publickey » avec l'IP source et l'empreinte de la clé : on sait qui est entré, d'où et avec quelle clé.",
+        "Par construction (matrice des flux), un SSH vers le SIEM ne vient que de 10.10.10.1. Toute autre source est anormale : alerte à fort signal, pas de bruit.",
+        "Des échecs en rafale (règles 5710, 5712, T1110) suivis d'un succès, c'est le scénario de compromission par force brute."
+      ],
+      verify: "# Hôte (PowerShell)\nssh -v siem-wazuh      # algorithmes négociés, clé utilisée\n\n# Wazuh\nsudo journalctl -u sshd --since today | grep Accepted",
+      steps: [
+        { t: "Connexion TCP vers le port 22", mv: [mv("host>sw10>wazuh", "ok")], p: "ssh",
+          d: "<p><code>ssh siem-wazuh</code> : le fichier <code>~/.ssh/config</code> traduit l'alias en <code>wazuh-user@10.10.10.100</code> avec la clé <code>id_ecdsa_siemlab</code>. L'hôte part de sa carte VMnet10, même réseau que Wazuh.</p>",
+          pdu: [ETH(M.host10, M.wazuh, E_IP), IP4("10.10.10.1", "10.10.10.100", "128", "TCP (6)"), TCP("52011", "22", "SYN")] },
+        { t: "Bannières en clair", mv: [mv("wazuh>sw10>host", "ok")], p: "ssh",
+          d: "<p>Après la poignée de main TCP, chacun annonce sa version de protocole : <code>SSH-2.0-OpenSSH_…</code>. C'est le seul moment lisible de toute la session.</p>",
+          pdu: [ETH(M.wazuh, M.host10, E_IP), IP4("10.10.10.100", "10.10.10.1", "64", "TCP (6)"), TCP("22", "52011", "PSH, ACK"), APP("SSH", [["Bannière", "SSH-2.0-OpenSSH_… (version du serveur)"]])] },
+        { t: "Échange de clés", mv: [mv("host>sw10>wazuh", "ok")], p: "ssh",
+          d: "<p>Les deux côtés choisissent des algorithmes communs et calculent une clé de session (Diffie-Hellman sur courbe elliptique). L'OVA est en mode FIPS : seules les courbes NIST sont admises, d'où ECDSA P-384 et non ed25519 (writeup 03).</p><p>Le serveur signe avec sa clé d'hôte ; l'hôte la compare à <code>known_hosts</code>.</p>",
+          pdu: [ETH(M.host10, M.wazuh, E_IP), IP4("10.10.10.1", "10.10.10.100", "128", "TCP (6)"), TCP("52011", "22", "PSH, ACK"), APP("SSH", [["Message", "KEXINIT puis KEX_ECDH_INIT"], ["Échange", "ecdh-sha2-nistp* (FIPS)"]])] },
+        { t: "Authentification par clé", mv: [mv("host>sw10>wazuh", "ok")], p: "ssh",
+          d: "<p>Tout est chiffré désormais. L'hôte prouve qu'il détient la clé privée en signant un défi : la clé privée ne quitte jamais le PC, seule la signature voyage.</p>",
+          pdu: [ETH(M.host10, M.wazuh, E_IP), IP4("10.10.10.1", "10.10.10.100", "128", "TCP (6)"), TCP("52011", "22", "PSH, ACK"), APP("SSH (chiffré)", [["Méthode", "publickey"], ["Algorithme", "ecdsa-sha2-nistp384"], ["Utilisateur", "wazuh-user"]])] },
+        { t: "Session ouverte", mv: [mv("wazuh>sw10>host", "ok")], p: "ssh",
+          d: "<p>La signature correspond à une clé de <code>authorized_keys</code> : session accordée. Un mot de passe serait refusé d'emblée (<code>PasswordAuthentication no</code>).</p>",
+          pdu: [ETH(M.wazuh, M.host10, E_IP), IP4("10.10.10.100", "10.10.10.1", "64", "TCP (6)"), TCP("22", "52011", "PSH, ACK"), APP("SSH (chiffré)", [["Message", "USERAUTH_SUCCESS"]])] },
+        { t: "La trace côté serveur", focus: ["wazuh"], p: "think", badges: [["wazuh", "ok"]],
+          d: "<p><code>sshd</code> écrit : <code>Accepted publickey for wazuh-user from 10.10.10.1 port 52011 ssh2: ECDSA SHA256:…</code>.</p><p>Le manager surveille aussi ses propres journaux : cette ligne doit produire la règle <code>5715</code> (connexion SSH réussie), à valider dans notre lab.</p>",
+          pdu: [APP("Journal sshd (Wazuh)", [["Ligne", "Accepted publickey for wazuh-user from 10.10.10.1 port 52011 ssh2: ECDSA SHA256:…"], ["Règle attendue", "5715 (à valider)"]])] }
+      ]
+    },
+    {
+      id: "kali", name: "Kali bloqué par pfSense", color: "var(--kali)", status: "prévu", kali: true,
+      intro: "Le lab prévu : Kali sur son propre réseau VMnet11 (10.10.20.0/24, adresses d'exemple), derrière une 3e interface de pfSense. Kali tente de joindre Wazuh en SSH : bloqué et journalisé. Puis il attaque Windows 11 sur 445 : autorisé et routé.",
+      soc: [
+        "Segmenter fait de pfSense un passage obligé : chaque tentative de l'attaquant vers la supervision devient une ligne filterlog, donc une alerte. Un attaquant qui cherche le SIEM se trahit.",
+        "Les flux autorisés vers la cible doivent aussi être journalisés (règle pass avec log) : on reconstitue l'attaque même quand elle réussit.",
+        "Un balayage de ports depuis 10.10.20.10 produit une rafale de 100302, puis 100303 (T1046)."
+      ],
+      verify: "# Kali (prévu)\nnmap -Pn -p 22,443,55000 10.10.10.100   # doit échouer\nnmap -Pn -p 445 10.10.10.101\n\n# pfSense : Status > System Logs > Firewall, filtre 10.10.20.10\n# Dashboard : data.srcip:10.10.20.10",
+      steps: [
+        { t: "Kali vise le SIEM", focus: ["kali"], p: "think",
+          d: "<p>Kali (<code>10.10.20.10/24</code>, passerelle <code>10.10.20.254</code>) veut joindre <code>10.10.10.100:22</code>. Autre réseau : il envoie le paquet à sa passerelle, l'interface <code>vmx2</code> de pfSense.</p>" },
+        { t: "SYN bloqué à l'entrée de pfSense", mv: [mv("kali>sw11>pf", "drop")], p: "ssh",
+          d: "<p>Règle de l'interface KALI : « bloquer tout vers <code>10.10.10.100</code> », placée avant la règle qui autorise la cible. pfSense lit les règles de haut en bas, la première qui correspond décide.</p><p>Le paquet est jeté sans réponse (block). Avec reject, Kali recevrait un RST.</p>",
+          pdu: [ETH(M.kali, M.pfKali, E_IP), IP4("10.10.20.10", "10.10.10.100", "64", "TCP (6)"), TCP("40512", "22", "SYN")] },
+        { t: "Le blocage part vers Wazuh", mv: [mv("pf>sw10>wazuh", "ok")], p: "syslog",
+          d: "<p>Même chemin que dans le scénario syslog : une ligne <code>filterlog</code>, cette fois sur <code>vmx2</code> et en TCP, avec les ports.</p>",
+          pdu: [ETH(M.pfLan, M.wazuh, E_IP), IP4("10.10.10.254", "10.10.10.100", "64", "UDP (17)"), UDP("514", "514"), APP("Syslog", [["filterlog (exemple)", "…,vmx2,match,block,in,4,0x0,,64,…,tcp,60,10.10.20.10,10.10.10.100,40512,22,0,S,…"]])] },
+        { t: "Alerte dans Wazuh", focus: ["wazuh"], p: "think", badges: [["wazuh", "ok"]],
+          d: "<p>Décodeur <code>pfsense-filterlog</code>, règle <code>100302</code>. Si Kali balaie plusieurs ports, <code>100303</code> suit. L'attaquant n'a rien obtenu, mais l'analyste sait déjà qu'il cherche la supervision.</p>",
+          pdu: [APP("Alerte Wazuh", [["rule.id", "100302"], ["data.srcip", "10.10.20.10"], ["data.dstip", "10.10.10.100"], ["data.dstport", "22"], ["data.interface", "vmx2"]])] },
+        { t: "En face : Kali attaque la cible", mv: [mv("kali>sw11>pf", "ok")], p: "tcp",
+          d: "<p>Kali vise maintenant Windows 11 sur SMB (<code>445</code>). La règle « KALI vers Windows 11 » l'autorise : pfSense accepte et journalise (pass avec log).</p>",
+          pdu: [ETH(M.kali, M.pfKali, E_IP), IP4("10.10.20.10", "10.10.10.101", "64", "TCP (6)"), TCP("40528", "445", "SYN")] },
+        { t: "pfSense route vers le LAN", mv: [mv("pf>sw10>win", "ok")], p: "tcp", diff: true,
+          d: "<p>Routage sans NAT entre deux réseaux internes : les IP restent les mêmes, seul l'en-tête Ethernet est refait (MAC de <code>vmx1</code> vers MAC de Windows) et le TTL baisse de 1.</p><p>Kali peut attaquer la cible, pas le SIEM. Et les deux tentatives sont dans Wazuh.</p>",
+          pdu: [ETH(M.pfLan, M.win, E_IP), IP4("10.10.20.10", "10.10.10.101", "63", "TCP (6)"), TCP("40528", "445", "SYN")] }
+      ]
+    }
+  ];
+
+  /* ---------- Outils SVG ---------- */
+  const NS = "http://www.w3.org/2000/svg";
+  const $ = (id) => document.getElementById(id);
+  function el(tag, attrs, parent) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+  function linkPts(a, b) {
+    for (const l of LINKS) {
+      if (l.a === a && l.b === b) return l.pts.slice();
+      if (l.a === b && l.b === a) return l.pts.slice().reverse();
+    }
+    return [[NODES[a].x, NODES[a].y], [NODES[b].x, NODES[b].y]];
+  }
+  function pathPts(path) {
+    let pts = [];
+    for (let i = 0; i < path.length - 1; i++) {
+      const seg = linkPts(path[i], path[i + 1]);
+      pts = pts.length ? pts.concat(seg.slice(1)) : seg;
+    }
+    return pts;
+  }
+  function pointAt(pts, t) {
+    const lens = []; let total = 0;
+    for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); lens.push(d); total += d; }
+    let dist = t * total;
+    for (let i = 0; i < lens.length; i++) {
+      if (dist <= lens[i] || i === lens.length - 1) {
+        const r = lens[i] ? Math.min(1, dist / lens[i]) : 1;
+        return [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * r, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * r];
+      }
+      dist -= lens[i];
+    }
+    return pts[pts.length - 1];
+  }
+  function pathLen(pts) { let s = 0; for (let i = 1; i < pts.length; i++) s += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return s; }
+
+  /* ---------- Dessin de la topologie ---------- */
+  const nodeEls = {}, cableEls = [], labelEls = [];
+  function drawTopology() {
+    const z = $("zones");
+    el("rect", { x: 20, y: 20, width: 305, height: 390, rx: 10, style: "fill: var(--wan-bg); stroke: var(--wan)", "stroke-width": 1.6, "stroke-dasharray": "8 6" }, z);
+    el("text", { x: 34, y: 400, class: "zt", style: "fill: var(--wan)" }, z).textContent = "WAN · VMnet8 (NAT)";
+    el("rect", { x: 615, y: 120, width: 575, height: 400, rx: 10, style: "fill: var(--lan-bg); stroke: var(--lan)", "stroke-width": 1.6, "stroke-dasharray": "8 6" }, z);
+    el("text", { x: 1176, y: 508, class: "zt", "text-anchor": "end", style: "fill: var(--lan)" }, z).textContent = "LAN · VMnet10 (host-only)";
+    const kz = el("rect", { x: 340, y: 25, width: 260, height: 160, rx: 10, style: "fill: var(--kali-bg); stroke: var(--kali)", "stroke-width": 1.6, "stroke-dasharray": "8 6" }, z);
+    const kt = el("text", { x: 354, y: 44, class: "zt", style: "fill: var(--kali)" }, z);
+    kt.textContent = "ATTAQUE · VMnet11 (prévu)";
+    const kt2 = el("text", { x: 354, y: 60, class: "mono muted" }, z);
+    kt2.textContent = "10.10.20.0/24";
+    labelEls.push({ e: kt2, planned: true });
+    labelEls.push({ e: kz, planned: true }, { e: kt, planned: true });
+
+    for (const l of LINKS) {
+      const p = el("polyline", { points: l.pts.map((p) => p.join(",")).join(" "), class: "cable" + (l.planned ? " planned" : "") }, $("cables"));
+      cableEls.push({ e: p, planned: !!l.planned });
+    }
+    for (const k in NODES) {
+      const n = NODES[k];
+      const g = el("g", { class: "node", "data-node": k }, $("nodes"));
+      el("use", { href: "#i-" + n.icon, x: n.x - n.w / 2, y: n.y - n.h / 2, width: n.w, height: n.h, class: "icon" }, g);
+      nodeEls[k] = g;
+    }
+    for (const lb of LABELS) {
+      const t = el("text", { x: lb.at[0], y: lb.at[1], class: lb.cls || "", "text-anchor": lb.anchor || "start" }, $("nodes"));
+      if (lb.style) t.setAttribute("style", lb.style);
+      t.textContent = lb.t;
+      labelEls.push({ e: t, planned: !!lb.planned });
+    }
+    const off = el("text", { x: 400, y: 236, class: "b", "text-anchor": "middle", style: "fill: var(--bad)", id: "pf-off" }, $("nodes"));
+    off.textContent = "ÉTEINT";
+  }
+
+  /* ---------- État ---------- */
+  const S = { sc: 0, i: -1, playing: false, speed: 1, hold: 1, anim: null, timer: null };
+  const sc = () => SCENARIOS[S.sc];
+
+  function applyScenarioLook() {
+    const s = sc();
+    const kali = !!s.kali;
+    cableEls.concat(labelEls).forEach((c) => c.planned && c.e.classList.toggle("dim", !kali));
+    ["sw11", "kali"].forEach((k) => nodeEls[k].classList.toggle("dim", !kali));
+    for (const k in nodeEls) nodeEls[k].classList.toggle("off", !!(s.off && s.off.includes(k)));
+    $("pf-off").style.display = s.off && s.off.includes("pf") ? "" : "none";
+  }
+
+  function stepFocus(st) {
+    if (st.focus) return st.focus;
+    if (st.mv) return [st.mv[0].path[0]];
+    return [];
+  }
+
+  function drawRings(st) {
+    const g = $("rings"); g.textContent = "";
+    if (!st) return;
+    for (const k of stepFocus(st)) el("circle", { cx: NODES[k].x, cy: NODES[k].y, r: 50, class: "ring" }, g);
+  }
+
+  const FATE = {
+    ok: { s: "✓", c: "var(--ok)", l: "reçu" },
+    drop: { s: "✕", c: "var(--bad)", l: "bloqué" },
+    ignore: { s: "–", c: "var(--muted)", l: "ignoré" },
+    lost: { s: "?", c: "var(--muted)", l: "sans réponse" }
+  };
+  function badge(node, fate) {
+    const n = NODES[node], f = FATE[fate];
+    const g = el("g", { class: "badge", transform: "translate(" + (n.x + (n.bx || 34)) + " " + (n.y + (n.by || -42)) + ")" }, $("badges"));
+    el("circle", { r: 11, style: "fill: var(--canvas); stroke: " + f.c, "stroke-width": 2.4 }, g);
+    const t = el("text", { style: "fill: " + f.c }, g); t.textContent = f.s;
+    const l = el("text", { class: "lbl", x: 16, y: 4, "text-anchor": "start", style: "fill: " + f.c }, g); l.textContent = f.l;
+  }
+
+  function envelope(p) {
+    const pr = PROTO[p] || PROTO.tcp;
+    const g = el("g", { class: "pkt" }, $("packets"));
+    el("rect", { x: -15, y: -10, width: 30, height: 20, rx: 2, style: "fill: " + pr.c }, g);
+    el("path", { d: "M-15 -10 L0 2 L15 -10" }, g);
+    const t = el("text", { y: -15, style: "fill: " + pr.c }, g); t.textContent = pr.n;
+    return g;
+  }
+  const place = (g, xy) => g.setAttribute("transform", "translate(" + xy[0].toFixed(1) + " " + xy[1].toFixed(1) + ")");
+
+  function clearCanvas() { $("packets").textContent = ""; $("badges").textContent = ""; }
+
+  function showEnd(st) {
+    clearCanvas();
+    if (st.mv) for (const m of st.mv) {
+      const pts = pathPts(m.path);
+      place(envelope(st.p), pts[pts.length - 1]);
+      if (m.f) badge(m.path[m.path.length - 1], m.f);
+    }
+    if (st.badges) for (const b of st.badges) badge(b[0], b[1]);
+  }
+
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function animate(st, done) {
+    clearCanvas();
+    if (!st.mv || reduce) { showEnd(st); done(); return; }
+    const legs = st.mv.map((m) => ({ pts: pathPts(m.path), g: envelope(st.p) }));
+    const len = Math.max.apply(null, legs.map((l) => pathLen(l.pts)));
+    const dur = Math.max(900, len / 0.28) / S.speed;
+    const t0 = performance.now();
+    const token = {};
+    S.anim = token;
+    legs.forEach((l) => place(l.g, l.pts[0]));
+    function frame(now) {
+      if (S.anim !== token) return;
+      const t = Math.min(1, (now - t0) / dur);
+      const e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      legs.forEach((l) => place(l.g, pointAt(l.pts, e)));
+      if (t < 1) requestAnimationFrame(frame);
+      else { S.anim = null; showEnd(st); done(); }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* ---------- Panneaux ---------- */
+  function prevPdu(i) {
+    for (let j = i - 1; j >= 0; j--) if (sc().steps[j].pdu) return sc().steps[j].pdu;
+    return null;
+  }
+  function renderPdu(pdu, before, label) {
+    const box = $("pdu");
+    if (!pdu) { box.innerHTML = '<p class="empty">' + (label || "Aucun paquet sur le câble à cette étape : l'équipement réfléchit.") + "</p>"; return; }
+    const old = {};
+    if (before) before.forEach((L) => L.f.forEach((f) => { old[L.n + "|" + f[0]] = f[1]; }));
+    box.innerHTML = (label ? '<p class="empty">' + label + "</p>" : "") + pdu.map((L) => {
+      const rows = L.f.map((f) => {
+        const k = L.n + "|" + f[0];
+        const chg = before && k in old && old[k] !== f[1];
+        return "<dt" + (chg ? ' class="chg"' : "") + ">" + esc(f[0]) + "</dt><dd" + (chg ? ' class="chg"' : "") + ">" + esc(f[1]) + "</dd>";
+      }).join("");
+      return '<div class="layer"><b>' + esc(L.n) + "</b><dl>" + rows + "</dl></div>";
+    }).join("");
+  }
+  function renderTables(i) {
+    let tb = null;
+    for (let j = i; j >= 0; j--) if (sc().steps[j].tb) { tb = sc().steps[j].tb; break; }
+    $("tables-card").hidden = !tb;
+    if (!tb) return;
+    $("tables").innerHTML = Object.keys(tb).map((k) => "<div><b>" + esc(k) + "</b><ul>" + tb[k].map((r) => "<li>" + esc(r) + "</li>").join("") + "</ul></div>").join("");
+  }
+  function routeText(st) {
+    if (!st.mv) return "";
+    const names = st.mv[0].path.map((k) => NODES[k].name);
+    if (st.mv.length > 1) return names.slice(0, -1).join(" → ") + " → diffusion vers " + st.mv.length + " ports";
+    return names.join(" → ");
+  }
+
+  function renderPanels() {
+    const s = sc(), n = s.steps.length, i = S.i;
+    $("explain").style.setProperty("--c", s.color);
+    if (i < 0) {
+      $("ex-step").textContent = "Scénario · " + (s.status === "prévu" ? "lab prévu" : "lab réel");
+      $("ex-title").textContent = s.name;
+      $("ex-route").textContent = n + " étapes";
+      $("ex-text").innerHTML = "<p>" + esc(s.intro) + "</p><p class=\"empty\">Lecture pour dérouler, ou Suivant pour avancer pas à pas. Clavier : espace, flèches.</p>";
+      const first = s.steps.find((x) => x.pdu);
+      renderPdu(first ? first.pdu : null, null, "Premier paquet du scénario :");
+      renderTables(-1);
+    } else {
+      const st = s.steps[i];
+      $("ex-step").textContent = "Étape " + (i + 1) + " / " + n;
+      $("ex-title").textContent = st.t;
+      $("ex-route").textContent = routeText(st);
+      $("ex-text").innerHTML = st.d;
+      renderPdu(st.pdu || null, st.diff ? prevPdu(i) : null);
+      renderTables(i);
+    }
+    $("counter").textContent = Math.max(0, i + 1) + " / " + n;
+    $("bar").style.width = ((i + 1) / n * 100) + "%";
+    $("play").textContent = S.playing ? "⏸ Pause" : (i >= n - 1 ? "↻ Rejouer" : "▶ Lecture");
+    $("prev").disabled = i < 0;
+    $("next").disabled = i >= n - 1;
+    document.querySelectorAll("#events tr").forEach((tr, j) => {
+      tr.classList.toggle("cur", j === i);
+      tr.classList.toggle("future", j > i);
+    });
+    drawRings(i >= 0 ? s.steps[i] : null);
+  }
+
+  function renderEvents() {
+    const s = sc();
+    $("events").innerHTML = s.steps.map((st, j) => {
+      const pr = PROTO[st.p] || PROTO.think;
+      let from = "", to = "—", res = "";
+      if (st.mv) {
+        const m = st.mv[0];
+        from = NODES[m.path[0]].name;
+        to = st.mv.length > 1 ? "diffusion (" + st.mv.length + " ports)" : NODES[m.path[m.path.length - 1]].name;
+        const fates = st.mv.map((x) => x.f).filter(Boolean);
+        if (fates.includes("drop")) res = '<span class="res-drop">bloqué</span>';
+        else if (fates.includes("ok")) res = '<span class="res-ok">reçu</span>';
+        else if (fates.includes("lost")) res = "sans réponse";
+        else if (fates.length) res = "ignoré";
+        else res = "en transit";
+      } else {
+        from = stepFocus(st).map((k) => NODES[k].name).join(", ");
+        if (st.badges && st.badges.some((b) => b[1] === "drop")) res = '<span class="res-drop">échec</span>';
+        else if (st.badges) res = '<span class="res-ok">alerte</span>';
+      }
+      return '<tr tabindex="0" data-i="' + j + '"><td class="n">' + (j + 1) + "</td><td>" + esc(from) + "</td><td>" + esc(to) + '</td><td><span class="sq" style="--c: ' + pr.c + '"></span>' + esc(pr.n) + "</td><td>" + res + "</td></tr>";
+    }).join("");
+    $("soc").innerHTML = s.soc.map((x) => "<li>" + esc(x) + "</li>").join("");
+    $("verify").textContent = s.verify;
+  }
+
+  /* ---------- Contrôles ---------- */
+  function stopAnim() { S.anim = null; clearTimeout(S.timer); S.timer = null; }
+
+  function goto(i, anim) {
+    stopAnim();
+    S.i = i;
+    renderPanels();
+    if (i < 0) { clearCanvas(); return; }
+    const st = sc().steps[i];
+    if (anim) animate(st, afterStep); else showEnd(st);
+  }
+  function afterStep() {
+    if (!S.playing) return;
+    if (S.i >= sc().steps.length - 1) { S.playing = false; renderPanels(); return; }
+    const hold = (sc().steps[S.i].mv ? 2600 : 4200) * S.hold / S.speed;
+    S.timer = setTimeout(() => { if (S.playing) goto(S.i + 1, true); }, hold);
+  }
+  function next() {
+    if (S.anim) { const st = sc().steps[S.i]; stopAnim(); showEnd(st); afterStep(); return; }
+    if (S.i < sc().steps.length - 1) goto(S.i + 1, true);
+  }
+  function prev() { S.playing = false; if (S.i >= 0) goto(S.i - 1, false); }
+  function play() {
+    if (S.playing) { S.playing = false; stopAnim(); if (S.i >= 0) showEnd(sc().steps[S.i]); renderPanels(); return; }
+    S.playing = true;
+    if (S.i >= sc().steps.length - 1) S.i = -1;
+    renderPanels();
+    if (S.i < 0) { S.timer = setTimeout(() => S.playing && goto(0, true), 1500 / S.speed); }
+    else goto(S.i + 1, true);
+  }
+  function select(idx, keepHash) {
+    S.playing = false; stopAnim();
+    S.sc = idx; S.i = -1;
+    document.querySelectorAll("#scenarios button").forEach((b, j) => b.setAttribute("aria-pressed", j === idx ? "true" : "false"));
+    applyScenarioLook(); renderEvents(); clearCanvas(); renderPanels();
+    if (!keepHash) { try { history.replaceState(null, "", "#" + SCENARIOS[idx].id); } catch (e) { /* cadre restreint */ } }
+  }
+
+  function buildChips() {
+    $("scenarios").innerHTML = SCENARIOS.map((s, j) =>
+      '<li><button type="button" aria-pressed="false" data-j="' + j + '"><span class="sw" style="--c: ' + s.color + '"></span>' + esc(s.name) + (s.status === "prévu" ? '<span class="tag">prévu</span>' : "") + "</button></li>").join("");
+    $("scenarios").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) select(+b.dataset.j); });
+  }
+
+  drawTopology();
+  buildChips();
+  $("play").addEventListener("click", play);
+  $("next").addEventListener("click", () => { S.playing = false; next(); });
+  $("prev").addEventListener("click", prev);
+  $("reset").addEventListener("click", () => { S.playing = false; goto(-1, false); });
+  $("speed").addEventListener("change", (e) => { S.speed = +e.target.value; });
+  $("events").addEventListener("click", (e) => { const tr = e.target.closest("tr"); if (tr) { S.playing = false; goto(+tr.dataset.i, false); } });
+  $("events").addEventListener("keydown", (e) => { if (e.key === "Enter") { const tr = e.target.closest("tr"); if (tr) { S.playing = false; goto(+tr.dataset.i, false); } } });
+  document.addEventListener("keydown", (e) => {
+    if (["SELECT", "BUTTON", "TR", "INPUT"].includes(e.target.tagName)) return;
+    if (e.key === " ") { e.preventDefault(); play(); }
+    else if (e.key === "ArrowRight") { S.playing = false; next(); }
+    else if (e.key === "ArrowLeft") prev();
+  });
+
+  const start = SCENARIOS.findIndex((s) => "#" + s.id === location.hash);
+  select(start >= 0 ? start : 0, true);
+
+  /* Pilotage pour l'enregistrement vidéo (Playwright). */
+  window.sim = {
+    scenarios: SCENARIOS.map((s) => s.id),
+    select: (id) => select(Math.max(0, SCENARIOS.findIndex((s) => s.id === id)), true),
+    play: play, next: next, prev: prev,
+    setSpeed: (v) => { S.speed = v; $("speed").value = String(v); },
+    setHold: (k) => { S.hold = k; },
+    state: () => ({ scenario: sc().id, step: S.i, steps: sc().steps.length, playing: S.playing })
+  };
+})();
+</script>

@@ -44,6 +44,18 @@ https://github.com/UsmanPrime/Wazuh-Setup
   https://github.com/hashicorp/vagrant/tree/main/keys
 - Accès SSH à pfSense : https://docs.netgate.com/pfsense/en/latest/recipes/ssh-access.html
 
+## Réseau (simulateur de paquets)
+
+Utilisées par l'[annexe simulateur](writeup/annexe-simulateur-paquets.md) :
+
+- RFC 826 (ARP), RFC 2131 (DHCP), RFC 3927 (APIPA), RFC 5424 (syslog), RFC 5737 (adresses de
+  documentation) : https://www.rfc-editor.org/
+- NAT sortant et pare-feu à états pfSense :
+  https://docs.netgate.com/pfsense/en/latest/nat/outbound.html,
+  https://docs.netgate.com/pfsense/en/latest/firewall/fundamentals.html
+- Enrôlement des agents Wazuh :
+  https://documentation.wazuh.com/current/user-manual/agent/agent-enrollment/index.html
+
 ## À explorer
 
 - Guide de preuve de concept Wazuh, pour des scénarios officiels reproductibles.

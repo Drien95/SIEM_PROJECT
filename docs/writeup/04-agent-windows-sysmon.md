@@ -218,7 +218,7 @@ après quelques minutes, `Restart-Service WazuhSvc` dans la VM.
 **Déployé dans notre lab le 2026-10-21**, depuis l'hôte, sans toucher à la VM :
 
 ```bash
-ssh siem-wazuh 'sudo cp /var/ossec/etc/shared/default/agent.conf /var/ossec/etc/shared/default/agent.conf.bak   && sudo tee /var/ossec/etc/shared/default/agent.conf >/dev/null   && sudo /var/ossec/bin/verify-agent-conf && sudo systemctl restart wazuh-manager'   < configs/manager/shared/default/agent.conf
+ssh siem-wazuh 'sudo cp /var/ossec/etc/shared/default/agent.conf /var/ossec/etc/shared/default/agent.conf.bak && sudo tee /var/ossec/etc/shared/default/agent.conf >/dev/null && sudo /var/ossec/bin/verify-agent-conf && sudo systemctl restart wazuh-manager' < configs/manager/shared/default/agent.conf
 ```
 
 Comment savoir que l'agent a bien reçu la configuration : le manager regroupe les fichiers du

@@ -256,8 +256,11 @@ Diagnostic (`D:\VM\SIEM_LAB\SIEM-Win11\vmware.log`, 2026-10-21 16:53 → 17:04 U
 
 Causes :
 
-1. `D:` est un **disque dur mécanique** (Seagate ST1000DM003, 7200 tr/min), partagé par les trois
-   VM, dont l'indexeur Wazuh qui écrit en continu.
+1. `D:` est un **disque dur mécanique** (Seagate ST1000DM003, 7200 tr/min). Correction : Wazuh
+   et pfSense étaient **éteints** pendant cette installation (leurs `vmware.log` s'arrêtent à
+   03:09 UTC). Le disque seul suffit à expliquer les latences. Mesure faite depuis l'hôte,
+   écriture de 512 Mo par blocs de 4 Mo avec flush : `D:` 53 Mo/s (pire bloc 183 ms), `C:`
+   704 Mo/s (pire bloc 13 ms).
 2. Hyper-V est actif sur l'hôte : VMware 17.0.0 tourne en `Monitor Mode: ULM` (au-dessus de
    l'hyperviseur Windows), plus lent.
 

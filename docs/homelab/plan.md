@@ -231,3 +231,11 @@ captures de cette étape ne sont pas versionnées, car elles montrent le mot de 
 
 Erreur 500 du dashboard juste après le changement du mot de passe : le cookie de l'ancienne
 session dans Brave. Après suppression des cookies du site, la connexion fonctionne.
+
+### 2026-10-21 — Windows 11 : boucle de redémarrage sur l'ISO
+
+Première installation interrompue : au redémarrage, la VM repartait sur l'ISO (dialogue
+« mise à niveau… Oui/Non »), puis « No compatible bootloader found » sur le disque NVMe
+(captures 51 et 52). Correctif, VM éteinte : `bios.bootOrder = "hdd,cdrom"` ajouté au `.vmx`
+(sauvegarde `.vmx.bak-bootorder`), puis réinstallation propre (partitions supprimées).
+Effet de `bios.bootOrder` avec un firmware EFI : à valider.

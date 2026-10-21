@@ -185,3 +185,28 @@ Correctif : `sudo systemctl enable --now wazuh-dashboard`.
 Cause non établie : le service n'était peut-être pas activé au démarrage, ou il est parti
 avant que l'indexeur soit prêt (hypothèse). Si ça se reproduit, lire
 `sudo journalctl -u wazuh-dashboard -b --no-pager | tail -50`.
+
+### 2026-10-21 — Disque Wazuh plein : index en lecture seule
+
+Symptôme : la création des index patterns échoue avec « index [.kibana_1] blocked by:
+TOO_MANY_REQUESTS/12/disk usage exceeded flood-stage watermark, index has
+read-only-allow-delete block ».
+
+Cause : dans l'OVA 4.14.9, le disque fait 50 Go mais la partition racine `sda1` n'en couvre que
+25 Go (constaté avec `lsblk`). Elle était pleine (33 Mo libres), avec 21 Go dans `/var/ossec`.
+Au-delà de 95 % (flood stage), l'indexeur passe les index en lecture seule.
+
+Correctif :
+
+```bash
+sudo journalctl --vacuum-size=50M && sudo dnf clean all   # quelques Mo pour growpart
+sudo growpart /dev/sda 1
+sudo xfs_growfs /
+sudo du -xh --max-depth=2 /var/ossec | sort -h | tail -8   # identifier le contenu
+curl -k -u admin -X PUT "https://localhost:9200/_all/_settings" \
+  -H 'Content-Type: application/json' \
+  -d '{"index.blocks.read_only_allow_delete": null}'      # mot de passe saisi à l'invite
+```
+
+Leçon : après l'import de l'OVA, vérifier `lsblk` / `df -h` **avant** le premier démarrage
+complet des services.

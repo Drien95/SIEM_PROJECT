@@ -80,3 +80,9 @@ Captures volontairement **non versionnées** (mot de passe visible) : les sortie
 | 61 | [61-wazuh-dashboard-17-alertes.png](61-wazuh-dashboard-17-alertes.png) | Threat Hunting : premières alertes 100302 |
 | 62 | [62-wazuh-events-100302.png](62-wazuh-events-100302.png) | Events : alertes 100302 `192.168.30.1 -> 192.168.30.131 (icmp)` |
 | 63 | [63-wazuh-alerte-100303.png](63-wazuh-alerte-100303.png) | **Alerte 100303** niveau 10 : « blocages répétés depuis 192.168.30.1 (scan probable) » |
+| 64 | [64-wazuh-authorized-keys-vagrant.png](64-wazuh-authorized-keys-vagrant.png) | `authorized_keys` de l'OVA : clé publique **vagrant** + clé de l'hôte en double |
+| 65 | [65-wazuh-vagrant-retiree.png](65-wazuh-vagrant-retiree.png) | Clé vagrant retirée, doublon supprimé |
+| 66 | [66-ssh-ed25519-mot-de-passe-demande.png](66-ssh-ed25519-mot-de-passe-demande.png) | `ssh siem-wazuh` avec la clé ed25519 : le mot de passe est encore demandé |
+| 67 | [67-wazuh-fips-ed25519-refusee.png](67-wazuh-fips-ed25519-refusee.png) | Diagnostic : `Ed25519 keys are not allowed in FIPS mode`, `not in PubkeyAcceptedAlgorithms` |
+| 68 | [68-wazuh-sshd-durci.png](68-wazuh-sshd-durci.png) | `00-durcissement.conf` appliqué, `sshd -T` : mot de passe désactivé |
+| 69 | [69-ssh-ecdsa-ok-mdp-refuse.png](69-ssh-ecdsa-ok-mdp-refuse.png) | Connexion par clé ECDSA OK ; mot de passe refusé `Permission denied (publickey,…)` |

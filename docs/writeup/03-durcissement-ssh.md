@@ -33,6 +33,10 @@ sshd-session[5039]: userauth_pubkey: signature algorithm ssh-ed25519 not in Pubk
 
 et `ssh-keygen -lf ~/.ssh/authorized_keys` sur le serveur : `Ed25519 keys are not allowed in FIPS mode`.
 
+![Mot de passe encore demandé avec la clé ed25519](../homelab/screenshots/66-ssh-ed25519-mot-de-passe-demande.png)
+
+![Diagnostic FIPS : ed25519 refusée](../homelab/screenshots/67-wazuh-fips-ed25519-refusee.png)
+
 - **FIPS 140** est une norme du gouvernement américain (NIST) qui liste les algorithmes
   cryptographiques **validés**. En mode FIPS, le système n'accepte que ceux-là : RSA (≥ 2048),
   ECDSA sur les courbes NIST P-256/P-384/P-521, AES, SHA-2… Ed25519 n'a été ajouté à la norme
@@ -143,6 +147,8 @@ Constaté le 2026-10-21 en listant `~wazuh-user/.ssh/authorized_keys` sur l'OVA 
 - la clé de l'hôte `adrien@hote-siemlab` **en double** ;
 - **aucune** clé `adrien@siem-win11` : l'étape 2.3 n'avait donc rien à retirer.
 
+![authorized_keys de l'OVA avec la clé vagrant](../homelab/screenshots/64-wazuh-authorized-keys-vagrant.png)
+
 **Pourquoi c'est grave** : la clé privée correspondante est **publique**, publiée par HashiCorp
 dans le dépôt de Vagrant pour que tout le monde puisse se connecter aux box de test. N'importe
 qui sur le LAN (Kali compris) pouvait ouvrir une session `wazuh-user` sur le SIEM sans mot de
@@ -160,6 +166,11 @@ cut -d' ' -f3 ~/.ssh/authorized_keys                           # attendu : adrie
 
 `cat … >` plutôt que `mv` : le fichier garde son propriétaire et ses droits `600`.
 Tester ensuite `ssh siem-wazuh` depuis une **nouvelle** fenêtre avant de continuer.
+
+![Clé vagrant retirée](../homelab/screenshots/65-wazuh-vagrant-retiree.png)
+
+La sauvegarde `~/.ssh/authorized_keys.bak` contient encore la clé vagrant. sshd ne la lit pas,
+mais on la supprime une fois le résultat validé : `rm ~/.ssh/authorized_keys.bak`.
 
 Vérifier aussi les autres comptes, la même image pouvant avoir posé la clé ailleurs :
 
@@ -203,6 +214,15 @@ ssh -o PubkeyAuthentication=no wazuh-user@10.10.10.100
 
 Attendu : `Permission denied (publickey…)`. Le mot de passe est bien refusé.
 
+Résultat dans notre lab (2026-10-21) : `sshd -T` confirme `passwordauthentication no`. Les deux
+lignes `Ed25519 keys are not allowed in FIPS mode, skipping /etc/ssh/ssh_host_ed25519_key` sont
+un autre effet du mode FIPS : sshd ignore aussi sa propre **clé d'hôte** ed25519 et se présente
+avec ses clés ECDSA/RSA. Sans gravité.
+
+![sshd durci](../homelab/screenshots/68-wazuh-sshd-durci.png)
+
+![Connexion par clé ECDSA, mot de passe refusé](../homelab/screenshots/69-ssh-ecdsa-ok-mdp-refuse.png)
+
 ## 3. pfSense
 
 1. *System > User Manager > admin* : coller le contenu de `id_ecdsa_siemlab.pub`, en **remplaçant** toute ancienne clé ed25519 déjà collée (pfSense étant en « Public Key Only », `ssh siem-pfsense` échoue tant que la clé ECDSA n'y est pas) (sur l'hôte : `type $env:USERPROFILE\.ssh\id_ecdsa_siemlab.pub`) dans
@@ -224,13 +244,13 @@ L'interface web garde son mot de passe : ce réglage ne concerne que SSH.
 |---|---|---|
 | Hôte sur VMnet10 | `10.10.10.1` | ✅ |
 | Port 22 Wazuh depuis l'hôte | ouvert | ✅ |
-| Port 22 pfSense depuis l'hôte | ouvert après activation | ❌ fermé (SSH désactivé par défaut) |
+| Port 22 pfSense depuis l'hôte | ouvert après activation | ✅ après activation de SSH (selon Adrien) |
 | Clé VM Windows → Wazuh | retirée (hors matrice des flux) | ✅ absente du fichier |
-| Clé Vagrant dans `authorized_keys` de `wazuh-user` | absente | ❌ trouvée, suppression en cours |
+| Clé Vagrant dans `authorized_keys` de `wazuh-user` | absente | ✅ trouvée puis retirée |
 | Clé Vagrant sur `root` et autres comptes | absente | à vérifier |
-| Clé hôte `id_ecdsa_siemlab` → Wazuh | session sans mot de passe | ❌ ed25519 refusée (mode FIPS) ; refaite en ECDSA P-384 : à tester |
-| Mot de passe refusé sur Wazuh | `Permission denied (publickey)` | à faire |
-| Connexion par clé à pfSense | menu console pfSense | à faire |
+| Clé hôte → Wazuh | session sans mot de passe | ❌ ed25519 refusée (mode FIPS) ; ✅ ECDSA P-384 `id_ecdsa_siemlab` |
+| Mot de passe refusé sur Wazuh | `Permission denied (publickey)` | ✅ `Permission denied (publickey,gssapi-keyex,gssapi-with-mic)` |
+| Connexion par clé à pfSense | menu console pfSense | ✅ selon Adrien (pas de capture) |
 
 Sources : `man sshd_config` (OpenSSH, règle « first obtained value »),
 https://docs.netgate.com/pfsense/en/latest/recipes/ssh-access.html

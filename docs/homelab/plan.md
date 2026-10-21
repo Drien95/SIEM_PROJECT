@@ -94,6 +94,19 @@ Les images restent dans `D:\VM\SIEM_LAB\images\`, hors git (`*.ova` et `*.iso` s
 
 Pour ouvrir une VM : *File > Open* dans VMware, puis choisir le `.vmx`.
 
+### Incident — plantage de VMware (0xc0000094)
+
+À l'ouverture de SIEM-pfSense, VMware 17.0 a planté (« unrecoverable error (vmui) Exception
+0xc0000094 », division entière par zéro). Le journal `vmware-ui-*.log` montre une division
+de 2 (`numvcpus`) par 0 dans la page des paramètres.
+
+Cause probable (déduite, pas confirmée par VMware) : `cpuid.coresPerSocket` absent alors que
+`numvcpus` > 1. Correctif : ajout de `cpuid.coresPerSocket` dans SIEM-pfSense (2) et
+SIEM-Wazuh (4). SIEM-Win11 l'avait déjà.
+
+Règle pour nos `.vmx` écrits à la main : toujours définir `numvcpus` **et**
+`cpuid.coresPerSocket`.
+
 ### Installation de pfSense
 
 Le **Netgate Installer** télécharge pfSense CE pendant l'installation : le WAN (`vmx0`, NAT)

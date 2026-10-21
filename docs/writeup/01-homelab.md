@@ -390,6 +390,10 @@ Incidents :
    partagent alors plus le même mot de passe.
 3. Après l'extension du disque et le déblocage des index, l'outil termine sur « Password
    changed ». `filebeat test output` va jusqu'à `talk to server... OK` (TLS 1.2, version 7.10.2).
+4. Juste après, `https://10.10.10.100` renvoie `{"statusCode":500,"error":"Internal Server
+   Error"}`. Cause : le navigateur (Brave) présente le cookie d'une session ouverte avec
+   l'ancien mot de passe. Correctif : supprimer les cookies du site, ou ouvrir une fenêtre
+   privée, puis se reconnecter. Le dashboard s'affiche normalement.
 
 > Les captures de cette étape ne sont **pas versionnées** : le mot de passe y apparaît en
 > clair. Bonne pratique : ne pas passer le mot de passe en argument (il reste dans
@@ -402,7 +406,7 @@ Incidents :
 |---|---|
 | VMnet10 | ✅ host-only, DHCP VMware désactivé |
 | pfSense CE 2.9.0 | ✅ installé, assistant fait, mot de passe changé |
-| Wazuh 4.14.9 | ✅ services actifs, disque étendu, index débloqués, mot de passe `admin` changé, Filebeat OK |
+| Wazuh 4.14.9 | ✅ services actifs, disque étendu, index débloqués, mot de passe `admin` changé, Filebeat OK, connexion au dashboard OK |
 | Windows 11 | 🔄 installation en cours |
 | Kali | ⏳ à rebrancher sur VMnet10 |
 

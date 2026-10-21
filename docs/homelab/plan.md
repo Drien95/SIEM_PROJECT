@@ -210,3 +210,13 @@ curl -k -u admin -X PUT "https://localhost:9200/_all/_settings" \
 
 Leçon : après l'import de l'OVA, vérifier `lsblk` / `df -h` **avant** le premier démarrage
 complet des services.
+
+Résultat : `growpart` a fait passer `sda1` de 52 404 191 à 104 832 991 secteurs, et
+`xfs_growfs` a étendu le système de fichiers. `/` fait maintenant 50 Go, dont 25 Go libres
+(51 %). Contenu de `/var/ossec` (21 Go) : `queue/vd` 9,1 Go (base de vulnérabilités, normal) et
+`tmp` 9,7 Go (probablement les fichiers temporaires de l'import de cette base, hypothèse à
+vérifier une fois l'import terminé).
+
+Effet de bord : `wazuh-passwords-tool.sh`, lancé pendant que le disque était plein, a mis à jour
+le keystore de Filebeat, puis a échoué (« Could not load the changes »). Il faut le relancer
+après avoir libéré de la place, puis vérifier avec `sudo filebeat test output`.

@@ -1,0 +1,279 @@
+<title>Matrice des flux du lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Même planche « Packet Tracer » que topologie-lab.html, centrée sur les flux autorisés et interdits. */
+:root {
+  --bg: #f3f5f8;
+  --canvas: #ffffff;
+  --fg: #1c2633;
+  --muted: #5a6778;
+  --line: #d5dbe3;
+  --wan: #c46a1b;
+  --wan-bg: #fdf3e8;
+  --lan: #2c8a4b;
+  --lan-bg: #ecf7ef;
+  --host: #4d6a8f;
+  --host-bg: #eef2f8;
+  --kali: #7d8591;
+  --kali-bg: #f1f2f4;
+  --f-ok: #1f8a4c;
+  --f-atk: #c77d0a;
+  --f-plan: #7d8591;
+  --f-no: #d23c3c;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744;
+    --wan: #e9954d; --wan-bg: #2a2119; --lan: #5cc27d; --lan-bg: #17271d;
+    --host: #8fb0d8; --host-bg: #1a2230; --kali: #9aa3ae; --kali-bg: #1d2229;
+    --f-ok: #4fcf83; --f-atk: #f0a73a; --f-plan: #9aa3ae; --f-no: #ff6b6b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744;
+  --wan: #e9954d; --wan-bg: #2a2119; --lan: #5cc27d; --lan-bg: #17271d;
+  --host: #8fb0d8; --host-bg: #1a2230; --kali: #9aa3ae; --kali-bg: #1d2229;
+  --f-ok: #4fcf83; --f-atk: #f0a73a; --f-plan: #9aa3ae; --f-no: #ff6b6b; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 68ch; color: var(--muted); }
+figure { margin: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 980px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 12.5px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .ztitle { font-size: 14px; font-weight: 700; letter-spacing: .06em; }
+.flow { fill: none; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.ok { stroke: var(--f-ok); } .atk { stroke: var(--f-atk); }
+.plan { stroke: var(--f-plan); stroke-dasharray: 8 6; }
+.no { stroke: var(--f-no); stroke-dasharray: 9 7; }
+.t-ok { fill: var(--f-ok) !important; } .t-atk { fill: var(--f-atk) !important; }
+.t-plan { fill: var(--f-plan) !important; } .t-no { fill: var(--f-no) !important; }
+.badge circle { stroke: var(--canvas); stroke-width: 2; }
+.badge text { fill: #fff; font-weight: 700; font-size: 12px; text-anchor: middle; dominant-baseline: central; }
+.cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.card { display: grid; gap: 8px; align-content: start; padding: 14px 16px; background: var(--canvas); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 4px; min-width: 0; }
+.card h2 { margin: 0; font-size: 15px; }
+.card ol, .card ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; color: var(--muted); font-size: 14px; }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
+.card strong { color: var(--fg); }
+code { font-family: var(--font-mono); font-size: .9em; color: var(--fg); }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · homelab · moindre privilège</span>
+    <h1>Matrice des flux du lab</h1>
+    <p>Qui a le droit de parler à qui, sur quel port. En vert, ce qu'on autorise ; en rouge barré, ce qu'on interdit volontairement ; en pointillé gris, ce qui est prévu. Tout ce qui n'est pas dessiné est refusé.</p>
+  </header>
+
+  <figure id="flux">
+    <svg viewBox="0 0 1400 1000" role="img" aria-labelledby="svg-title">
+      <title id="svg-title">Matrice des flux du homelab Wazuh : flux autorisés, interdits et prévus entre l'hôte, pfSense, Wazuh, Windows 11 et Kali</title>
+      <defs>
+        <marker id="m-ok" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-ok)"/></marker>
+        <marker id="m-atk" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-atk)"/></marker>
+        <marker id="m-plan" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-plan)"/></marker>
+        <marker id="m-no" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-no)"/></marker>
+
+        <!-- Croix « interdit », centrée sur (0,0) -->
+        <symbol id="x-no" viewBox="-13 -13 26 26" overflow="visible">
+          <circle r="11" style="fill: var(--canvas); stroke: var(--f-no)" stroke-width="2.5"/>
+          <path d="M-5 -5 L5 5 M5 -5 L-5 5" style="stroke: var(--f-no)" stroke-width="2.8" stroke-linecap="round"/>
+        </symbol>
+
+        <!-- Icônes reprises de topologie-lab.html, centrées sur (0,0) -->
+        <symbol id="i-cloud" viewBox="-100 -55 200 110" overflow="visible">
+          <path d="M-70 35 C-98 35 -98 -2 -70 -4 C-72 -32 -38 -44 -20 -26 C-10 -52 34 -50 40 -22 C66 -30 88 -6 74 12 C96 16 92 35 70 35 Z" fill="#dfeefc" stroke="#4f86c6" stroke-width="3"/>
+        </symbol>
+        <symbol id="i-firewall" viewBox="-55 -45 110 90" overflow="visible">
+          <polygon points="-44,-22 -30,-36 50,-36 36,-22" fill="#e46b55"/>
+          <polygon points="36,-22 50,-36 50,26 36,40" fill="#7d2417"/>
+          <rect x="-44" y="-22" width="80" height="62" fill="#b8392a"/>
+          <g stroke="#f4c9bf" stroke-width="1.6">
+            <path d="M-44 -6 H36 M-44 10 H36 M-44 25 H36"/>
+            <path d="M-24 -22 V-6 M4 -22 V-6 M-38 -6 V10 M-10 -6 V10 M18 -6 V10 M-24 10 V25 M4 10 V25 M-38 25 V40 M-10 25 V40 M18 25 V40"/>
+          </g>
+        </symbol>
+        <symbol id="i-server" viewBox="-35 -50 70 100" overflow="visible">
+          <polygon points="-24,-34 -12,-46 30,-46 18,-34" fill="#9aa9bd"/>
+          <polygon points="18,-34 30,-46 30,34 18,46" fill="#3e4b5c"/>
+          <rect x="-24" y="-34" width="42" height="80" fill="#64748a"/>
+          <g fill="#2a3442"><rect x="-18" y="-26" width="30" height="7"/><rect x="-18" y="-15" width="30" height="7"/><rect x="-18" y="-4" width="30" height="7"/></g>
+          <circle cx="-12" cy="30" r="3" fill="#57e389"/><circle cx="-2" cy="30" r="3" fill="#f5c542"/>
+        </symbol>
+        <symbol id="i-pc" viewBox="-40 -40 80 80" overflow="visible">
+          <rect x="-32" y="-32" width="64" height="44" rx="3" fill="#33414f"/>
+          <rect x="-27" y="-27" width="54" height="34" fill="#8cc4f0"/>
+          <rect x="-5" y="12" width="10" height="9" fill="#5b6876"/>
+          <rect x="-20" y="21" width="40" height="5" rx="2" fill="#33414f"/>
+          <rect x="-30" y="29" width="60" height="7" rx="2" fill="#a6b2bf"/>
+        </symbol>
+        <symbol id="i-kali" viewBox="-40 -40 80 80" overflow="visible">
+          <rect x="-32" y="-32" width="64" height="44" rx="3" fill="#33414f"/>
+          <rect x="-27" y="-27" width="54" height="34" fill="#1d2b3a"/>
+          <path d="M-18 0 C-8 -18 10 -20 18 -8 M6 -12 L14 -2" stroke="#4fa3f7" stroke-width="2.4" fill="none"/>
+          <rect x="-5" y="12" width="10" height="9" fill="#5b6876"/>
+          <rect x="-20" y="21" width="40" height="5" rx="2" fill="#33414f"/>
+          <rect x="-30" y="29" width="60" height="7" rx="2" fill="#a6b2bf"/>
+        </symbol>
+      </defs>
+
+      <text x="30" y="40" class="b" style="font-size: 18px">Homelab Wazuh · flux autorisés et interdits</text>
+      <text x="1370" y="40" text-anchor="end" class="muted mono">décidé le 2026-10-21</text>
+
+      <!-- Zones -->
+      <rect x="20" y="62" width="340" height="200" rx="10" style="fill: var(--wan-bg); stroke: var(--wan)" stroke-width="2" stroke-dasharray="10 6"/>
+      <rect x="20" y="330" width="340" height="300" rx="10" style="fill: var(--host-bg); stroke: var(--host)" stroke-width="2" stroke-dasharray="10 6"/>
+      <rect x="420" y="62" width="960" height="568" rx="10" style="fill: var(--lan-bg); stroke: var(--lan)" stroke-width="2" stroke-dasharray="10 6"/>
+      <rect x="880" y="670" width="500" height="200" rx="10" style="fill: var(--kali-bg); stroke: var(--kali)" stroke-width="2" stroke-dasharray="10 6"/>
+
+      <text x="40" y="240" class="ztitle" style="fill: var(--wan)">INTERNET · via le WAN</text>
+      <text x="40" y="360" class="ztitle" style="fill: var(--host)">PC HÔTE WINDOWS</text>
+      <text x="40" y="380" class="muted">le poste d'administration</text>
+      <text x="440" y="600" class="ztitle" style="fill: var(--lan)">ZONE LAN · VMnet10</text>
+      <text x="440" y="618" class="muted">10.10.10.0/24 · même switch : pfSense ne voit pas ces flux</text>
+      <text x="900" y="830" class="ztitle" style="fill: var(--kali)">ZONE ATTAQUE · VMnet11 (prévu)</text>
+      <text x="900" y="850" class="muted">derrière pfSense : ses paquets le traverseront</text>
+
+      <!-- Flux autorisés -->
+      <path class="flow ok" d="M635 168 L292 150" marker-end="url(#m-ok)"/>
+      <path class="flow ok" d="M245 428 L628 220" marker-end="url(#m-ok)"/>
+      <path class="flow ok" d="M245 460 H640" marker-end="url(#m-ok)"/>
+      <path class="flow ok" d="M700 240 V395" marker-end="url(#m-ok)"/>
+      <path class="flow plan" d="M1135 445 H762" marker-end="url(#m-plan)"/>
+      <path class="flow atk" d="M1180 725 V522" marker-end="url(#m-atk)"/>
+      <path class="flow plan" d="M190 505 V770 H1125" marker-end="url(#m-plan)"/>
+
+      <!-- Flux interdits -->
+      <path class="flow no" d="M1135 492 H762" marker-end="url(#m-no)"/>
+      <use href="#x-no" x="937" y="479" width="26" height="26"/>
+      <path class="flow no" d="M1135 752 L728 522" marker-end="url(#m-no)"/>
+      <use href="#x-no" x="907" y="618" width="26" height="26"/>
+      <path class="flow no" d="M680 522 V568" marker-end="url(#m-no)"/>
+      <use href="#x-no" x="667" y="547" width="26" height="26"/>
+
+      <!-- Icônes -->
+      <use href="#i-cloud" x="100" y="100" width="180" height="99"/>
+      <use href="#i-firewall" x="645" y="135" width="110" height="90"/>
+      <use href="#i-server" x="665" y="410" width="70" height="100"/>
+      <use href="#i-pc" x="1140" y="420" width="80" height="80"/>
+      <use href="#i-pc" x="150" y="420" width="80" height="80"/>
+      <use href="#i-kali" x="1140" y="730" width="80" height="80"/>
+
+      <!-- Étiquettes des machines -->
+      <text x="190" y="155" text-anchor="middle" class="b" style="font-size: 15px; fill: #1c2633">Internet</text>
+
+      <text x="770" y="160" class="b" style="font-size: 15px">pfSense CE 2.9.0</text>
+      <text x="770" y="177" class="mono">LAN 10.10.10.254</text>
+      <text x="770" y="194" class="muted">pare-feu · passerelle</text>
+
+      <text x="655" y="390" text-anchor="end" class="b" style="font-size: 15px">Wazuh 4.14.9</text>
+      <text x="655" y="407" text-anchor="end" class="mono">10.10.10.100</text>
+
+      <text x="1232" y="452" class="b" style="font-size: 15px">Windows 11</text>
+      <text x="1232" y="469" class="mono">10.10.10.101</text>
+      <text x="1232" y="486" class="muted">la cible</text>
+
+      <text x="140" y="436" text-anchor="end" class="b" style="font-size: 15px">PC hôte</text>
+      <text x="140" y="453" text-anchor="end" class="mono">10.10.10.1</text>
+
+      <text x="1232" y="762" class="b" style="font-size: 15px">Kali Linux</text>
+      <text x="1232" y="779" class="muted">l'attaquant</text>
+
+      <!-- Étiquettes des flux -->
+      <g class="badge" transform="translate(560 164)"><circle r="11" style="fill: var(--f-ok)"/><text>1</text></g>
+      <text x="440" y="108" class="b t-ok">80, 443, 53 vers Internet</text>
+      <text x="440" y="124" class="t-ok">mises à jour (NAT pfSense)</text>
+
+      <g class="badge" transform="translate(437 323)"><circle r="11" style="fill: var(--f-ok)"/><text>2</text></g>
+      <text x="475" y="345" class="b t-ok">HTTPS 443 · SSH 22 (clé)</text>
+      <text x="475" y="361" class="t-ok">administration de pfSense</text>
+
+      <g class="badge" transform="translate(300 460)"><circle r="11" style="fill: var(--f-ok)"/><text>3</text></g>
+      <text x="440" y="448" class="b t-ok">HTTPS 443 · SSH 22 (clé)</text>
+      <text x="440" y="482" class="t-ok">dashboard, administration</text>
+
+      <g class="badge" transform="translate(700 290)"><circle r="11" style="fill: var(--f-ok)"/><text>4</text></g>
+      <text x="718" y="286" class="b t-ok">syslog 514/UDP</text>
+      <text x="718" y="302" class="t-ok">validé (writeup 02)</text>
+
+      <g class="badge" transform="translate(1075 445)"><circle r="11" style="fill: var(--f-plan)"/><text>5</text></g>
+      <text x="790" y="433" class="b t-plan">agent 1514/TCP · 1515/TCP <tspan style="font-weight: 400">(à installer)</tspan></text>
+
+      <text x="790" y="519" class="b t-no">SSH 22 interdit <tspan style="font-weight: 400">: Windows est la cible</tspan></text>
+
+      <g class="badge" transform="translate(1180 690)"><circle r="11" style="fill: var(--f-atk)"/><text>6</text></g>
+      <text x="1200" y="594" class="b t-atk">attaques simulées</text>
+      <text x="1200" y="610" class="mono t-atk">22, 3389, 445…</text>
+      <text x="1200" y="644" class="t-atk">c'est ce que Wazuh</text>
+      <text x="1200" y="660" class="t-atk">doit détecter</text>
+
+      <text x="650" y="700" class="b t-no">Kali → Wazuh ou pfSense</text>
+      <text x="650" y="716" class="mono t-no">22, 443, 55000 : interdit</text>
+
+      <text x="665" y="560" text-anchor="end" class="b t-no">Wazuh n'initie rien</text>
+      <text x="665" y="576" text-anchor="end" class="t-no">il reçoit seulement</text>
+
+      <g class="badge" transform="translate(560 770)"><circle r="11" style="fill: var(--f-plan)"/><text>7</text></g>
+      <text x="580" y="760" class="b t-plan">SSH 22 · piloter Kali (optionnel)</text>
+
+      <!-- Légende -->
+      <g transform="translate(30 915)">
+        <text x="0" y="0" class="ztitle muted">LÉGENDE</text>
+        <path class="flow ok" d="M0 26 H40" marker-end="url(#m-ok)"/><text x="52" y="30">flux autorisé</text>
+        <path class="flow plan" d="M0 52 H40" marker-end="url(#m-plan)"/><text x="52" y="56">autorisé, pas encore en place</text>
+        <path class="flow atk" d="M300 26 H340" marker-end="url(#m-atk)"/><text x="352" y="30">attaque autorisée (lab uniquement)</text>
+        <path class="flow no" d="M300 52 H340" marker-end="url(#m-no)"/><text x="352" y="56">interdit</text>
+        <use href="#x-no" x="404" y="41" width="22" height="22"/>
+        <rect x="640" y="16" width="30" height="18" rx="3" style="fill: var(--lan-bg); stroke: var(--lan)" stroke-dasharray="5 3"/><text x="680" y="30">LAN : filtrage par pare-feu local</text>
+        <rect x="640" y="42" width="30" height="18" rx="3" style="fill: var(--kali-bg); stroke: var(--kali)" stroke-dasharray="5 3"/><text x="680" y="56">réseau séparé : filtrage par pfSense</text>
+        <text x="1340" y="56" text-anchor="end" class="muted">tout flux non dessiné est refusé</text>
+      </g>
+    </svg>
+  </figure>
+
+  <div class="cards">
+    <section class="card" style="--c: var(--f-ok)">
+      <h2>Autorisé</h2>
+      <ol>
+        <li><strong>LAN → Internet</strong> 80, 443, 53 : mises à jour, via le NAT de pfSense.</li>
+        <li><strong>Hôte → pfSense</strong> 443 et 22 par clé : administration.</li>
+        <li><strong>Hôte → Wazuh</strong> 443 et 22 par clé : dashboard et administration.</li>
+        <li><strong>pfSense → Wazuh</strong> 514/UDP : journaux du pare-feu, déjà validé.</li>
+        <li><strong>Windows 11 → Wazuh</strong> 1514 et 1515/TCP : l'agent, à installer.</li>
+        <li><strong>Kali → Windows 11</strong> : les attaques des scénarios, dans le lab seulement.</li>
+        <li><strong>Hôte → Kali</strong> 22 : optionnel, pour piloter Kali.</li>
+      </ol>
+    </section>
+    <section class="card" style="--c: var(--f-no)">
+      <h2>Interdit, et pourquoi</h2>
+      <ul>
+        <li><strong>Windows 11 → Wazuh en SSH</strong> : Windows est la machine attaquée. Une clé SSH vers le SIEM donnerait à l'attaquant la console de l'outil censé le voir.</li>
+        <li><strong>Kali → Wazuh ou pfSense</strong> : l'attaquant ne doit pas toucher la supervision.</li>
+        <li><strong>Wazuh → les postes</strong> : le manager reçoit, il n'ouvre aucune connexion.</li>
+      </ul>
+    </section>
+    <section class="card" style="--c: var(--host)">
+      <h2>Qui fait respecter la matrice ?</h2>
+      <p>Dans VMnet10, tout le monde partage le même switch : les paquets vont directement d'une machine à l'autre, <strong>sans passer par pfSense</strong>. Ces flux se filtrent avec le pare-feu local de chaque machine. Kali, placé sur son propre réseau VMnet11, devra traverser pfSense, qui pourra alors bloquer et journaliser ses tentatives vers Wazuh.</p>
+    </section>
+  </div>
+
+  <footer>Source : <code>docs/diagrams/flux-lab.html</code> du dépôt SIEM_PROJECT, détail dans <code>docs/architecture.md</code> (matrice des flux). Adresses relevées dans le lab, aucun identifiant.</footer>
+</div>

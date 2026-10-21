@@ -78,8 +78,12 @@ Décidé le 2026-10-21 pour notre homelab (voir [homelab/plan.md](homelab/plan.m
   supervision ;
 - Wazuh vers les postes : le manager reçoit, il n'initie rien ;
 - Windows 11 vers Wazuh en SSH (22) : Windows est la **cible** du lab ; s'il est compromis, sa
-  clé SSH donne l'accès au SIEM. Recommandation : agent seulement (1514/1515). Adrien a demandé
-  ce flux ; à trancher, et si on le garde, révoquer la clé dès qu'elle ne sert plus.
+  clé SSH donnerait l'accès au SIEM (mouvement latéral, T1021.004). **Décidé le 2026-10-21 :
+  agent seulement (1514/1515)**, la clé déjà déposée est retirée (writeup 03, § 2.3).
+
+![Matrice des flux du lab](diagrams/flux-lab.png)
+
+Source du schéma : `diagrams/flux-lab.html`.
 
 ### Qui peut faire respecter cette matrice ?
 

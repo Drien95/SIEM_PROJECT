@@ -145,6 +145,30 @@ Vérifications, de la source vers l'alerte :
    `filterlog` copiée depuis pfSense. Attendu : décodeur `pf`, règle 87700 ou 87701.
 4. Dashboard, *Threat Hunting* : filtre `rule.groups:pfsense` ou `rule.id:87702`.
 
+### 2.4 Dépannage : « je ne vois aucune alerte »
+
+Vérifié dans le ruleset 4.14 (`0540-pfsense_rules.xml`) : 87700 est de niveau 0 et 87701
+porte `<options>no_log</options>`. Un blocage isolé n'apparaît donc **jamais** dans le
+dashboard. Seule 87702 s'y affiche, et elle se tait ensuite 4 minutes (`ignore="240"`). Un
+*Threat Hunting* vide ne prouve rien : on remonte le chemin depuis la source.
+
+1. **Réseau** : `sudo tcpdump -ni any udp port 514 -c 5` pendant la rafale de pings.
+   - Rien : côté pfSense, *Log Message Format* = BSD (RFC 3164), *Log packets matched from
+     the default block rules* coché, *Source Address* = `LAN`.
+2. **Décodage** : `sudo /var/ossec/bin/wazuh-logtest`, puis coller une ligne de test :
+
+   ```
+   Oct 21 04:30:00 pfSense filterlog: 5,,,1000000103,vmx0,match,block,in,4,0x0,,64,1234,0,none,1,icmp,60,192.168.30.1,192.168.30.131,datalength=40
+   ```
+
+   Attendu : décodeur `pf`, `action: block`, `srcip: 192.168.30.1`, règle 87701.
+3. **Archives** : `<logall>yes</logall>` dans `<global>`, redémarrer le manager, puis
+   `sudo grep filterlog /var/ossec/logs/archives/archives.log | tail -3`. Remettre à `no`
+   après le test, car l'archive grossit vite (cf. disque plein du writeup 01).
+
+Le décodeur natif `pf` reconnaît la ligne par son `program_name` (`filterlog`). Il faut donc
+un en-tête syslog BSD, que Wazuh sait découper.
+
 ## 3. Résultats dans notre lab
 
 | Test | Attendu | Obtenu |

@@ -104,8 +104,16 @@ Cause probable (déduite, pas confirmée par VMware) : `cpuid.coresPerSocket` ab
 `numvcpus` > 1. Correctif : ajout de `cpuid.coresPerSocket` dans SIEM-pfSense (2) et
 SIEM-Wazuh (4). SIEM-Win11 l'avait déjà.
 
-Règle pour nos `.vmx` écrits à la main : toujours définir `numvcpus` **et**
-`cpuid.coresPerSocket`.
+Deuxième erreur au démarrage : « No PCIe slot available for Ethernet0 ». Les cartes
+`vmxnet3` / `e1000e` et le contrôleur NVMe se branchent sur des ports PCIe, qui n'existent pas
+si le `.vmx` ne déclare pas de pont. Correctif : `pciBridge0` plus `pciBridge4` à `pciBridge7`
+en `pcieRootPort` (8 fonctions chacun), ainsi que `vmci0` et `hpet0`, ajoutés aux 3 VM. Test :
+SIEM-Win11 démarre et s'arrête proprement avec `vmrun`.
+
+Règles pour nos `.vmx` écrits à la main :
+- toujours définir `numvcpus` **et** `cpuid.coresPerSocket` ;
+- toujours déclarer les ponts PCIe (`pciBridge4` à `7`) ;
+- fermer l'onglet de la VM dans VMware avant de modifier son `.vmx`.
 
 ### Installation de pfSense
 

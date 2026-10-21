@@ -71,8 +71,10 @@ Dans `C:\Program Files (x86)\ossec-agent\ossec.conf` (voir
 </localfile>
 ```
 
-Puis `Restart-Service -Name WazuhSvc` (le PDF écrit `net start wazuh` : le service
-s'appelle `WazuhSvc`).
+Puis `Restart-Service -Name WazuhSvc`. Le service s'appelle `WazuhSvc`, son nom affiché est
+`Wazuh` : `NET START Wazuh` fonctionne aussi (constaté dans notre lab, writeup 04).
+Alternative retenue dans le lab : la configuration centralisée du groupe `default`
+([configs/manager/shared/default/agent.conf](../../configs/manager/shared/default/agent.conf)).
 
 Wazuh décode déjà Sysmon : pas besoin de décodeur personnalisé. La règle de base de
 l'événement 1 est **61603**, de niveau 0. Les événements de routine n'apparaissent donc pas

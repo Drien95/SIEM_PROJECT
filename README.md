@@ -22,6 +22,7 @@ simulation d'attaques.
 | [docs/writeup/01-homelab.md](docs/writeup/01-homelab.md) | Writeup du montage : étapes, commandes, captures, incidents et leçons |
 | [docs/writeup/02-syslog-pfsense.md](docs/writeup/02-syslog-pfsense.md) | Writeup : journaux pfSense vers Wazuh en syslog, avec une partie « Comprendre » |
 | [docs/writeup/03-durcissement-ssh.md](docs/writeup/03-durcissement-ssh.md) | Writeup : SSH par clé vers Wazuh et pfSense, mot de passe interdit |
+| [docs/writeup/04-agent-windows-sysmon.md](docs/writeup/04-agent-windows-sysmon.md) | Agent Wazuh sur Windows 11 (incident API Offline), puis Sysmon en configuration centralisée |
 | [docs/integrations/](docs/integrations/) | Un guide par intégration : Windows/Sysmon, FIM, VirusTotal, Suricata, pfSense |
 | [docs/scenarios/](docs/scenarios/) | Scénarios d'attaque et détection attendue (brute force), avec un [modèle de fiche et de planche](docs/scenarios/modele-scenario.md) |
 | [configs/](configs/) | Configurations d'exemple : règles locales, syslog, VirusTotal, agent Windows, Suricata |

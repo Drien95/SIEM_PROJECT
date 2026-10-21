@@ -86,3 +86,6 @@ Captures volontairement **non versionnées** (mot de passe visible) : les sortie
 | 67 | [67-wazuh-fips-ed25519-refusee.png](67-wazuh-fips-ed25519-refusee.png) | Diagnostic : `Ed25519 keys are not allowed in FIPS mode`, `not in PubkeyAcceptedAlgorithms` |
 | 68 | [68-wazuh-sshd-durci.png](68-wazuh-sshd-durci.png) | `00-durcissement.conf` appliqué, `sshd -T` : mot de passe désactivé |
 | 69 | [69-ssh-ecdsa-ok-mdp-refuse.png](69-ssh-ecdsa-ok-mdp-refuse.png) | Connexion par clé ECDSA OK ; mot de passe refusé `Permission denied (publickey,…)` |
+| 70 | [70-wazuh-api-offline.png](70-wazuh-api-offline.png) | Dashboard : API `127.0.0.1:55000` **Offline** (wazuh-manager arrêté) |
+| 71 | [71-win11-installation-agent.png](71-win11-installation-agent.png) | Windows 11 : installation de l'agent 4.14.9 (MSI) et `NET START Wazuh` |
+| 72 | [72-wazuh-agent-001-actif.png](72-wazuh-agent-001-actif.png) | Endpoints : agent **001 SIEM-Win11** `10.10.10.101`, Windows 11 Pro, v4.14.9, *active* |

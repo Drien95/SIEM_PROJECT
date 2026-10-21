@@ -16,7 +16,7 @@
 -->
 
 <decoder name="pfsense-filterlog">
-  <prematch type="pcre2">\sfilterlog \d+ - - \d*,</prematch>
+  <prematch>filterlog \d+ - - \d</prematch>
 </decoder>
 
 <!-- Champs communs : tracker, interface, action, direction, protocole, IP. -->

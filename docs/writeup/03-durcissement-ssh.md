@@ -104,6 +104,46 @@ cut -d' ' -f3 ~/.ssh/authorized_keys      # ne doit plus lister que adrien@hote-
 Depuis la VM Windows, `ssh wazuh-user@10.10.10.100` doit alors échouer. La paire de clés peut
 aussi être supprimée dans la VM (`del $env:USERPROFILE\.ssh\id_ed25519*`).
 
+### 2.3 bis Constat de sécurité : la clé « vagrant » livrée avec l'OVA
+
+Constaté le 2026-10-21 en listant `~wazuh-user/.ssh/authorized_keys` sur l'OVA Wazuh 4.14.9
+(capture d'Adrien, relue par une autre session du projet) :
+
+- une ligne de commentaire `vagrant` : la **clé publique « insecure » de Vagrant**, laissée par la
+  construction de l'image ;
+- la clé de l'hôte `adrien@hote-siemlab` **en double** ;
+- **aucune** clé `adrien@siem-win11` : l'étape 2.3 n'avait donc rien à retirer.
+
+**Pourquoi c'est grave** : la clé privée correspondante est **publique**, publiée par HashiCorp
+dans le dépôt de Vagrant pour que tout le monde puisse se connecter aux box de test. N'importe
+qui sur le LAN (Kali compris) pouvait ouvrir une session `wazuh-user` sur le SIEM sans mot de
+passe, et la désactivation du mot de passe (§ 2.4) n'y change rien, puisque c'est une clé.
+MITRE : T1078 (comptes valides), T1021.004 (SSH).
+
+Correction, depuis une session `ssh siem-wazuh` :
+
+```bash
+cp ~/.ssh/authorized_keys ~/.ssh/authorized_keys.bak
+sed -i '/ vagrant$/d' ~/.ssh/authorized_keys                   # retire la clé Vagrant
+awk '!seen[$0]++' ~/.ssh/authorized_keys > /tmp/ak && cat /tmp/ak > ~/.ssh/authorized_keys && rm /tmp/ak   # dédoublonne
+cut -d' ' -f3 ~/.ssh/authorized_keys                           # attendu : adrien@hote-siemlab, une seule fois
+```
+
+`cat … >` plutôt que `mv` : le fichier garde son propriétaire et ses droits `600`.
+Tester ensuite `ssh siem-wazuh` depuis une **nouvelle** fenêtre avant de continuer.
+
+Vérifier aussi les autres comptes, la même image pouvant avoir posé la clé ailleurs :
+
+```bash
+sudo grep -l vagrant /root/.ssh/authorized_keys /home/*/.ssh/authorized_keys 2>/dev/null
+getent passwd vagrant
+```
+
+Attendu : aucune sortie. Leçon : une image toute faite (OVA, box, AMI) s'**audite** avant usage,
+`authorized_keys` et comptes compris.
+
+Source : https://github.com/hashicorp/vagrant/tree/main/keys (clé « insecure » publique).
+
 ### 2.4 Interdire le mot de passe
 
 **Garder une session SSH ouverte** pendant toute l'opération : en cas d'erreur, elle permet de
@@ -156,8 +196,10 @@ L'interface web garde son mot de passe : ce réglage ne concerne que SSH.
 | Hôte sur VMnet10 | `10.10.10.1` | ✅ |
 | Port 22 Wazuh depuis l'hôte | ouvert | ✅ |
 | Port 22 pfSense depuis l'hôte | ouvert après activation | ❌ fermé (SSH désactivé par défaut) |
-| Clé VM Windows → Wazuh | retirée (hors matrice des flux) | à faire |
-| Clé hôte `id_ed25519_siemlab` → Wazuh | session sans mot de passe | à faire |
+| Clé VM Windows → Wazuh | retirée (hors matrice des flux) | ✅ absente du fichier |
+| Clé Vagrant dans `authorized_keys` de `wazuh-user` | absente | ❌ trouvée, suppression en cours |
+| Clé Vagrant sur `root` et autres comptes | absente | à vérifier |
+| Clé hôte `id_ed25519_siemlab` → Wazuh | session sans mot de passe | déposée (en double, à dédoublonner) ; test à confirmer |
 | Mot de passe refusé sur Wazuh | `Permission denied (publickey)` | à faire |
 | Connexion par clé à pfSense | menu console pfSense | à faire |
 

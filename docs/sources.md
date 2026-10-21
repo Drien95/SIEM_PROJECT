@@ -38,6 +38,12 @@ https://github.com/UsmanPrime/Wazuh-Setup
 - **Limites** : uniquement l'OVA ; certaines explications (bruit Sysmon de bas niveau)
   sont celles de l'auteur, non vérifiées.
 
+## SSH et images
+
+- Clé « insecure » de Vagrant, publique (constat du writeup 03, § 2.3 bis) :
+  https://github.com/hashicorp/vagrant/tree/main/keys
+- Accès SSH à pfSense : https://docs.netgate.com/pfsense/en/latest/recipes/ssh-access.html
+
 ## À explorer
 
 - Guide de preuve de concept Wazuh, pour des scénarios officiels reproductibles.

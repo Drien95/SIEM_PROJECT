@@ -28,11 +28,43 @@
 </group>
 
 <group name="local,pfsense,">
-  <!-- pfSense (parent natif 87700, niveau 0) : trafic autorisé, journalisé à bas niveau.
-       Remplace la règle « pass » du PDF marxgoo, qui faisait un match sur tout le message. -->
-  <rule id="100300" level="3">
-    <if_sid>87700</if_sid>
+  <!-- pfSense 2.9 : les règles natives 87700-87702 ne se déclenchent pas, car le pré-décodeur
+       n'extrait pas program_name des lignes pfSense 2.9 (voir local_decoder.xml).
+       Ces règles reprennent leur logique sur notre décodeur « pfsense-filterlog ». -->
+
+  <!-- Base : toute ligne filterlog décodée (niveau 0, pas d'alerte). -->
+  <rule id="100300" level="0">
+    <decoded_as>pfsense-filterlog</decoded_as>
+    <description>pfSense : événement filterlog</description>
+  </rule>
+
+  <!-- Trafic autorisé par une règle journalisée. Pas de technique MITRE (trafic légitime). -->
+  <rule id="100301" level="3">
+    <if_sid>100300</if_sid>
     <action>pass</action>
-    <description>pfSense : trafic autorisé $(srcip) -> $(dstip):$(dstport)</description>
+    <description>pfSense : trafic autorisé $(srcip) -> $(dstip) ($(protocol))</description>
+  </rule>
+
+  <!-- Paquet bloqué (équivalent de 87701). Volontairement SANS no_log, contrairement au natif :
+       dans le lab, on veut voir chaque blocage. En production, ajouter
+       <options>no_log</options> pour éviter le bruit. Pas de MITRE seul (bruit normal). -->
+  <rule id="100302" level="5">
+    <if_sid>100300</if_sid>
+    <action>block</action>
+    <description>pfSense : paquet bloqué $(srcip) -> $(dstip) ($(protocol)) sur $(interface)</description>
+    <group>firewall_block,</group>
+  </rule>
+
+  <!-- Rafale : 18 blocages depuis la même IP en 45 s (équivalent de 87702). Signe de scan de
+       ports ou de balayage réseau : MITRE T1046 (Network Service Discovery). La règle native
+       utilise T1110 (force brute). ignore=240 : silence de 4 min après déclenchement. -->
+  <rule id="100303" level="10" frequency="18" timeframe="45" ignore="240">
+    <if_matched_sid>100302</if_matched_sid>
+    <same_source_ip />
+    <description>pfSense : blocages répétés depuis $(srcip) (scan probable)</description>
+    <mitre>
+      <id>T1046</id>
+    </mitre>
+    <group>multiple_blocks,</group>
   </rule>
 </group>

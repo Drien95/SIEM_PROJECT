@@ -1,0 +1,34 @@
+<!--
+  Décodeurs locaux du lab : /var/ossec/etc/decoders/local_decoder.xml (manager).
+
+  pfSense 2.9 → Wazuh 4.14.9 : le décodeur natif « pf » exige program_name = filterlog.
+  Or le pré-décodeur Wazuh ne l'extrait pas des lignes réellement envoyées par pfSense 2.9
+  (vérifié avec wazuh-logtest dans notre lab, voir docs/writeup/02-syslog-pfsense.md) :
+    - BSD/RFC 3164 : pas de hostname, « filterlog[pid]: » est pris pour l'hôte ;
+    - RFC 5424     : seul le timestamp est reconnu.
+  On reconnaît donc la ligne par son contenu. Format retenu côté pfSense : RFC 5424, où le
+  nom du programme figure en clair (« <hôte> filterlog <pid> - - <CSV> »).
+
+  CSV filterlog IPv4 (champs 1-20) : règle, sous-règle, ancre, tracker, interface, raison,
+  action, direction, version IP (4), TOS, ECN, TTL, id, offset, flags, n° protocole,
+  protocole, longueur, IP source, IP destination ; puis ports source/destination pour TCP/UDP.
+  IPv6 non géré (le lab est en IPv4).
+-->
+
+<decoder name="pfsense-filterlog">
+  <prematch type="pcre2">\sfilterlog \d+ - - \d*,</prematch>
+</decoder>
+
+<!-- Champs communs : tracker, interface, action, direction, protocole, IP. -->
+<decoder name="pfsense-filterlog-fields">
+  <parent>pfsense-filterlog</parent>
+  <regex type="pcre2">filterlog \d+ - - (?:[^,]*,){3}([^,]*),([^,]*),[^,]*,([^,]*),([^,]*),4,(?:[^,]*,){7}([^,]*),[^,]*,([^,]*),([^,]*),</regex>
+  <order>id,interface,action,direction,protocol,srcip,dstip</order>
+</decoder>
+
+<!-- Ports, seulement pour TCP et UDP. -->
+<decoder name="pfsense-filterlog-fields">
+  <parent>pfsense-filterlog</parent>
+  <regex type="pcre2">filterlog \d+ - - (?:[^,]*,){8}4,(?:[^,]*,){7}(?:tcp|udp),[^,]*,[^,]*,[^,]*,(\d+),(\d+),</regex>
+  <order>srcport,dstport</order>
+</decoder>

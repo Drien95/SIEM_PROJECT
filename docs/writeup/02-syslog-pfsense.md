@@ -195,12 +195,77 @@ ne s'applique pas. Aucune règle pfSense ne se déclenche, sans aucun message d'
 **Leçon** : toujours tester `wazuh-logtest` avec une **vraie** ligne capturée, pas avec
 l'exemple de la documentation. Ici, l'exemple contenait un hostname et passait.
 
-Correctifs envisagés :
+**Correctif 1 : pfSense en RFC 5424.** Échec. La ligne contient bien le hostname et le
+programme :
 
-1. pfSense en **RFC 5424** (*Log Message Format*), qui inclut toujours le hostname. Support par
-   le pré-décodeur Wazuh à valider avec logtest.
-2. À défaut : décodeur local reconnaissant le CSV `filterlog` par son contenu, et règles
-   locales (plage 100000+) qui reprennent 87701 / 87702.
+```
+<134>1 2026-10-21T02:36:42.498630+00:00 pfSense.siem.lab filterlog 34901 - - 1,6,,1000000103,vmx0,match,block,in,4,0x0,,128,22597,0,none,1,icmp,60,192.168.30.1,192.168.30.131,request,1,22440
+```
+
+Mais le pré-décodeur Wazuh 4.14.9 ne reconnaît que le timestamp : pas de hostname, pas de
+`program_name`, « No decoder matched ».
+
+**Correctif 2 : décodeur et règles locaux.** On garde le format RFC 5424, où le nom du
+programme apparaît en clair, et on reconnaît la ligne par son contenu.
+
+### 2.6 Comprendre : écrire un décodeur personnalisé
+
+Un décodeur répond à deux questions :
+
+1. **« Cette ligne est-elle pour moi ? »** : le décodeur parent, avec `<prematch>`. Il doit
+   être assez précis pour ne pas capturer d'autres journaux. Ici : `filterlog <pid> - - `
+   suivi d'un chiffre, la signature d'une ligne pfSense en RFC 5424.
+2. **« Quels champs extraire ? »** : les décodeurs enfants (`<parent>`), avec `<regex>` et
+   `<order>`. Chaque groupe entre parenthèses alimente le champ de même rang dans `<order>`.
+   Plusieurs enfants portant le même nom s'appliquent tous : un pour les champs communs, un
+   pour les ports, qui n'existent qu'en TCP/UDP.
+
+`type="pcre2"` active les expressions régulières PCRE2. Le moteur historique d'OSSEC ne
+connaît ni `{n}` ni les groupes non capturants `(?:…)`, utiles pour sauter N champs CSV.
+
+Les **noms de champs** comptent : `srcip`, `dstip`, `action`, `protocol`, `srcport`,
+`dstport` sont des champs standard. Les règles les testent directement (`<action>`,
+`<same_source_ip />`), et le dashboard les indexe en `data.srcip`, etc.
+
+Les règles natives 87700-87702 exigent `<decoded_as>pf</decoded_as>` : elles ne verront
+jamais notre décodeur. On écrit donc des règles locales qui reprennent leur logique sur
+`decoded_as pfsense-filterlog`. Le ruleset natif ne se modifie jamais : il serait écrasé à la
+prochaine mise à jour.
+
+Fichiers : [configs/manager/local_decoder.xml](../../configs/manager/local_decoder.xml) et
+[configs/manager/local_rules.xml](../../configs/manager/local_rules.xml).
+
+| ID | Niveau | Équivalent natif | Rôle |
+|---|---|---|---|
+| 100300 | 0 | 87700 | Base : toute ligne `filterlog` décodée |
+| 100301 | 3 | — | Trafic autorisé (règles pfSense avec journalisation) |
+| 100302 | 5 | 87701 | Paquet bloqué, **visible** (pas de `no_log`, choix de lab) |
+| 100303 | 10 | 87702 | 18 blocages de la même IP en 45 s ; MITRE T1046 |
+
+Expressions régulières testées hors lab (Python `re`) sur la ligne ICMP réelle, une ligne UDP
+et une ligne TCP. Il reste à valider dans `wazuh-logtest`.
+
+### 2.7 Déploiement du correctif
+
+Depuis l'hôte (PowerShell, à la racine du dépôt) :
+
+```powershell
+scp configs\manager\local_decoder.xml configs\manager\local_rules.xml wazuh-user@10.10.10.100:/tmp/
+```
+
+Sur la VM Wazuh : sauvegarde, installation avec les bons droits, test, **puis** redémarrage.
+
+```bash
+sudo cp -p /var/ossec/etc/decoders/local_decoder.xml{,.bak}
+sudo cp -p /var/ossec/etc/rules/local_rules.xml{,.bak}
+sudo install -o wazuh -g wazuh -m 660 /tmp/local_decoder.xml /var/ossec/etc/decoders/
+sudo install -o wazuh -g wazuh -m 660 /tmp/local_rules.xml /var/ossec/etc/rules/
+sudo /var/ossec/bin/wazuh-logtest          # coller une vraie ligne RFC 5424, sans « <134>1 »
+sudo systemctl restart wazuh-manager
+```
+
+On teste avant de redémarrer : un XML invalide dans `local_rules.xml` empêche le manager de
+démarrer.
 
 ## 3. Résultats dans notre lab
 

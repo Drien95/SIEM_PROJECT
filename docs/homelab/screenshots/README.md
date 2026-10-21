@@ -90,3 +90,7 @@ Captures volontairement **non versionnées** (mot de passe visible) : les sortie
 | 71 | [71-win11-installation-agent.png](71-win11-installation-agent.png) | Windows 11 : installation de l'agent 4.14.9 (MSI) et `NET START Wazuh` |
 | 72 | [72-wazuh-agent-001-actif.png](72-wazuh-agent-001-actif.png) | Endpoints : agent **001 SIEM-Win11** `10.10.10.101`, Windows 11 Pro, v4.14.9, *active* |
 | 73 | [73-win11-installation-sysmon.png](73-win11-installation-sysmon.png) | Windows 11 : Sysmon v15.22 installé avec la configuration SwiftOnSecurity (schéma 4.50), `Sysmon64` et `SysmonDrv` démarrés |
+| 74 | [74-pfsense-assignments-em0.png](74-pfsense-assignments-em0.png) | pfSense : 3ᵉ carte `em0` affectée en OPT1 |
+| 75 | [75-pfsense-interface-attack.png](75-pfsense-interface-attack.png) | Interface ATTACK : Static IPv4 `10.10.20.254/24`, pas de passerelle amont |
+| 76 | [76-pfsense-dhcp-attack.png](76-pfsense-dhcp-attack.png) | DHCP activé sur ATTACK |
+| 77 | [77-pfsense-dhcp-attack-plage.png](77-pfsense-dhcp-attack-plage.png) | Plage DHCP ATTACK `10.10.20.100` à `.199`, DNS `10.10.20.254` |

@@ -45,7 +45,8 @@ interface, de **haut en bas** : la première qui correspond décide. Une interfa
 (OPT) n'a **aucune** règle, donc tout est bloqué par défaut. On autorise seulement ce qu'il
 faut, et on journalise (*Log packets*) ce qui compte pour Wazuh.
 
-Règles de l'interface **ATTACK**, dans cet ordre :
+Règles de l'interface **ATTACK**, dans cet ordre (une règle pfSense n'accepte qu'un port ou une
+plage, d'où 6a et 6b ; un alias de ports les regrouperait) :
 
 | # | Action | Source | Destination | Port | Log | Pourquoi |
 |---|---|---|---|---|---|---|
@@ -54,7 +55,8 @@ Règles de l'interface **ATTACK**, dans cet ordre :
 | 3 | Block | ATTACK net | LAN net (`10.10.10.0/24`) | any | **oui** | Wazuh, l'hôte et le reste du LAN : interdit |
 | 4 | Block | ATTACK net | This Firewall (self) | any | **oui** | administration de pfSense (443, 22) : interdite |
 | 5 | Block | ATTACK net | WAN net (`192.168.30.0/24`) | any | **oui** | l'hôte côté NAT : interdit |
-| 6 | Pass | ATTACK net | any | 80, 443 TCP | non | mises à jour de Kali vers Internet |
+| 6a | Pass | ATTACK net | any | 80 TCP | non | mises à jour de Kali (HTTP) |
+| 6b | Pass | ATTACK net | any | 443 TCP | non | mises à jour de Kali (HTTPS) |
 
 Le sens retour (Windows 11 qui répond à Kali) est autorisé automatiquement : pfSense est
 **stateful**, il mémorise chaque connexion ouverte et laisse passer ses réponses.
@@ -90,13 +92,33 @@ performant. Pour l'uniformité, on pourrait mettre `ethernet2.virtualDev = "vmxn
 `SIEM-pfSense.vmx`, VM éteinte, avant l'affectation (la carte deviendrait alors `vmx2`). Choix
 du lab : on garde `em0`, suffisant pour du trafic de test.
 
-### 2.3 Interface ATTACK et DHCP (à faire)
+### 2.3 Interface ATTACK et DHCP
 
 1. *Interfaces > Assignments* : ajouter `em0` → OPT1, *Save*.
 2. *Interfaces > OPT1* : *Enable*, *Description* `ATTACK`, *IPv4 Configuration Type*
    **Static IPv4**, `10.10.20.254` / `24`, *Save*, *Apply Changes*.
 3. *Services > DHCP Server > ATTACK* : *Enable*, plage `10.10.20.100` à `10.10.20.199`,
    *Save*.
+
+Fait le 2026-10-22 : `em0` affecté en OPT1, renommé ATTACK, `10.10.20.254/24` sans passerelle
+amont (c'est une interface LAN, pas une sortie Internet). *Block private networks* reste
+**décoché** : ATTACK utilise lui-même des adresses privées (RFC 1918), qu'il ne faut pas
+bloquer. DHCP actif, plage `.100` à `.199` ; pfSense s'annonce par défaut comme passerelle et
+DNS (`10.10.20.254`).
+
+![em0 en OPT1](../homelab/screenshots/74-pfsense-assignments-em0.png)
+
+![Interface ATTACK](../homelab/screenshots/75-pfsense-interface-attack.png)
+
+![Plage DHCP ATTACK](../homelab/screenshots/77-pfsense-dhcp-attack-plage.png)
+
+**Block ou Reject** : *Block* jette le paquet en silence, l'attaquant attend jusqu'à
+expiration ; *Reject* répond « refusé » tout de suite, ce qui lui confirme qu'un pare-feu est
+là. Face à un attaquant, on choisit **Block**.
+
+Accès Internet de Kali : en mode NAT sortant **automatique** (défaut de pfSense), le réseau
+d'une nouvelle interface est traduit automatiquement vers le WAN. Rien à ajouter
+(*Firewall > NAT > Outbound* pour le vérifier).
 
 ### 2.4 Règles (à faire)
 
@@ -137,7 +159,7 @@ Wazuh doit apparaître, avec l'interface ATTACK.
 | Test | Attendu | Obtenu |
 |---|---|---|
 | VMnet11 créé, sans carte hôte ni DHCP | oui | à faire |
-| pfSense ATTACK `10.10.20.254` | interface active | à faire |
+| pfSense ATTACK `10.10.20.254` | interface active, DHCP `.100`-`.199` | ✅ (captures 74-77) |
 | Kali reçoit `10.10.20.1xx`, passerelle `.254` | oui | à faire |
 | Kali → Windows 11 | autorisé, journalisé | à faire |
 | Kali → Wazuh 443 | bloqué, alerte 100302 | à faire |

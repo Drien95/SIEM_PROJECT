@@ -9,7 +9,7 @@ Statut : **proposition**, à valider au montage. Les écarts constatés se noten
 | CPU | AMD Ryzen 5 5600X (6 cœurs / 12 threads) |
 | RAM | 32 Go |
 | Hyperviseur | VMware Workstation Pro 17.0.0 (`D:\Logiciel\VMware\`, avec `vmrun.exe` et `OVFTool\ovftool.exe`) |
-| Dossier des VM | `D:\VM\SIEM_LAB\` (hors dépôt git ; ~343 Go libres sur D:) |
+| Dossier des VM | `D:\VM\SIEM_LAB\` (disque dur mécanique) pour pfSense, Wazuh et les images ; `C:\VM\SIEM_LAB\` (SSD NVMe) pour Windows 11 depuis le 2026-10-21. Hors dépôt git. |
 
 ## Réseau
 
@@ -264,5 +264,12 @@ Causes :
 2. Hyper-V est actif sur l'hôte : VMware 17.0.0 tourne en `Monitor Mode: ULM` (au-dessus de
    l'hyperviseur Windows), plus lent.
 
-Correctif proposé : VM Windows 11 sur `C:` (SSD NVMe WD_BLACK SN7100), à valider par Adrien.
+Correctif appliqué (choix d'Adrien) : VM Windows 11 déplacée sur `C:` (SSD NVMe WD_BLACK SN7100).
+
+- VM éteinte (`vmrun stop … hard`) ;
+- nouveau dossier `C:\VM\SIEM_LAB\SIEM-Win11\` : même `.vmx` (ISO toujours lue sur `D:`,
+  `sata0:1.startConnected = "TRUE"` ajouté), nouveau disque vierge de 64 Go ;
+- ancien dossier conservé en `D:\VM\SIEM_LAB\SIEM-Win11.old-hdd\` (16 Go, installation
+  ratée, à supprimer une fois Windows installé) ;
+- Wazuh et pfSense restent sur `D:` pour l'instant. Si l'indexeur Wazuh rame, même remède.
 Leçon : vérifier le **type de disque** de l'hôte avant d'y placer des VM (`Get-PhysicalDisk`).

@@ -18,8 +18,9 @@
 8. [Wazuh : dashboard arrêté](#8-wazuh--dashboard-arrêté)
 9. [Wazuh : disque plein et index en lecture seule](#9-wazuh--disque-plein-et-index-en-lecture-seule)
 10. [Wazuh : changement des mots de passe](#10-wazuh--changement-des-mots-de-passe)
-11. [État actuel et suite](#11-état-actuel-et-suite)
-12. [Leçons retenues](#12-leçons-retenues)
+11. [Windows 11 : cause racine le disque](#11-windows-11--trois-installations-ratées-cause-racine-le-disque)
+12. [État actuel et suite](#12-état-actuel-et-suite)
+13. [Leçons retenues](#13-leçons-retenues)
 
 ---
 
@@ -33,7 +34,7 @@ attaques visent **uniquement** les VM du lab.
 |---|---|
 | Hôte | Windows 11, AMD Ryzen 5 5600X (6c/12t), 32 Go de RAM |
 | Hyperviseur | VMware Workstation Pro 17.0.0 |
-| Stockage des VM | `D:\VM\SIEM_LAB\` (hors git) |
+| Stockage des VM | `D:\VM\SIEM_LAB\` (disque dur) ; Windows 11 sur `C:\VM\SIEM_LAB\` (SSD NVMe), voir §11 |
 | Dépôt | `Drien95/SIEM_PROJECT` (documentation et configurations, aucun secret) |
 
 ## 2. Architecture
@@ -409,14 +410,85 @@ Incidents :
 > `~/.bash_history` et dans `ps`), ou purger l'historique ensuite (`history -c`, puis
 > nettoyer `~/.bash_history`).
 
-## 11. État actuel et suite
+## 11. Windows 11 : trois installations ratées, cause racine le disque
+
+**Symptôme.** Trois installations de suite échouent de la même manière : l'installation
+avance (jusqu'à ~60 %), écran noir, redémarrage, puis le gestionnaire de démarrage EFI ne
+trouve rien sur le disque :
+
+![Dialogue mise à niveau](../homelab/screenshots/51-win11-dialogue-mise-a-niveau.png)
+
+![Pas de chargeur](../homelab/screenshots/52-win11-pas-de-chargeur.png)
+
+**Fausses pistes, écartées une par une :**
+
+| Hypothèse | Correctif essayé | Résultat |
+|---|---|---|
+| La VM redémarre sur l'ISO au lieu du disque | `bios.bootOrder = "hdd,cdrom"` | même échec |
+| L'ISO n'est plus connectée | `vmrun connectNamedDevice … sata0:1`, case *Connect at power on* | démarrage sur l'ISO OK, même échec en fin d'installation |
+| Les trois VM se disputent le disque | Wazuh et pfSense éteints | ils l'étaient déjà : même échec |
+
+**Diagnostic dans le journal de la VM** (`vmware.log`, dossier de la VM) :
+
+```bash
+grep -E "took .* seconds|CC.EN|requested that the virtual machine be hard reset|boot failure" vmware.log
+```
+
+```
+16:56:53 nvme0:0: Command WRITE(10) took 1.941 seconds (ok)
+17:01:49 nvme0:0: Command WRITE(10) took 8.911 seconds (ok)
+17:01:48 NVME-VMM: Controller level reset via CC.EN bit transition on nvme0
+17:04:15 Chipset: The guest has requested that the virtual machine be hard reset.
+17:04:16 Guest: Status upon boot failure: No compatible bootloader found
+```
+
+Lecture : chaque écriture sur le disque virtuel prend **2 à 9 secondes** (normal : quelques
+millisecondes). Windows croit son disque planté, réinitialise le contrôleur NVMe, l'installation
+casse, et le disque reste non amorçable. Même motif dans le journal de la tentative précédente.
+
+**Pourquoi le disque est si lent.**
+
+```powershell
+Get-PhysicalDisk | Select-Object FriendlyName, MediaType, BusType
+```
+
+`D:` est un **disque dur mécanique** (Seagate ST1000DM003, 7200 tr/min). Mesure depuis l'hôte,
+512 Mo écrits par blocs de 4 Mo avec flush :
+
+| Disque | Débit | Pire bloc de 4 Mo |
+|---|---|---|
+| `D:` disque dur ST1000DM003 | **53 Mo/s** | 183 ms |
+| `C:` SSD NVMe WD_BLACK SN7100 | **704 Mo/s** | 13 ms |
+
+Une installation Windows fait des milliers de petites écritures dispersées, le pire cas pour un
+disque mécanique. S'y ajoute **Hyper-V** actif sur l'hôte : VMware 17.0 tourne alors au-dessus
+de l'hyperviseur Windows (`Monitor Mode: ULM` dans le journal), ce qui ralentit encore les I/O.
+
+**Correctif.** VM déplacée sur le SSD, disque recréé vierge :
+
+```bash
+vmrun -T ws stop 'D:\VM\SIEM_LAB\SIEM-Win11\SIEM-Win11.vmx' hard
+mkdir -p /c/VM/SIEM_LAB/SIEM-Win11
+# .vmx recopié (l'ISO reste lue depuis D:), sata0:1.startConnected = "TRUE" ajouté
+vmware-vdiskmanager -c -s 64GB -a lsilogic -t 0 'C:\VM\SIEM_LAB\SIEM-Win11\SIEM-Win11.vmdk'
+mv /d/VM/SIEM_LAB/SIEM-Win11 /d/VM/SIEM_LAB/SIEM-Win11.old-hdd   # ancienne VM gardée
+```
+
+Résultat de la réinstallation : à compléter.
+
+**Leçon.** Avant de placer des VM sur un disque, vérifier son **type** (`Get-PhysicalDisk`) et
+sa latence. Un disque mécanique convient pour stocker des ISO, pas pour un système qui écrit
+beaucoup (installation de Windows, indexeur Wazuh). Et quand un correctif ne change rien,
+**relire les journaux** plutôt qu'empiler les essais.
+
+## 12. État actuel et suite
 
 | Composant | État |
 |---|---|
 | VMnet10 | ✅ host-only, DHCP VMware désactivé |
 | pfSense CE 2.9.0 | ✅ installé, assistant fait, mot de passe changé |
 | Wazuh 4.14.9 | ✅ services actifs, disque étendu, index débloqués, mot de passe `admin` changé, Filebeat OK, connexion au dashboard OK |
-| Windows 11 | 🔄 installation en cours |
+| Windows 11 | 🔄 réinstallation sur le SSD `C:` (voir §11) |
 | Kali | ⏳ à rebrancher sur VMnet10 |
 
 Prochaines étapes :
@@ -427,7 +499,7 @@ Prochaines étapes :
 4. Syslog pfSense, FIM, VirusTotal, Suricata.
 5. Premier scénario : [brute force](../scenarios/brute-force.md).
 
-## 12. Leçons retenues
+## 13. Leçons retenues
 
 | # | Leçon |
 |---|---|
@@ -439,6 +511,7 @@ Prochaines étapes :
 | 6 | Sur OpenSearch, viser des motifs d'index précis plutôt que `_all` (index de sécurité protégé). |
 | 7 | Aucun mot de passe en clair dans les captures, l'historique ou git. |
 | 8 | Après un changement de mot de passe, une erreur 500 du dashboard peut venir du cookie de l'ancienne session : essayer d'abord une fenêtre privée. |
+| 9 | Vérifier le type de disque avant d'y placer des VM : un disque mécanique fait échouer l'installation de Windows (latences de plusieurs secondes). |
 
 Sources : [docs/sources.md](../sources.md) ; journal détaillé :
 [docs/homelab/plan.md](../homelab/plan.md).

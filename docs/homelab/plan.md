@@ -110,10 +110,16 @@ si le `.vmx` ne déclare pas de pont. Correctif : `pciBridge0` plus `pciBridge4`
 en `pcieRootPort` (8 fonctions chacun), ainsi que `vmci0` et `hpet0`, ajoutés aux 3 VM. Test :
 SIEM-Win11 démarre et s'arrête proprement avec `vmrun`.
 
+Les ponts ne suffisaient pas pour pfSense. Lors du premier démarrage raté, VMware avait inscrit
+`ethernet0.pciSlotNumber = "21"` et `ethernet1.pciSlotNumber = "22"`, des emplacements PCI
+classiques où une carte vmxnet3 ne peut pas se brancher. Une fois ces deux lignes supprimées,
+VMware place les cartes en 160 et 192 (PCIe) : la VM démarre (testé avec `vmrun`).
+
 Règles pour nos `.vmx` écrits à la main :
 - toujours définir `numvcpus` **et** `cpuid.coresPerSocket` ;
 - toujours déclarer les ponts PCIe (`pciBridge4` à `7`) ;
-- fermer l'onglet de la VM dans VMware avant de modifier son `.vmx`.
+- fermer l'onglet de la VM dans VMware avant de modifier son `.vmx` ;
+- après un démarrage raté, supprimer les `*.pciSlotNumber` que VMware a écrits.
 
 ### Installation de pfSense
 

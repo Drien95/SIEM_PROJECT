@@ -205,7 +205,7 @@ Attendu : `Permission denied (publickey…)`. Le mot de passe est bien refusé.
 
 ## 3. pfSense
 
-1. *System > User Manager > admin* : coller le contenu de `id_ecdsa_siemlab.pub` (sur l'hôte : `type $env:USERPROFILE\.ssh\id_ecdsa_siemlab.pub`) dans
+1. *System > User Manager > admin* : coller le contenu de `id_ecdsa_siemlab.pub`, en **remplaçant** toute ancienne clé ed25519 déjà collée (pfSense étant en « Public Key Only », `ssh siem-pfsense` échoue tant que la clé ECDSA n'y est pas) (sur l'hôte : `type $env:USERPROFILE\.ssh\id_ecdsa_siemlab.pub`) dans
    **Authorized SSH Keys**, puis *Save*.
 2. *System > Advanced > Admin Access*, section *Secure Shell* : cocher **Enable Secure Shell**,
    *SSHd Key Only* = **Public Key Only**, puis *Save*.

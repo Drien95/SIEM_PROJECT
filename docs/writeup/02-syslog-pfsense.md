@@ -80,7 +80,16 @@ Un pare-feu sépare deux mondes :
   défaut, le LAN peut sortir vers le WAN.
 
 Dans notre lab, ces deux côtés sont deux **réseaux virtuels VMware**, comme deux switchs
-virtuels :
+virtuels. Le schéma ci-dessous les montre façon Cisco Packet Tracer, avec les interfaces, les
+adresses et les flux numérotés dans l'ordre où ils se produisent :
+
+![Topologie du lab : zone WAN VMnet8, pfSense, zone LAN VMnet10, PC hôte et flux ① à ④](../diagrams/topologie-lab.png)
+
+*Flux ① ping de test bloqué sur le WAN, ② syslog UDP 514 de pfSense vers Wazuh, ③ consultation
+du dashboard en HTTPS, ④ futur agent Windows en 1514/TCP. Source éditable :
+[`docs/diagrams/topologie-lab.html`](../diagrams/topologie-lab.html).*
+
+La même chose en version texte :
 
 ```
                          PC hôte (Windows)

@@ -1,0 +1,288 @@
+<title>Topologie du lab Wazuh</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Mise en page : une planche « Packet Tracer » (canevas logique) suivie d'une lecture des flux dans l'ordre. */
+:root {
+  --bg: #f3f5f8;
+  --canvas: #ffffff;
+  --fg: #1c2633;
+  --muted: #5a6778;
+  --line: #d5dbe3;
+  --cable: #27313d;
+  --wan: #c46a1b;
+  --wan-bg: #fdf3e8;
+  --lan: #2c8a4b;
+  --lan-bg: #ecf7ef;
+  --host: #4d6a8f;
+  --host-bg: #eef2f8;
+  --f-ping: #d23c3c;
+  --f-syslog: #7445c9;
+  --f-dash: #0b8587;
+  --f-agent: #7d8591;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744;
+    --cable: #c9d3de; --wan: #e9954d; --wan-bg: #2a2119; --lan: #5cc27d; --lan-bg: #17271d;
+    --host: #8fb0d8; --host-bg: #1a2230; --f-ping: #ff6b6b; --f-syslog: #a98bf0;
+    --f-dash: #3cc6c8; --f-agent: #9aa3ae; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744;
+  --cable: #c9d3de; --wan: #e9954d; --wan-bg: #2a2119; --lan: #5cc27d; --lan-bg: #17271d;
+  --host: #8fb0d8; --host-bg: #1a2230; --f-ping: #ff6b6b; --f-syslog: #a98bf0;
+  --f-dash: #3cc6c8; --f-agent: #9aa3ae; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 68ch; color: var(--muted); }
+figure { margin: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 980px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 12.5px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .ztitle { font-size: 14px; font-weight: 700; letter-spacing: .06em; }
+.cable { stroke: var(--cable); stroke-width: 2.2; fill: none; }
+.cable.planned { stroke: var(--f-agent); stroke-dasharray: 7 6; }
+.flow { fill: none; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.ping { stroke: var(--f-ping); } .syslog { stroke: var(--f-syslog); } .dash { stroke: var(--f-dash); }
+.agent { stroke: var(--f-agent); stroke-dasharray: 8 6; }
+.t-ping { fill: var(--f-ping) !important; } .t-syslog { fill: var(--f-syslog) !important; }
+.t-dash { fill: var(--f-dash) !important; } .t-agent { fill: var(--f-agent) !important; }
+.badge circle { stroke: var(--canvas); stroke-width: 2; }
+.badge text { fill: #fff; font-weight: 700; font-size: 12px; text-anchor: middle; dominant-baseline: central; }
+.flows { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin: 0; padding: 0; list-style: none; }
+.flows li { display: grid; gap: 4px; padding: 14px 16px; background: var(--canvas); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 4px; min-width: 0; }
+.flows h2 { margin: 0; font-size: 15px; }
+.flows p { margin: 0; color: var(--muted); font-size: 14px; }
+code { font-family: var(--font-mono); font-size: .9em; color: var(--fg); }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · homelab · VMware Workstation Pro</span>
+    <h1>Topologie du lab Wazuh</h1>
+    <p>Vue logique façon Cisco Packet Tracer : deux réseaux virtuels VMware séparés par pfSense, le PC hôte branché sur les deux, et les quatre flux qui font fonctionner la détection.</p>
+  </header>
+
+  <figure id="topologie">
+    <svg viewBox="0 0 1500 960" role="img" aria-labelledby="svg-title">
+      <title id="svg-title">Topologie du homelab Wazuh : zone WAN VMnet8, pfSense, zone LAN VMnet10, PC hôte</title>
+      <defs>
+        <marker id="m-ping" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-ping)"/></marker>
+        <marker id="m-syslog" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-syslog)"/></marker>
+        <marker id="m-dash" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-dash)"/></marker>
+        <marker id="m-agent" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-agent)"/></marker>
+
+        <!-- Icônes inspirées de Packet Tracer, centrées sur (0,0) -->
+        <symbol id="i-cloud" viewBox="-100 -55 200 110" overflow="visible">
+          <path d="M-70 35 C-98 35 -98 -2 -70 -4 C-72 -32 -38 -44 -20 -26 C-10 -52 34 -50 40 -22 C66 -30 88 -6 74 12 C96 16 92 35 70 35 Z" fill="#dfeefc" stroke="#4f86c6" stroke-width="3"/>
+        </symbol>
+        <symbol id="i-switch" viewBox="-55 -30 110 60" overflow="visible">
+          <polygon points="-50,-8 -34,-24 52,-24 36,-8" fill="#6aa6e4"/>
+          <polygon points="36,-8 52,-24 52,4 36,20" fill="#1e4f8a"/>
+          <rect x="-50" y="-8" width="86" height="28" fill="#2f6fb7"/>
+          <g stroke="#ffffff" stroke-width="2.2" fill="none" stroke-linecap="round">
+            <path d="M-26 -12 L-6 -12 M-12 -15.5 L-6 -12 L-12 -8.5"/>
+            <path d="M24 -19 L4 -19 M10 -22.5 L4 -19 L10 -15.5"/>
+            <path d="M-20 -19 L0 -19 M-14 -22.5 L-20 -19 L-14 -15.5"/>
+            <path d="M30 -12 L10 -12 M24 -15.5 L30 -12 L24 -8.5"/>
+          </g>
+          <g fill="#bcd6f2"><rect x="-42" y="6" width="7" height="6"/><rect x="-31" y="6" width="7" height="6"/><rect x="-20" y="6" width="7" height="6"/><rect x="-9" y="6" width="7" height="6"/><rect x="2" y="6" width="7" height="6"/><rect x="13" y="6" width="7" height="6"/><rect x="24" y="6" width="7" height="6"/></g>
+        </symbol>
+        <symbol id="i-firewall" viewBox="-55 -45 110 90" overflow="visible">
+          <polygon points="-44,-22 -30,-36 50,-36 36,-22" fill="#e46b55"/>
+          <polygon points="36,-22 50,-36 50,26 36,40" fill="#7d2417"/>
+          <rect x="-44" y="-22" width="80" height="62" fill="#b8392a"/>
+          <g stroke="#f4c9bf" stroke-width="1.6">
+            <path d="M-44 -6 H36 M-44 10 H36 M-44 25 H36"/>
+            <path d="M-24 -22 V-6 M4 -22 V-6 M-38 -6 V10 M-10 -6 V10 M18 -6 V10 M-24 10 V25 M4 10 V25 M-38 25 V40 M-10 25 V40 M18 25 V40"/>
+          </g>
+        </symbol>
+        <symbol id="i-server" viewBox="-35 -50 70 100" overflow="visible">
+          <polygon points="-24,-34 -12,-46 30,-46 18,-34" fill="#9aa9bd"/>
+          <polygon points="18,-34 30,-46 30,34 18,46" fill="#3e4b5c"/>
+          <rect x="-24" y="-34" width="42" height="80" fill="#64748a"/>
+          <g fill="#2a3442"><rect x="-18" y="-26" width="30" height="7"/><rect x="-18" y="-15" width="30" height="7"/><rect x="-18" y="-4" width="30" height="7"/></g>
+          <circle cx="-12" cy="30" r="3" fill="#57e389"/><circle cx="-2" cy="30" r="3" fill="#f5c542"/>
+        </symbol>
+        <symbol id="i-pc" viewBox="-40 -40 80 80" overflow="visible">
+          <rect x="-32" y="-32" width="64" height="44" rx="3" fill="#33414f"/>
+          <rect x="-27" y="-27" width="54" height="34" fill="#8cc4f0"/>
+          <rect x="-5" y="12" width="10" height="9" fill="#5b6876"/>
+          <rect x="-20" y="21" width="40" height="5" rx="2" fill="#33414f"/>
+          <rect x="-30" y="29" width="60" height="7" rx="2" fill="#a6b2bf"/>
+        </symbol>
+        <symbol id="i-kali" viewBox="-40 -40 80 80" overflow="visible">
+          <rect x="-32" y="-32" width="64" height="44" rx="3" fill="#33414f"/>
+          <rect x="-27" y="-27" width="54" height="34" fill="#1d2b3a"/>
+          <path d="M-18 0 C-8 -18 10 -20 18 -8 M6 -12 L14 -2" stroke="#4fa3f7" stroke-width="2.4" fill="none"/>
+          <rect x="-5" y="12" width="10" height="9" fill="#5b6876"/>
+          <rect x="-20" y="21" width="40" height="5" rx="2" fill="#33414f"/>
+          <rect x="-30" y="29" width="60" height="7" rx="2" fill="#a6b2bf"/>
+        </symbol>
+      </defs>
+
+      <!-- Zones -->
+      <rect x="20" y="70" width="540" height="520" rx="10" style="fill: var(--wan-bg); stroke: var(--wan)" stroke-width="2" stroke-dasharray="10 6"/>
+      <rect x="975" y="70" width="505" height="760" rx="10" style="fill: var(--lan-bg); stroke: var(--lan)" stroke-width="2" stroke-dasharray="10 6"/>
+      <rect x="20" y="620" width="740" height="210" rx="10" style="fill: var(--host-bg); stroke: var(--host)" stroke-width="2" stroke-dasharray="10 6"/>
+
+      <text x="40" y="548" class="ztitle" style="fill: var(--wan)">ZONE WAN · VMnet8 (NAT)</text>
+      <text x="40" y="568" class="muted">192.168.30.0/24 · le « faux Internet »</text>
+      <text x="995" y="100" class="ztitle" style="fill: var(--lan)">ZONE LAN · VMnet10 (host-only)</text>
+      <text x="995" y="120" class="muted">10.10.10.0/24 · isolé, sans DHCP VMware</text>
+      <text x="40" y="790" class="ztitle" style="fill: var(--host)">PC HÔTE WINDOWS</text>
+      <text x="40" y="810" class="muted">une « patte » dans chaque réseau virtuel</text>
+
+      <text x="30" y="42" class="b" style="font-size: 18px">Homelab Wazuh · vue logique</text>
+      <text x="1470" y="42" text-anchor="end" class="muted mono">pfSense CE 2.9.0 · Wazuh 4.14.9</text>
+
+      <!-- Câbles (sous les flux et les icônes) -->
+      <path class="cable" d="M280 210 V400"/>
+      <path class="cable" d="M280 400 H660"/>
+      <path class="cable" d="M660 400 H1000"/>
+      <path class="cable" d="M1000 400 H1230"/>
+      <path class="cable" d="M1000 400 L1230 640"/>
+      <path class="cable planned" d="M1000 400 L1230 190"/>
+      <path class="cable" d="M280 715 V400"/>
+      <path class="cable" d="M280 715 H1000 V400"/>
+
+      <!-- Flux -->
+      <path class="flow ping" d="M264 688 V414 H592" marker-end="url(#m-ping)"/>
+      <path class="flow syslog" d="M708 386 H1178" marker-end="url(#m-syslog)"/>
+      <path class="flow dash" d="M322 730 H1015 V414 H1178" marker-end="url(#m-dash)"/>
+      <path class="flow agent" d="M1260 600 V462" marker-end="url(#m-agent)"/>
+
+      <!-- Blocage du ping sur le WAN -->
+      <g transform="translate(603 414)">
+        <circle r="11" style="fill: var(--canvas); stroke: var(--f-ping)" stroke-width="2.5"/>
+        <path d="M-5 -5 L5 5 M5 -5 L-5 5" style="stroke: var(--f-ping)" stroke-width="2.8" stroke-linecap="round"/>
+      </g>
+
+      <!-- Icônes -->
+      <use href="#i-cloud" x="190" y="122" width="180" height="99"/>
+      <use href="#i-switch" x="225" y="370" width="110" height="60"/>
+      <use href="#i-firewall" x="605" y="355" width="110" height="90"/>
+      <use href="#i-switch" x="945" y="370" width="110" height="60"/>
+      <use href="#i-server" x="1195" y="350" width="70" height="100"/>
+      <use href="#i-pc" x="1190" y="600" width="80" height="80"/>
+      <use href="#i-kali" x="1190" y="150" width="80" height="80" opacity=".75"/>
+      <use href="#i-pc" x="240" y="675" width="80" height="80"/>
+
+      <!-- Étiquettes des équipements -->
+      <text x="280" y="176" text-anchor="middle" class="b" style="font-size: 15px; fill: #1c2633">Internet</text>
+      <text x="292" y="270" class="muted">NAT VMware : sortie par la</text>
+      <text x="292" y="286" class="muted">connexion physique du PC</text>
+
+      <text x="218" y="396" text-anchor="end" class="b">Switch VMnet8</text>
+      <text x="218" y="412" text-anchor="end" class="muted">NAT VMware</text>
+
+      <text x="660" y="332" text-anchor="middle" class="b" style="font-size: 15px">pfSense CE 2.9.0</text>
+      <text x="660" y="348" text-anchor="middle" class="muted">pare-feu · routeur</text>
+
+      <text x="1058" y="446" class="b">Switch VMnet10</text>
+
+      <text x="1290" y="356" class="b" style="font-size: 15px">Wazuh 4.14.9 (OVA)</text>
+      <text x="1290" y="373" class="muted">manager · indexer · dashboard</text>
+      <text x="1290" y="393" class="mono b">eth0 · 10.10.10.100</text>
+      <text x="1290" y="413" class="mono">1514/TCP  agents</text>
+      <text x="1290" y="429" class="mono">514/UDP   syslog</text>
+      <text x="1290" y="445" class="mono">443/TCP   dashboard</text>
+      <text x="1290" y="461" class="mono">55000/TCP API</text>
+
+      <text x="1290" y="630" class="b" style="font-size: 15px">Windows 11</text>
+      <text x="1290" y="648" class="mono">10.10.10.1xx (DHCP)</text>
+      <text x="1290" y="665" class="muted">futur agent Wazuh</text>
+
+      <text x="1290" y="180" class="b" style="font-size: 15px">Kali Linux</text>
+      <text x="1290" y="197" class="muted">attaquant</text>
+      <text x="1290" y="214" class="muted">à basculer sur VMnet10</text>
+
+      <text x="232" y="706" text-anchor="end" class="b" style="font-size: 15px">PC hôte</text>
+      <text x="232" y="722" text-anchor="end" class="muted">VMware Workstation</text>
+      <text x="232" y="738" text-anchor="end" class="muted">Pro</text>
+
+      <!-- Étiquettes des câbles (interface · IP) -->
+      <text x="345" y="378" class="mono b">vmx0 · WAN</text>
+      <text x="345" y="393" class="mono">192.168.30.131/24 (DHCP)</text>
+      <text x="718" y="422" class="mono b">vmx1 · LAN</text>
+      <text x="718" y="437" class="mono">10.10.10.254/24</text>
+      <text x="718" y="453" class="muted">passerelle + DHCP .100-.199</text>
+      <text x="292" y="500" class="mono b">carte VMnet8</text>
+      <text x="292" y="515" class="mono">192.168.30.1</text>
+      <text x="345" y="706" class="mono b">carte VMnet10 · 10.10.10.1</text>
+      <text x="1135" y="300" class="muted" style="fill: var(--f-agent)">câble prévu</text>
+
+      <!-- Étiquettes des flux -->
+      <g class="badge" transform="translate(264 650)"><circle r="11" style="fill: var(--f-ping)"/><text>1</text></g>
+      <text x="330" y="440" class="b t-ping">ping ICMP</text>
+      <text x="330" y="456" class="mono t-ping">192.168.30.1 → 192.168.30.131</text>
+      <text x="330" y="472" class="t-ping">bloqué et journalisé par le WAN</text>
+
+      <g class="badge" transform="translate(740 386)"><circle r="11" style="fill: var(--f-syslog)"/><text>2</text></g>
+      <text x="760" y="358" class="b t-syslog">syslog UDP 514</text>
+      <text x="760" y="374" class="mono t-syslog">10.10.10.254 → 10.10.10.100</text>
+
+      <g class="badge" transform="translate(600 730)"><circle r="11" style="fill: var(--f-dash)"/><text>3</text></g>
+      <text x="345" y="754" class="b t-dash">HTTPS 443 · 10.10.10.1 → 10.10.10.100</text>
+      <text x="345" y="771" class="t-dash">dashboard : alertes 100302 / 100303</text>
+
+      <g class="badge" transform="translate(1260 540)"><circle r="11" style="fill: var(--f-agent)"/><text>4</text></g>
+      <text x="1276" y="520" class="b t-agent">agent 1514/TCP (prévu)</text>
+      <text x="1276" y="536" class="t-agent">via le switch VMnet10</text>
+
+      <!-- Légende -->
+      <g transform="translate(30 880)">
+        <text x="0" y="0" class="ztitle muted">LÉGENDE</text>
+        <path class="cable" d="M0 26 H40"/><text x="50" y="30">câble branché</text>
+        <path class="cable planned" d="M0 52 H40"/><text x="50" y="56">câble prévu</text>
+        <path class="flow ping" d="M190 26 H230" marker-end="url(#m-ping)"/><text x="242" y="30">① ping de test (bloqué)</text>
+        <path class="flow syslog" d="M190 52 H230" marker-end="url(#m-syslog)"/><text x="242" y="56">② journaux pfSense → Wazuh</text>
+        <path class="flow dash" d="M470 26 H510" marker-end="url(#m-dash)"/><text x="522" y="30">③ consultation du dashboard</text>
+        <path class="flow agent" d="M470 52 H510" marker-end="url(#m-agent)"/><text x="522" y="56">④ agent Windows (prévu)</text>
+        <rect x="760" y="16" width="30" height="18" rx="3" style="fill: var(--wan-bg); stroke: var(--wan)" stroke-dasharray="5 3"/><text x="800" y="30">zone WAN (non fiable)</text>
+        <rect x="760" y="42" width="30" height="18" rx="3" style="fill: var(--lan-bg); stroke: var(--lan)" stroke-dasharray="5 3"/><text x="800" y="56">zone LAN (protégée)</text>
+        <rect x="980" y="16" width="30" height="18" rx="3" style="fill: var(--host-bg); stroke: var(--host)" stroke-dasharray="5 3"/><text x="1020" y="30">machine physique</text>
+        <g transform="translate(995 51)"><circle r="9" style="fill: var(--canvas); stroke: var(--f-ping)" stroke-width="2"/><path d="M-4 -4 L4 4 M4 -4 L-4 4" style="stroke: var(--f-ping)" stroke-width="2.4" stroke-linecap="round"/></g>
+        <text x="1020" y="56">paquet bloqué par pfSense</text>
+      </g>
+    </svg>
+  </figure>
+
+  <ol class="flows">
+    <li style="--c: var(--f-ping)">
+      <h2>① Le ping de test</h2>
+      <p>Le PC part de sa carte VMnet8 <code>192.168.30.1</code> et vise le WAN de pfSense <code>192.168.30.131</code>. Personne ne l'a demandé depuis le LAN, donc la règle par défaut du WAN le bloque et l'écrit dans <code>filterlog</code>.</p>
+    </li>
+    <li style="--c: var(--f-syslog)">
+      <h2>② Le journal part vers Wazuh</h2>
+      <p>pfSense envoie la ligne en syslog UDP 514 depuis son LAN <code>10.10.10.254</code> vers <code>10.10.10.100</code>. Le ping arrive par le WAN, mais le journal sort par le LAN, car c'est là que se trouve Wazuh.</p>
+    </li>
+    <li style="--c: var(--f-dash)">
+      <h2>③ L'analyste voit l'alerte</h2>
+      <p>Le navigateur du PC joint le dashboard en HTTPS par sa carte VMnet10 <code>10.10.10.1</code>, sans passer par pfSense : même sous-réseau, même switch. Les règles 100302 et 100303 y apparaissent.</p>
+    </li>
+    <li style="--c: var(--f-agent)">
+      <h2>④ Prochaine étape : l'agent</h2>
+      <p>L'agent Wazuh de Windows 11 enverra ses événements en 1514/TCP vers le manager. Kali rejoindra ensuite VMnet10 pour jouer l'attaquant côté LAN.</p>
+    </li>
+  </ol>
+
+  <footer>Source : <code>docs/diagrams/topologie-lab.html</code> du dépôt SIEM_PROJECT. Adresses relevées dans le lab, aucun identifiant.</footer>
+</div>

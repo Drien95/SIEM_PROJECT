@@ -53,10 +53,9 @@ Il reste environ 15 Go de RAM pour l'hôte.
 1. **Réseau** : créer VMnet10 (Éditeur de réseau virtuel) en host-only, DHCP désactivé.
 2. **pfSense** : WAN sur VMnet8, LAN sur VMnet10 ; changer `admin`/`pfsense` ; DHCP
    10.10.10.100-199 et réservations. Voir [../integrations/pfsense.md](../integrations/pfsense.md).
-3. **Wazuh** : import de l'OVA. **CPU AMD** : ajouter les lignes `cpuid.*` et
-   `featureCompat.enable = "FALSE"` à la fin du `.vmx` **avant le premier démarrage**, sinon
-   l'erreur « The guest operating system has disabled the CPU » apparaît (doc officielle,
-   section dépannage VMware). Carte réseau sur VMnet10, IP statique ; changer
+3. **Wazuh** : import de l'OVA. Correctif AMD de la doc officielle **seulement si** l'erreur
+   « The guest operating system has disabled the CPU » apparaît. Il est incompatible avec
+   `virtualHW.version` ≥ 9 (voir le journal du 2026-10-21). Carte réseau sur VMnet10, IP statique ; changer
    `wazuh-user`/`wazuh` et `admin`/`admin`.
 4. **Windows 11** : agent Wazuh, Sysmon, OpenSSH Server. Voir
    [../integrations/windows-logs-sysmon.md](../integrations/windows-logs-sysmon.md).
@@ -148,3 +147,16 @@ contourne la vérification au début de l'installation (à valider) :
    `BypassTPMCheck = 1` et `BypassSecureBootCheck = 1`.
 3. Fermer, puis continuer l'installation. Choisir un **compte local** (« Je n'ai pas
    Internet » ou `oobe\bypassnro` si l'option manque).
+
+### 2026-10-21 — pfSense installé, Wazuh démarré
+
+- **pfSense CE 2.9.0** installé avec le Netgate Installer v1.2 (ZFS stripe, GPT). WAN `vmx0` en
+  DHCP : `192.168.30.131/24` ; LAN `vmx1` : `10.10.10.254/24`, DHCP `10.10.10.100`–`.199`.
+  L'hôte joint `10.10.10.254` (ping, HTTPS 443). Captures 09 à 19.
+- **Wazuh** : le correctif AMD de la documentation **empêche le démarrage** sous
+  `virtualHW.version = "20"`. Le journal indique « Disabling featureCompat.enable is not allowed
+  for HWversion >= 9 ». Les lignes `cpuid.*` et `featureCompat.enable` ont été retirées : la VM
+  démarre sur le Ryzen 5 5600X sans l'erreur « disabled the CPU ». Le correctif vise donc
+  d'anciens matériels virtuels ou d'anciens CPU AMD (déduit).
+- Wazuh a obtenu `10.10.10.100` par DHCP (MAC `00:0c:29:9f:81:64`). À faire : une réservation
+  DHCP dans pfSense pour `10.10.10.10`.

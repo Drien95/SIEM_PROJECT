@@ -17,3 +17,14 @@ de clé API.
 | 06 | [06-pfsense-carte-vmnet10.png](06-pfsense-carte-vmnet10.png) | Réglages VM pfSense : carte 2 sur VMnet10 (LAN) |
 | 07 | [07-pfsense-invite-chargeur.png](07-pfsense-invite-chargeur.png) | Menu de démarrage, invite du chargeur (`OK`) |
 | 08 | [08-pfsense-choix-wan-vmx0.png](08-pfsense-choix-wan-vmx0.png) | Netgate Installer : WAN = `vmx0` (`00:0c:29:0e:fc:69`) |
+| 09 | [09-pfsense-wan-dhcp.png](09-pfsense-wan-dhcp.png) | WAN `vmx0` en DHCP (client) |
+| 10 | [10-pfsense-choix-lan-vmx1.png](10-pfsense-choix-lan-vmx1.png) | Choix du LAN : `vmx1` (`00:0c:29:0e:fc:73`) |
+| 11 | [11-pfsense-lan-ip-dhcp-avant.png](11-pfsense-lan-ip-dhcp-avant.png) | LAN en `10.10.10.254/24`, plage DHCP encore par défaut (192.168.1.x) |
+| 12 | [12-pfsense-lan-ip-dhcp-10.10.10.png](12-pfsense-lan-ip-dhcp-10.10.10.png) | Plage DHCP corrigée : `10.10.10.100`–`10.10.10.199` |
+| 13 | [13-pfsense-confirmation-interfaces.png](13-pfsense-confirmation-interfaces.png) | Confirmation : LAN = `vmx1`, WAN = `vmx0` |
+| 14 | [14-pfsense-choix-install-ce.png](14-pfsense-choix-install-ce.png) | Pas d'abonnement Plus : « Install CE » |
+| 15 | [15-pfsense-options-zfs-gpt.png](15-pfsense-options-zfs-gpt.png) | Système de fichiers ZFS, partitionnement GPT |
+| 16 | [16-pfsense-zfs-stripe.png](16-pfsense-zfs-stripe.png) | ZFS en stripe (un seul disque) |
+| 17 | [17-pfsense-disque-da0.png](17-pfsense-disque-da0.png) | Disque `da0` de 20 Go |
+| 18 | [18-pfsense-version-2.9.0.png](18-pfsense-version-2.9.0.png) | Version pfSense CE 2.9.0 (stable) |
+| 19 | [19-pfsense-console-installe.png](19-pfsense-console-installe.png) | pfSense 2.9.0 démarré : WAN `192.168.30.131/24` (DHCP), LAN `10.10.10.254/24` |

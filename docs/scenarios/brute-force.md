@@ -7,6 +7,11 @@ https://documentation.wazuh.com/current/proof-of-concept-guide/detect-brute-forc
 
 > À jouer **uniquement** contre des VM du lab, sur un réseau isolé.
 
+![Planche du scénario brute force : acteurs, étapes, MITRE et détections attendues](../diagrams/scenario-modele.png)
+
+*Planche faite avec le [modèle de scénario](modele-scenario.md). Les règles sont celles attendues
+d'après la documentation et le PDF marxgoo, à confirmer quand le scénario sera joué.*
+
 ## Familles d'attaque
 
 Simple (toutes les combinaisons), dictionnaire, hybride (dictionnaire + variantes),

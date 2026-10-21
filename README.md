@@ -18,11 +18,11 @@ simulation d'attaques.
 | [docs/sources.md](docs/sources.md) | Sources utilisées, ce qu'on en retient, limites |
 | [docs/homelab/plan.md](docs/homelab/plan.md) | Plan du homelab VMware : réseau, VM, ordre de montage, images |
 | [docs/homelab/screenshots/](docs/homelab/screenshots/README.md) | Captures d'écran du montage, numérotées |
-| [docs/diagrams/](docs/diagrams/README.md) | Schéma réseau du lab façon Packet Tracer (source HTML/SVG et capture PNG) |
+| [docs/diagrams/](docs/diagrams/README.md) | Schémas : réseau du lab façon Packet Tracer, pipeline Wazuh annoté, modèle de scénario (sources HTML et PNG) |
 | [docs/writeup/01-homelab.md](docs/writeup/01-homelab.md) | Writeup du montage : étapes, commandes, captures, incidents et leçons |
 | [docs/writeup/02-syslog-pfsense.md](docs/writeup/02-syslog-pfsense.md) | Writeup : journaux pfSense vers Wazuh en syslog, avec une partie « Comprendre » |
 | [docs/integrations/](docs/integrations/) | Un guide par intégration : Windows/Sysmon, FIM, VirusTotal, Suricata, pfSense |
-| [docs/scenarios/](docs/scenarios/) | Scénarios d'attaque et détection attendue (brute force) |
+| [docs/scenarios/](docs/scenarios/) | Scénarios d'attaque et détection attendue (brute force), avec un [modèle de fiche et de planche](docs/scenarios/modele-scenario.md) |
 | [configs/](configs/) | Configurations d'exemple : règles locales, syslog, VirusTotal, agent Windows, Suricata |
 | [docs/lab-marxgoo.md](docs/lab-marxgoo.md) | Notes de lecture des PDF du lab marxgoo, avec les erreurs corrigées |
 | [CLAUDE.md](CLAUDE.md) | Objectif, conventions et règles de contribution (humains et Claude) |

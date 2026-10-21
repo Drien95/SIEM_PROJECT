@@ -1,0 +1,260 @@
+<title>Modèle de scénario d'attaque</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Mise en page : une planche « Packet Tracer » (canevas logique) suivie d'une lecture des flux dans l'ordre. */
+:root {
+  --p-mitre: #b8282f;
+  --bg: #f3f5f8;
+  --canvas: #ffffff;
+  --fg: #1c2633;
+  --muted: #5a6778;
+  --line: #d5dbe3;
+  --cable: #27313d;
+  --wan: #c46a1b;
+  --wan-bg: #fdf3e8;
+  --lan: #2c8a4b;
+  --lan-bg: #ecf7ef;
+  --host: #4d6a8f;
+  --host-bg: #eef2f8;
+  --f-ping: #d23c3c;
+  --f-syslog: #7445c9;
+  --f-dash: #0b8587;
+  --f-agent: #7d8591;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744;
+    --cable: #c9d3de; --wan: #e9954d; --wan-bg: #2a2119; --lan: #5cc27d; --lan-bg: #17271d;
+    --host: #8fb0d8; --host-bg: #1a2230; --f-ping: #ff6b6b; --f-syslog: #a98bf0;
+    --f-dash: #3cc6c8; --f-agent: #9aa3ae; --p-mitre: #ff7b7f; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744;
+  --cable: #c9d3de; --wan: #e9954d; --wan-bg: #2a2119; --lan: #5cc27d; --lan-bg: #17271d;
+  --host: #8fb0d8; --host-bg: #1a2230; --f-ping: #ff6b6b; --f-syslog: #a98bf0;
+  --f-dash: #3cc6c8; --f-agent: #9aa3ae; --p-mitre: #ff7b7f; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 68ch; color: var(--muted); }
+figure { margin: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 980px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 12.5px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .ztitle { font-size: 14px; font-weight: 700; letter-spacing: .06em; }
+.cable { stroke: var(--cable); stroke-width: 2.2; fill: none; }
+.cable.planned { stroke: var(--f-agent); stroke-dasharray: 7 6; }
+.flow { fill: none; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.ping { stroke: var(--f-ping); } .syslog { stroke: var(--f-syslog); } .dash { stroke: var(--f-dash); }
+.agent { stroke: var(--f-agent); stroke-dasharray: 8 6; }
+.t-ping { fill: var(--f-ping) !important; } .t-syslog { fill: var(--f-syslog) !important; }
+.t-dash { fill: var(--f-dash) !important; } .t-agent { fill: var(--f-agent) !important; }
+.badge circle { stroke: var(--canvas); stroke-width: 2; }
+.badge text { fill: #fff; font-weight: 700; font-size: 12px; text-anchor: middle; dominant-baseline: central; }
+.flows { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin: 0; padding: 0; list-style: none; }
+.flows li { display: grid; gap: 4px; padding: 14px 16px; background: var(--canvas); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 4px; min-width: 0; }
+.flows h2 { margin: 0; font-size: 15px; }
+.flows p { margin: 0; color: var(--muted); font-size: 14px; }
+code { font-family: var(--font-mono); font-size: .9em; color: var(--fg); }
+footer { color: var(--muted); font-size: 13px; }
+
+svg .box { fill: var(--canvas); stroke: var(--line); stroke-width: 1.5; }
+svg .row { fill: var(--canvas); stroke: var(--line); stroke-width: 1.2; }
+svg .head { fill: var(--host-bg); stroke: var(--line); stroke-width: 1.2; }
+svg .small { font-size: 12px; }
+svg .chip-t { font-size: 11.5px; font-weight: 700; }
+.howto { background: var(--canvas); border: 1px solid var(--line); border-radius: 4px; padding: 14px 18px; display: grid; gap: 6px; }
+.howto h2 { margin: 0; font-size: 15px; }
+.howto p { margin: 0; color: var(--muted); font-size: 14px; max-width: 90ch; }
+</style>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · docs/scenarios · modèle réutilisable</span>
+    <h1>Modèle de scénario d'attaque</h1>
+    <p>Une planche par scénario : qui attaque qui, par où passe le trafic, puis chaque étape avec sa technique MITRE ATT&amp;CK, la trace qu'elle laisse et l'alerte Wazuh attendue. Pré-rempli ici avec le scénario brute force.</p>
+  </header>
+  <figure id="schema"></figure>
+  <section class="howto">
+    <h2>Réutiliser ce modèle</h2>
+    <p>Copier <code>docs/diagrams/scenario-modele.html</code> en <code>scenario-&lt;nom&gt;.html</code>, puis modifier seulement l'objet <code>SCENARIO</code> en haut du script : acteurs, étapes, règles attendues et statut. Le schéma se redessine tout seul. Faire ensuite la capture PNG de la figure et la coller dans la fiche <code>docs/scenarios/&lt;nom&gt;.md</code>.</p>
+    <p>Statuts possibles : <code>attendu</code> (documenté, pas encore joué), <code>à valider</code> (déduit, à vérifier avec wazuh-logtest), <code>angle mort</code> (aucune détection prévue), <code>observé</code> (vu dans le dashboard, avec l'heure).</p>
+  </section>
+</div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><!-- Icônes inspirées de Packet Tracer, centrées sur (0,0) -->
+        <symbol id="i-cloud" viewBox="-100 -55 200 110" overflow="visible">
+          <path d="M-70 35 C-98 35 -98 -2 -70 -4 C-72 -32 -38 -44 -20 -26 C-10 -52 34 -50 40 -22 C66 -30 88 -6 74 12 C96 16 92 35 70 35 Z" fill="#dfeefc" stroke="#4f86c6" stroke-width="3"/>
+        </symbol>
+        <symbol id="i-switch" viewBox="-55 -30 110 60" overflow="visible">
+          <polygon points="-50,-8 -34,-24 52,-24 36,-8" fill="#6aa6e4"/>
+          <polygon points="36,-8 52,-24 52,4 36,20" fill="#1e4f8a"/>
+          <rect x="-50" y="-8" width="86" height="28" fill="#2f6fb7"/>
+          <g stroke="#ffffff" stroke-width="2.2" fill="none" stroke-linecap="round">
+            <path d="M-26 -12 L-6 -12 M-12 -15.5 L-6 -12 L-12 -8.5"/>
+            <path d="M24 -19 L4 -19 M10 -22.5 L4 -19 L10 -15.5"/>
+            <path d="M-20 -19 L0 -19 M-14 -22.5 L-20 -19 L-14 -15.5"/>
+            <path d="M30 -12 L10 -12 M24 -15.5 L30 -12 L24 -8.5"/>
+          </g>
+          <g fill="#bcd6f2"><rect x="-42" y="6" width="7" height="6"/><rect x="-31" y="6" width="7" height="6"/><rect x="-20" y="6" width="7" height="6"/><rect x="-9" y="6" width="7" height="6"/><rect x="2" y="6" width="7" height="6"/><rect x="13" y="6" width="7" height="6"/><rect x="24" y="6" width="7" height="6"/></g>
+        </symbol>
+        <symbol id="i-firewall" viewBox="-55 -45 110 90" overflow="visible">
+          <polygon points="-44,-22 -30,-36 50,-36 36,-22" fill="#e46b55"/>
+          <polygon points="36,-22 50,-36 50,26 36,40" fill="#7d2417"/>
+          <rect x="-44" y="-22" width="80" height="62" fill="#b8392a"/>
+          <g stroke="#f4c9bf" stroke-width="1.6">
+            <path d="M-44 -6 H36 M-44 10 H36 M-44 25 H36"/>
+            <path d="M-24 -22 V-6 M4 -22 V-6 M-38 -6 V10 M-10 -6 V10 M18 -6 V10 M-24 10 V25 M4 10 V25 M-38 25 V40 M-10 25 V40 M18 25 V40"/>
+          </g>
+        </symbol>
+        <symbol id="i-server" viewBox="-35 -50 70 100" overflow="visible">
+          <polygon points="-24,-34 -12,-46 30,-46 18,-34" fill="#9aa9bd"/>
+          <polygon points="18,-34 30,-46 30,34 18,46" fill="#3e4b5c"/>
+          <rect x="-24" y="-34" width="42" height="80" fill="#64748a"/>
+          <g fill="#2a3442"><rect x="-18" y="-26" width="30" height="7"/><rect x="-18" y="-15" width="30" height="7"/><rect x="-18" y="-4" width="30" height="7"/></g>
+          <circle cx="-12" cy="30" r="3" fill="#57e389"/><circle cx="-2" cy="30" r="3" fill="#f5c542"/>
+        </symbol>
+        <symbol id="i-pc" viewBox="-40 -40 80 80" overflow="visible">
+          <rect x="-32" y="-32" width="64" height="44" rx="3" fill="#33414f"/>
+          <rect x="-27" y="-27" width="54" height="34" fill="#8cc4f0"/>
+          <rect x="-5" y="12" width="10" height="9" fill="#5b6876"/>
+          <rect x="-20" y="21" width="40" height="5" rx="2" fill="#33414f"/>
+          <rect x="-30" y="29" width="60" height="7" rx="2" fill="#a6b2bf"/>
+        </symbol>
+        <symbol id="i-kali" viewBox="-40 -40 80 80" overflow="visible">
+          <rect x="-32" y="-32" width="64" height="44" rx="3" fill="#33414f"/>
+          <rect x="-27" y="-27" width="54" height="34" fill="#1d2b3a"/>
+          <path d="M-18 0 C-8 -18 10 -20 18 -8 M6 -12 L14 -2" stroke="#4fa3f7" stroke-width="2.4" fill="none"/>
+          <rect x="-5" y="12" width="10" height="9" fill="#5b6876"/>
+          <rect x="-20" y="21" width="40" height="5" rx="2" fill="#33414f"/>
+          <rect x="-30" y="29" width="60" height="7" rx="2" fill="#a6b2bf"/>
+        </symbol>
+      </defs></svg>
+<script>
+/* ===== Données du scénario : seule partie à modifier ===== */
+const SCENARIO = {
+  titre: "Brute force RDP / SSH contre Windows 11",
+  fiche: "docs/scenarios/brute-force.md",
+  attaquant: { nom: "Kali Linux", ip: "10.10.10.1xx (DHCP)", detail: "nmap, Hydra" },
+  cible: { nom: "Windows 11", ip: "10.10.10.1xx (DHCP)", detail: "RDP 3389 · OpenSSH 22" },
+  collecte: "agent Wazuh · 1514/TCP",
+  remarque: "Kali et Windows 11 sont sur le même switch VMnet10 : ce trafic ne traverse pas pfSense, qui ne le voit pas.",
+  etapes: [
+    { tactique: "Découverte", technique: "T1046", nomTech: "Network Service Discovery",
+      action: "nmap -sV <IP_CIBLE>", trace: "Rien côté Windows (pare-feu non journalisé), rien côté pfSense (trafic LAN vers LAN).",
+      regles: "Aucune alerte prévue.", statut: "angle mort" },
+    { tactique: "Accès aux identifiants", technique: "T1110.001", nomTech: "Password Guessing",
+      action: "hydra -l <user> -P passwords.txt rdp://<IP_CIBLE>", trace: "Journal Security : 4625 (échec d'ouverture de session) en rafale.",
+      regles: "60122 par échec, puis 60204 (corrélation de plusieurs échecs).", statut: "attendu" },
+    { tactique: "Accès initial", technique: "T1078", nomTech: "Valid Accounts",
+      action: "connexion RDP avec le mot de passe trouvé", trace: "Journal Security : 4624, logon type 10 (RemoteInteractive).",
+      regles: "Règle à identifier avec wazuh-logtest.", statut: "à valider" }
+  ],
+  reponse: "Réponse active Wazuh sur 60204 : bloquer l'IP source (netsh) sur Windows 11. À écrire et à tester."
+};
+/* ========================================================= */
+
+const STATUTS = { "attendu": "--f-syslog", "à valider": "--wan", "angle mort": "--f-ping", "observé": "--lan" };
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+function wrap(s, n) {
+  const out = []; let cur = "";
+  for (const w of String(s).split(" ")) {
+    if ((cur + " " + w).trim().length > n) { if (cur) out.push(cur); cur = w; } else cur = (cur + " " + w).trim();
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+function T(x, y, s, cls = "", anchor = "", style = "") {
+  return `<text x="${x}" y="${y}"${cls ? ` class="${cls}"` : ""}${anchor ? ` text-anchor="${anchor}"` : ""}${style ? ` style="${style}"` : ""}>${esc(s)}</text>`;
+}
+function lines(x, y, arr, cls, lh = 16) { return arr.map((l, i) => T(x, y + i * lh, l, cls)).join(""); }
+function chip(x, y, label, v) {
+  const w = label.length * 7.4 + 18;
+  return `<rect x="${x}" y="${y}" width="${w}" height="22" rx="11" style="fill: var(--canvas); stroke: var(${v})" stroke-width="1.6"/>` +
+         `<text x="${x + w / 2}" y="${y + 15}" text-anchor="middle" class="chip-t" style="fill: var(${v})">${esc(label)}</text>`;
+}
+function marker(id, v) { return `<marker id="${id}" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(${v})"/></marker>`; }
+
+function render(S) {
+  const o = [];
+  const cols = [30, 80, 330, 640, 930, 1240, 1470];
+  const rowH = S.etapes.map(e => Math.max(96 + 16 * wrap(e.nomTech, 30).length, 34 + 16 * Math.max(wrap(e.action, 34).length, wrap(e.trace, 36).length, wrap(e.regles, 38).length)));
+  const top = 420, headH = 40;
+  const H = top + headH + rowH.reduce((a, b) => a + b, 0) + 110;
+  o.push(`<svg viewBox="0 0 1500 ${H}" role="img" aria-label="Scénario d'attaque : ${esc(S.titre)}"><defs>`);
+  o.push(marker("m-atk", "--f-ping"), marker("m-log", "--f-syslog"), marker("m-al", "--f-dash"), "</defs>");
+  o.push(T(30, 42, "Scénario · " + S.titre, "b", "", "font-size: 18px"));
+  o.push(T(1470, 42, S.fiche, "muted mono", "end"));
+
+  // Zone LAN
+  o.push(`<rect x="20" y="70" width="1460" height="300" rx="10" style="fill: var(--lan-bg); stroke: var(--lan)" stroke-width="2" stroke-dasharray="10 6"/>`);
+  o.push(T(40, 98, "LAB ISOLÉ · VMnet10 · 10.10.10.0/24", "ztitle", "", "fill: var(--lan)"));
+  // câbles
+  o.push(`<path class="cable" d="M150 230 H1280"/>`);
+  o.push(`<path class="cable planned" d="M560 230 V150"/>`);
+  // flux
+  o.push(`<path class="flow ping" d="M190 212 H795" marker-end="url(#m-atk)"/>`);
+  o.push(`<path class="flow syslog" d="M905 212 H1015" marker-end="url(#m-log)"/>`);
+  o.push(`<path class="flow dash" d="M1125 212 H1235" marker-end="url(#m-al)"/>`);
+  // icônes
+  o.push(`<use href="#i-kali" x="110" y="190" width="80" height="80"/>`);
+  o.push(`<use href="#i-switch" x="505" y="200" width="110" height="60"/>`);
+  o.push(`<use href="#i-firewall" x="520" y="98" width="80" height="66" opacity=".45"/>`);
+  o.push(`<use href="#i-pc" x="810" y="190" width="80" height="80"/>`);
+  o.push(`<use href="#i-server" x="1035" y="180" width="70" height="100"/>`);
+  o.push(`<use href="#i-pc" x="1250" y="190" width="80" height="80"/>`);
+  // étiquettes acteurs
+  const actor = (x, l1, l2, l3, extra) => { o.push(T(x, 300, l1, "b", "middle", "font-size: 15px"), T(x, 318, l2, "mono small", "middle"), T(x, 335, l3, "muted small", "middle")); if (extra) o.push(T(x, 352, extra, "muted small", "middle")); };
+  actor(150, S.attaquant.nom, S.attaquant.ip, "attaquant · " + S.attaquant.detail);
+  actor(560, "Switch VMnet10", "même sous-réseau", "commutation directe");
+  actor(850, S.cible.nom, S.cible.ip, "cible · " + S.cible.detail);
+  actor(1070, "Wazuh", "10.10.10.100", "analyse et corrélation");
+  actor(1290, "Analyste", "dashboard 443", "PC hôte 10.10.10.1");
+  o.push(T(612, 125, "pfSense : hors du chemin", "small b", "", "fill: var(--muted)"));
+  o.push(lines(612, 142, wrap(S.remarque, 62), "small muted", 15));
+  o.push(T(300, 202, "attaque", "small b t-ping"));
+  o.push(T(960, 186, S.collecte.split(" · ")[0], "small b t-syslog", "middle"), T(960, 202, S.collecte.split(" · ")[1] || "", "small b t-syslog", "middle"));
+  o.push(T(1125, 202, "alertes", "small b t-dash"));
+
+  // tableau des étapes
+  const heads = ["#", "Tactique · technique MITRE", "Action de l'attaquant", "Trace produite", "Détection Wazuh attendue", "Statut"];
+  o.push(`<rect x="30" y="${top}" width="1440" height="${headH}" class="head"/>`);
+  heads.forEach((h, i) => o.push(T(cols[i] + 12, top + 26, h.toUpperCase(), "ztitle muted", "", "font-size: 12px")));
+  let y = top + headH;
+  S.etapes.forEach((e, i) => {
+    const h = rowH[i];
+    o.push(`<rect x="30" y="${y}" width="1440" height="${h}" class="row"/>`);
+    const v = STATUTS[e.statut] || "--muted";
+    o.push(`<g class="badge" transform="translate(55 ${y + 28})"><circle r="12" style="fill: var(${v})"/><text>${i + 1}</text></g>`);
+    o.push(T(cols[1] + 12, y + 28, e.tactique, "b"));
+    o.push(chip(cols[1] + 12, y + 40, e.technique, "--p-mitre"));
+    o.push(lines(cols[1] + 12, y + 82, wrap(e.nomTech, 30), "small muted"));
+    o.push(lines(cols[2] + 12, y + 28, wrap(e.action, 34), "mono small"));
+    o.push(lines(cols[3] + 12, y + 28, wrap(e.trace, 36), "small"));
+    o.push(lines(cols[4] + 12, y + 28, wrap(e.regles, 38), "small b"));
+    o.push(chip(cols[5] + 12, y + 14, e.statut, v));
+    y += h;
+  });
+  cols.slice(1, 6).forEach(c => o.push(`<path d="M${c} ${top} V${y}" style="stroke: var(--line)" stroke-width="1.2"/>`));
+  // réponse
+  o.push(`<rect x="30" y="${y + 20}" width="1440" height="56" rx="6" class="box"/>`);
+  o.push(T(50, y + 44, "Réponse", "b"));
+  o.push(T(50, y + 63, S.reponse, "small"));
+  o.push(`</svg>`);
+  document.getElementById("schema").innerHTML = o.join("");
+}
+render(SCENARIO);
+</script>

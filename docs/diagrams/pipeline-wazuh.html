@@ -1,0 +1,295 @@
+<title>Pipeline Wazuh annoté</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Mise en page : une planche « Packet Tracer » (canevas logique) suivie d'une lecture des flux dans l'ordre. */
+:root {
+  --p1: #2f6fb7; --p1-bg: #e8f1fb; --p2: #7445c9; --p2-bg: #f1ebfc; --p3: #b5541a; --p3-bg: #fdf0e6;
+  --bg: #f3f5f8;
+  --canvas: #ffffff;
+  --fg: #1c2633;
+  --muted: #5a6778;
+  --line: #d5dbe3;
+  --cable: #27313d;
+  --wan: #c46a1b;
+  --wan-bg: #fdf3e8;
+  --lan: #2c8a4b;
+  --lan-bg: #ecf7ef;
+  --host: #4d6a8f;
+  --host-bg: #eef2f8;
+  --f-ping: #d23c3c;
+  --f-syslog: #7445c9;
+  --f-dash: #0b8587;
+  --f-agent: #7d8591;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744;
+    --cable: #c9d3de; --wan: #e9954d; --wan-bg: #2a2119; --lan: #5cc27d; --lan-bg: #17271d;
+    --host: #8fb0d8; --host-bg: #1a2230; --f-ping: #ff6b6b; --f-syslog: #a98bf0;
+    --f-dash: #3cc6c8; --f-agent: #9aa3ae; --p1: #7fb3ef; --p1-bg: #172536; --p2: #a98bf0; --p2-bg: #221a33; --p3: #ee9a5c; --p3-bg: #2c1f15; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744;
+  --cable: #c9d3de; --wan: #e9954d; --wan-bg: #2a2119; --lan: #5cc27d; --lan-bg: #17271d;
+  --host: #8fb0d8; --host-bg: #1a2230; --f-ping: #ff6b6b; --f-syslog: #a98bf0;
+  --f-dash: #3cc6c8; --f-agent: #9aa3ae; --p1: #7fb3ef; --p1-bg: #172536; --p2: #a98bf0; --p2-bg: #221a33; --p3: #ee9a5c; --p3-bg: #2c1f15; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 68ch; color: var(--muted); }
+figure { margin: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 980px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 12.5px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .ztitle { font-size: 14px; font-weight: 700; letter-spacing: .06em; }
+.cable { stroke: var(--cable); stroke-width: 2.2; fill: none; }
+.cable.planned { stroke: var(--f-agent); stroke-dasharray: 7 6; }
+.flow { fill: none; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; }
+.ping { stroke: var(--f-ping); } .syslog { stroke: var(--f-syslog); } .dash { stroke: var(--f-dash); }
+.agent { stroke: var(--f-agent); stroke-dasharray: 8 6; }
+.t-ping { fill: var(--f-ping) !important; } .t-syslog { fill: var(--f-syslog) !important; }
+.t-dash { fill: var(--f-dash) !important; } .t-agent { fill: var(--f-agent) !important; }
+.badge circle { stroke: var(--canvas); stroke-width: 2; }
+.badge text { fill: #fff; font-weight: 700; font-size: 12px; text-anchor: middle; dominant-baseline: central; }
+.flows { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin: 0; padding: 0; list-style: none; }
+.flows li { display: grid; gap: 4px; padding: 14px 16px; background: var(--canvas); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 4px; min-width: 0; }
+.flows h2 { margin: 0; font-size: 15px; }
+.flows p { margin: 0; color: var(--muted); font-size: 14px; }
+code { font-family: var(--font-mono); font-size: .9em; color: var(--fg); }
+footer { color: var(--muted); font-size: 13px; }
+
+svg .box { fill: var(--canvas); stroke: var(--line); stroke-width: 1.5; }
+svg .proc { fill: var(--host-bg); stroke: var(--host); stroke-width: 1.8; }
+svg .vm { fill: var(--lan-bg); stroke: var(--lan); stroke-width: 2; stroke-dasharray: 10 6; }
+svg .mgr { fill: none; stroke: var(--host); stroke-width: 1.5; stroke-dasharray: 4 4; }
+svg .ph1 { fill: var(--p1-bg); stroke: var(--p1); stroke-width: 1.8; }
+svg .ph2 { fill: var(--p2-bg); stroke: var(--p2); stroke-width: 1.8; }
+svg .ph3 { fill: var(--p3-bg); stroke: var(--p3); stroke-width: 1.8; }
+svg .t-p1 { fill: var(--p1) !important; } svg .t-p2 { fill: var(--p2) !important; } svg .t-p3 { fill: var(--p3) !important; }
+svg .t-pre { fill: var(--wan) !important; }
+svg .hl-p1 { fill: var(--p1-bg); stroke: var(--p1); }
+svg .hl-p2 { fill: var(--p2-bg); stroke: var(--p2); }
+svg .hl-pre { fill: var(--wan-bg); stroke: var(--wan); }
+svg .lead { stroke-width: 1.2; fill: none; }
+svg .arrow { stroke: var(--cable); stroke-width: 2.2; fill: none; }
+svg .ko { fill: var(--f-ping) !important; } svg .ok { fill: var(--lan) !important; }
+svg .small { font-size: 11.5px; }
+svg .raw { font-family: var(--font-mono); font-size: 14px; }
+</style>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14.9 · comprendre</span>
+    <h1>Pipeline Wazuh annoté</h1>
+    <p>Le trajet d'un journal à l'intérieur de la VM Wazuh, de la réception à l'affichage, puis le même trajet suivi sur une vraie ligne pfSense : ce que chaque phase en extrait, et comment 100302 devient 100303.</p>
+  </header>
+  <figure id="schema">
+<svg viewBox="0 0 1500 1205" role="img" aria-labelledby="svg-title"><title id="svg-title">Pipeline interne de Wazuh 4.14 et exemple annoté d'une ligne pfSense</title><defs>
+<marker id="m-cable" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--cable)"/></marker>
+<marker id="m-syslog" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-syslog)"/></marker>
+<marker id="m-agent" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-agent)"/></marker>
+<marker id="m-p3" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--p3)"/></marker>
+<marker id="m-dash" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--f-dash)"/></marker>
+</defs>
+<text x="30" y="42" class="b" style="font-size: 18px">Pipeline Wazuh 4.14 · du journal brut à l&#x27;alerte</text>
+<text x="1470" y="42" class="muted mono" text-anchor="end">OVA all-in-one · 10.10.10.100</text>
+<text x="30" y="96" class="ztitle muted">SOURCES</text>
+<rect x="30" y="115" width="170" height="92" rx="6" class="box"/>
+<text x="46" y="140" class="b">pfSense CE 2.9.0</text>
+<text x="46" y="158" class="mono small">10.10.10.254</text>
+<text x="46" y="176" class="muted small">programme filterlog</text>
+<text x="46" y="194" class="muted small">pas d&#x27;agent : syslog</text>
+<rect x="30" y="265" width="170" height="92" rx="6" class="box" stroke-dasharray="6 5"/>
+<text x="46" y="290" class="b">Windows 11 (prévu)</text>
+<text x="46" y="308" class="muted small">agent Wazuh</text>
+<text x="46" y="326" class="muted small">journaux d&#x27;événements,</text>
+<text x="46" y="344" class="muted small">Sysmon, FIM</text>
+<rect x="272" y="70" width="1058" height="400" rx="10" class="vm"/>
+<text x="290" y="94" class="ztitle" style="fill: var(--lan)">VM WAZUH · 10.10.10.100</text>
+<rect x="280" y="108" width="690" height="345" rx="8" class="mgr"/>
+<text x="286" y="128" class="b small" style="fill: var(--host)">wazuh-manager</text>
+<rect x="290" y="150" width="140" height="190" rx="6" class="proc"/>
+<text x="360" y="176" class="b" text-anchor="middle">wazuh-remoted</text>
+<text x="360" y="200" class="small muted" text-anchor="middle">reçoit les journaux</text>
+<text x="360" y="224" class="mono small" text-anchor="middle">514/UDP syslog</text>
+<text x="360" y="242" class="mono small" text-anchor="middle">1514/TCP agents</text>
+<text x="360" y="268" class="small muted" text-anchor="middle">filtre allowed-ips</text>
+<text x="360" y="286" class="mono small muted" text-anchor="middle">(10.10.10.254 : OK)</text>
+<path class="flow syslog" d="M200 161 H284" marker-end="url(#m-syslog)"/>
+<text x="205" y="152" class="mono small t-syslog">UDP 514</text>
+<path class="flow agent" d="M200 311 C 245 311 245 300 284 300" marker-end="url(#m-agent)"/>
+<text x="205" y="340" class="mono small t-agent">TCP 1514</text>
+<rect x="460" y="140" width="300" height="300" rx="6" class="proc"/>
+<text x="610" y="162" class="b" text-anchor="middle">wazuh-analysisd</text>
+<rect x="476" y="174" width="268" height="72" rx="6" class="ph1"/>
+<g class="badge" transform="translate(492 192)"><circle r="11" style="fill: var(--p1)"/><text>1</text></g>
+<text x="510" y="197" class="b t-p1">Pré-décodage</text>
+<text x="490" y="218" class="small">en-tête syslog : timestamp,</text>
+<text x="490" y="235" class="small">hostname, program_name</text>
+<rect x="476" y="262" width="268" height="72" rx="6" class="ph2"/>
+<g class="badge" transform="translate(492 280)"><circle r="11" style="fill: var(--p2)"/><text>2</text></g>
+<text x="510" y="285" class="b t-p2">Décodage</text>
+<text x="490" y="306" class="small">décodeur parent (prematch),</text>
+<text x="490" y="323" class="small">enfants (regex) → champs</text>
+<rect x="476" y="350" width="268" height="80" rx="6" class="ph3"/>
+<g class="badge" transform="translate(492 368)"><circle r="11" style="fill: var(--p3)"/><text>3</text></g>
+<text x="510" y="373" class="b t-p3">Règles et corrélation</text>
+<text x="490" y="394" class="small">arbre if_sid, niveau 0 à 15,</text>
+<text x="490" y="411" class="small">frequency / timeframe</text>
+<path class="arrow" d="M610 246 V258" marker-end="url(#m-cable)"/>
+<path class="arrow" d="M610 334 V346" marker-end="url(#m-cable)"/>
+<path class="arrow" d="M430 210 H470" marker-end="url(#m-cable)"/>
+<rect x="790" y="190" width="160" height="110" rx="6" class="box"/>
+<text x="870" y="215" class="b mono" text-anchor="middle">alerts.json</text>
+<text x="870" y="236" class="mono small muted" text-anchor="middle">/var/ossec/logs/</text>
+<text x="870" y="252" class="mono small muted" text-anchor="middle">alerts/</text>
+<text x="870" y="276" class="small" text-anchor="middle">si niveau ≥ 3</text>
+<path class="arrow" d="M744 390 H770 V245 H784" marker-end="url(#m-cable)"/>
+<rect x="790" y="350" width="160" height="70" rx="6" class="box"/>
+<text x="870" y="375" class="b" text-anchor="middle">wazuh-apid</text>
+<text x="870" y="395" class="small muted" text-anchor="middle">API REST</text>
+<text x="870" y="411" class="mono small" text-anchor="middle">55000/TCP</text>
+<rect x="995" y="190" width="110" height="110" rx="6" class="proc"/>
+<text x="1050" y="222" class="b" text-anchor="middle">Filebeat</text>
+<text x="1050" y="244" class="small muted" text-anchor="middle">lit alerts.json</text>
+<text x="1050" y="262" class="small muted" text-anchor="middle">et l&#x27;expédie</text>
+<path class="arrow" d="M950 245 H989" marker-end="url(#m-cable)"/>
+<rect x="1130" y="130" width="180" height="110" rx="6" class="proc"/>
+<text x="1220" y="156" class="b" text-anchor="middle">wazuh-indexer</text>
+<text x="1220" y="176" class="small muted" text-anchor="middle">OpenSearch</text>
+<text x="1220" y="196" class="small muted" text-anchor="middle">stocke et indexe</text>
+<text x="1220" y="222" class="mono small" text-anchor="middle">9200/TCP</text>
+<path class="arrow" d="M1105 245 H1118 V185 H1124" marker-end="url(#m-cable)"/>
+<rect x="1130" y="300" width="180" height="120" rx="6" class="proc"/>
+<text x="1220" y="326" class="b" text-anchor="middle">wazuh-dashboard</text>
+<text x="1220" y="346" class="small muted" text-anchor="middle">interroge l&#x27;indexer</text>
+<text x="1220" y="366" class="small muted" text-anchor="middle">(Discover, Threat Hunting)</text>
+<text x="1220" y="394" class="mono small" text-anchor="middle">443/TCP</text>
+<path class="arrow" d="M1220 294 V246" marker-end="url(#m-cable)"/>
+<text x="1228" y="272" class="small muted">requêtes</text>
+<rect x="1355" y="300" width="125" height="120" rx="6" class="box"/>
+<text x="1417" y="326" class="b" text-anchor="middle">Navigateur</text>
+<text x="1417" y="346" class="small muted" text-anchor="middle">PC hôte</text>
+<text x="1417" y="364" class="mono small" text-anchor="middle">10.10.10.1</text>
+<text x="1417" y="392" class="mono small t-dash" text-anchor="middle">HTTPS 443</text>
+<path class="flow dash" d="M1349 360 H1316" marker-end="url(#m-dash)"/>
+<path d="M30 496 H1470" style="stroke: var(--line)" stroke-width="1.5"/>
+<text x="30" y="524" class="ztitle muted">EXEMPLE RÉEL · un ping bloqué sur le WAN de pfSense, suivi de bout en bout</text>
+<text x="30" y="548" class="small muted">Ligne reçue par wazuh-remoted (RFC 5424, capturée avec tcpdump dans le lab, sans le préfixe « &lt;134&gt;1 ») :</text>
+<rect x="30" y="568" width="1440" height="215" rx="6" class="box"/>
+<rect x="38.0" y="584" width="272.8" height="22" rx="3" class="hl-p1" stroke-width="1.2"/>
+<rect x="458.0" y="584" width="180.4" height="22" rx="3" class="hl-pre" stroke-width="1.2"/>
+<text x="40" y="600" class="raw">2026-10-21T02:36:42.498630+00:00 pfSense.siem.lab filterlog 34901 - - <tspan>1</tspan></text>
+<path class="lead" d="M174.4 608 V621" style="stroke: var(--p1)"/>
+<text x="174.4" y="634" class="small t-p1" text-anchor="middle">① timestamp : extrait ✓</text>
+<path class="lead" d="M384.4 608 V621" style="stroke: var(--f-ping)"/>
+<text x="384.4" y="634" class="small ko" text-anchor="middle">① hostname, program_name :</text>
+<text x="384.4" y="649" class="small ko" text-anchor="middle">non extraits ✗ (Wazuh 4.14.9)</text>
+<path class="lead" d="M548.2 608 V621" style="stroke: var(--wan)"/>
+<text x="548.2" y="634" class="small t-pre" text-anchor="middle">② prematch du décodeur local</text>
+<text x="548.2" y="649" class="small t-pre" text-anchor="middle">« filterlog \d+ - - \d » ✓</text>
+<rect x="80.0" y="694" width="88.0" height="22" rx="3" class="hl-p2" stroke-width="1.2"/>
+<rect x="172.4" y="694" width="37.6" height="22" rx="3" class="hl-p2" stroke-width="1.2"/>
+<rect x="264.8" y="694" width="46.0" height="22" rx="3" class="hl-p2" stroke-width="1.2"/>
+<rect x="315.2" y="694" width="20.8" height="22" rx="3" class="hl-p2" stroke-width="1.2"/>
+<rect x="558.8" y="694" width="37.6" height="22" rx="3" class="hl-p2" stroke-width="1.2"/>
+<rect x="626.0" y="694" width="104.8" height="22" rx="3" class="hl-p2" stroke-width="1.2"/>
+<rect x="735.2" y="694" width="121.6" height="22" rx="3" class="hl-p2" stroke-width="1.2"/>
+<text x="40" y="710" class="raw">1,6,,1000000103,vmx0,match,block,in,4,0x0,,128,22597,0,none,1,icmp,60,192.168.30.1,192.168.30.131,request,1,22440</text>
+<text x="40" y="680" class="small muted">Partie CSV de filterlog (champs séparés par des virgules) :</text>
+<path class="lead" d="M124.0 718 V726 H124.0 V731" style="stroke: var(--p2)"/>
+<text x="124.0" y="744" class="small mono t-p2" text-anchor="middle">id = 1000000103</text>
+<path class="lead" d="M191.2 718 V726 H191.2 V763" style="stroke: var(--p2)"/>
+<text x="191.2" y="776" class="small mono t-p2" text-anchor="middle">interface = vmx0</text>
+<path class="lead" d="M287.8 718 V726 H287.8 V731" style="stroke: var(--p2)"/>
+<text x="287.8" y="744" class="small mono t-p2" text-anchor="middle">action = block</text>
+<path class="lead" d="M325.6 718 V726 H395.6 V763" style="stroke: var(--p2)"/>
+<text x="395.6" y="776" class="small mono t-p2" text-anchor="middle">direction = in</text>
+<path class="lead" d="M577.6 718 V726 H577.6 V763" style="stroke: var(--p2)"/>
+<text x="577.6" y="776" class="small mono t-p2" text-anchor="middle">protocol = icmp</text>
+<path class="lead" d="M678.4 718 V726 H678.4 V731" style="stroke: var(--p2)"/>
+<text x="678.4" y="744" class="small mono t-p2" text-anchor="middle">srcip = 192.168.30.1</text>
+<path class="lead" d="M796.0 718 V726 H796.0 V763" style="stroke: var(--p2)"/>
+<text x="796.0" y="776" class="small mono t-p2" text-anchor="middle">dstip = 192.168.30.131</text>
+<rect x="30" y="815" width="430" height="250" rx="6" class="ph1"/>
+<g class="badge" transform="translate(52 839)"><circle r="11" style="fill: var(--p1)"/><text>1</text></g>
+<text x="72" y="844" class="b t-p1">Pré-décodage : ce que Wazuh a compris</text>
+<text x="52" y="881" class="mono">timestamp</text>
+<text x="200" y="881" class="mono ok">2026-10-21T02:36:42…</text>
+<text x="52" y="905" class="mono">hostname</text>
+<text x="200" y="905" class="mono ko">(vide)</text>
+<text x="52" y="929" class="mono">program_name</text>
+<text x="200" y="929" class="mono ko">(vide)</text>
+<text x="52" y="965" class="small muted">Le décodeur natif pf exige program_name =</text>
+<text x="52" y="982" class="small muted">filterlog : il ne se déclenche jamais.</text>
+<text x="52" y="1007" class="small">D&#x27;où notre décodeur local, qui reconnaît la</text>
+<text x="52" y="1024" class="small">ligne par son contenu (writeup 02, § 2.5).</text>
+<rect x="480" y="815" width="450" height="250" rx="6" class="ph2"/>
+<g class="badge" transform="translate(502 839)"><circle r="11" style="fill: var(--p2)"/><text>2</text></g>
+<text x="522" y="844" class="b t-p2">Décodage : pfsense-filterlog</text>
+<text x="502" y="877" class="mono">decoder.name</text>
+<text x="660" y="877" class="mono b">pfsense-filterlog</text>
+<text x="502" y="900" class="mono">interface</text>
+<text x="660" y="900" class="mono b">vmx0</text>
+<text x="502" y="923" class="mono">action</text>
+<text x="660" y="923" class="mono b">block</text>
+<text x="502" y="946" class="mono">direction</text>
+<text x="660" y="946" class="mono b">in</text>
+<text x="502" y="969" class="mono">protocol</text>
+<text x="660" y="969" class="mono b">icmp</text>
+<text x="502" y="992" class="mono">srcip</text>
+<text x="660" y="992" class="mono b">192.168.30.1</text>
+<text x="502" y="1015" class="mono">dstip</text>
+<text x="660" y="1015" class="mono b">192.168.30.131</text>
+<text x="502" y="1047" class="small muted">+ id = tracker 1000000103 (pas de ports en ICMP)</text>
+<rect x="950" y="815" width="520" height="250" rx="6" class="ph3"/>
+<g class="badge" transform="translate(972 839)"><circle r="11" style="fill: var(--p3)"/><text>3</text></g>
+<text x="992" y="844" class="b t-p3">Règles : de l&#x27;événement à l&#x27;alerte</text>
+<rect x="968" y="865" width="150" height="84" rx="6" class="box" style="stroke: var(--p3)"/>
+<text x="980" y="889" class="b mono">100300</text>
+<text x="1106" y="889" class="small t-p3 b" text-anchor="end">niv. 0</text>
+<text x="980" y="913" class="small">decoded_as</text>
+<text x="980" y="931" class="small muted">pas d&#x27;alerte</text>
+<rect x="1146" y="865" width="150" height="84" rx="6" class="box" style="stroke: var(--p3)"/>
+<text x="1158" y="889" class="b mono">100302</text>
+<text x="1284" y="889" class="small t-p3 b" text-anchor="end">niv. 5</text>
+<text x="1158" y="913" class="small">if_sid 100300</text>
+<text x="1158" y="931" class="small muted">action = block</text>
+<rect x="1324" y="865" width="132" height="84" rx="6" class="box" style="stroke: var(--p3)" stroke-width="2.6"/>
+<text x="1336" y="889" class="b mono">100303</text>
+<text x="1444" y="889" class="small t-p3 b" text-anchor="end">niv. 10</text>
+<text x="1336" y="913" class="small">×18 en 45 s</text>
+<text x="1336" y="931" class="small muted">même srcip</text>
+<path class="arrow" d="M1118 907 H1140" marker-end="url(#m-p3)"/>
+<path class="arrow" d="M1296 907 H1318" marker-end="url(#m-p3)"/>
+<text x="968" y="981" class="small">100302 : une alerte par paquet bloqué (choix de lab).</text>
+<text x="968" y="1001" class="small">100303 : corrélation, la même IP insiste → scan probable,</text>
+<text x="968" y="1019" class="small">MITRE T1046. Silence de 240 s après déclenchement.</text>
+<text x="968" y="1047" class="small b t-p3">Vu dans le lab : 100303 à 04:45:53 (rafale ping -n 60).</text>
+<rect x="30" y="1105" width="1440" height="62" rx="6" class="box"/>
+<text x="52" y="1131" class="b">Ensuite</text>
+<text x="52" y="1151" class="small">alerte écrite dans alerts.json → Filebeat → index wazuh-alerts-* → dashboard : filtre rule.id:100303, champs data.srcip, data.dstip, data.interface.</text>
+</svg>
+  </figure>
+  <ol class="flows">
+    <li style="--c: var(--p1)"><h2>① Pré-décodage</h2><p>Wazuh lit l'en-tête syslog générique. Avec pfSense 2.9, seul le timestamp sort : ni hostname ni <code>program_name</code>. C'est le piège décrit au § 2.5 du writeup 02.</p></li>
+    <li style="--c: var(--p2)"><h2>② Décodage</h2><p>Le décodeur parent dit « cette ligne est pour moi » (<code>prematch</code>), les enfants extraient les champs nommés. Sans champs, ni filtre ni corrélation.</p></li>
+    <li style="--c: var(--p3)"><h2>③ Règles</h2><p>Chaque règle teste des champs et donne un niveau. 100302 marque un blocage, 100303 compte : 18 blocages de la même IP en 45 s font une alerte de niveau 10.</p></li>
+    <li style="--c: var(--f-dash)"><h2>Stockage et affichage</h2><p>Au-dessus du seuil, l'alerte part dans <code>alerts.json</code>. Filebeat l'envoie à l'indexer (9200), et le dashboard (443) la montre à l'analyste.</p></li>
+  </ol>
+  <footer>Source : <code>docs/diagrams/pipeline-wazuh.html</code>. Décodeur et règles : <code>configs/manager/local_decoder.xml</code>, <code>local_rules.xml</code>.</footer>
+</div>

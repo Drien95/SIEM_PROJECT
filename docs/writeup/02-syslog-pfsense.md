@@ -10,6 +10,15 @@
 
 ### 1.1 Le chemin d'un événement dans Wazuh
 
+![Pipeline interne de Wazuh, avec une vraie ligne pfSense annotée phase par phase](../diagrams/pipeline-wazuh.png)
+
+*En haut, les processus de la VM Wazuh et leurs ports. En bas, la vraie ligne `filterlog` du lab :
+ce que le pré-décodage en tire (seulement le timestamp, voir § 2.5), les champs extraits par
+notre décodeur `pfsense-filterlog`, puis l'enchaînement 100300 → 100302 → 100303. Source
+éditable : [`docs/diagrams/pipeline-wazuh.html`](../diagrams/pipeline-wazuh.html).*
+
+La même chose en version texte :
+
 ```
  Source            Collecte              Analyse (manager)                  Stockage / vue
 ┌────────┐  syslog  ┌──────────────┐  ┌─────────┐  ┌────────┐  ┌───────┐  ┌──────────┐  ┌──────────┐

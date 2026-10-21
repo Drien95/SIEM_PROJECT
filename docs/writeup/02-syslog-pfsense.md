@@ -213,8 +213,8 @@ programme apparaît en clair, et on reconnaît la ligne par son contenu.
 Un décodeur répond à deux questions :
 
 1. **« Cette ligne est-elle pour moi ? »** : le décodeur parent, avec `<prematch>`. Il doit
-   être assez précis pour ne pas capturer d'autres journaux. Ici : `filterlog <pid> - - `
-   suivi d'un chiffre, la signature d'une ligne pfSense en RFC 5424.
+   être assez précis pour ne pas capturer d'autres journaux. Ici : `filterlog \d+ - - \d`
+   (moteur OS_Regex par défaut), la signature d'une ligne pfSense en RFC 5424.
 2. **« Quels champs extraire ? »** : les décodeurs enfants (`<parent>`), avec `<regex>` et
    `<order>`. Chaque groupe entre parenthèses alimente le champ de même rang dans `<order>`.
    Plusieurs enfants portant le même nom s'appliquent tous : un pour les champs communs, un
@@ -243,7 +243,15 @@ Fichiers : [configs/manager/local_decoder.xml](../../configs/manager/local_decod
 | 100303 | 10 | 87702 | 18 blocages de la même IP en 45 s ; MITRE T1046 |
 
 Expressions régulières testées hors lab (Python `re`) sur la ligne ICMP réelle, une ligne UDP
-et une ligne TCP. Il reste à valider dans `wazuh-logtest`.
+et une ligne TCP, puis dans `wazuh-logtest`.
+
+**Faux départ.** La première version du parent utilisait
+`<prematch type="pcre2">\sfilterlog \d+ - - \d*,</prematch>`. Résultat dans logtest :
+« No decoder matched », sans erreur au chargement. Avec le moteur par défaut
+(`<prematch>filterlog \d+ - - \d</prematch>`), la ligne est décodée. Cause probable :
+PCRE2 dans le `prematch` d'un décodeur parent. On a changé deux choses à la fois (moteur et
+`\s` initial), donc la cause exacte reste à confirmer. Les enfants, eux, fonctionnent bien en
+PCRE2.
 
 ### 2.7 Déploiement du correctif
 
@@ -267,6 +275,21 @@ sudo systemctl restart wazuh-manager
 On teste avant de redémarrer : un XML invalide dans `local_rules.xml` empêche le manager de
 démarrer.
 
+### 2.8 Récapitulatif du débogage
+
+| # | Hypothèse | Test | Résultat |
+|---|---|---|---|
+| 1 | Les paquets n'arrivent pas | `tcpdump` UDP 514 | ❌ hypothèse fausse : ils arrivent (~1/s) |
+| 2 | Pas assez de blocages pour 87702 | `ping -w 200` | rythme suffisant, toujours rien |
+| 3 | Le décodeur natif ne lit pas la ligne | logtest, ligne d'exemple | ✅ décodée : l'exemple a un hostname |
+| 4 | La vraie ligne diffère | logtest, ligne capturée (BSD) | ❌ pas de hostname, « No decoder matched » |
+| 5 | RFC 5424 règle le problème | logtest, ligne RFC 5424 | ❌ seul le timestamp est pré-décodé |
+| 6 | Décodeur local (PCRE2 dans le prematch) | logtest | ❌ « No decoder matched » |
+| 7 | Décodeur local (prematch OS_Regex) | logtest | ✅ décodée, règle 100302 |
+
+Méthode : remonter le chemin de l'événement **dans l'ordre** (réseau, pré-décodage, décodage,
+règle, index), et ne changer qu'une chose à la fois quand c'est possible.
+
 ## 3. Résultats dans notre lab
 
 | Test | Attendu | Obtenu |
@@ -275,7 +298,8 @@ démarrer.
 | Syslog reçu par Wazuh (`tcpdump`) | `10.10.10.254 > 10.10.10.100.syslog` | ✅ OK : `local0.info`, ~1 paquet/s pendant la rafale |
 | `wazuh-logtest` sur la ligne d'exemple | décodeur `pf`, règle 87701 | ✅ OK : `action: block`, `srcip: 192.168.30.1`, 87701 niveau 5 (logtest affiche « Alert to be generated » ; il n'applique probablement pas `no_log`, déduit) |
 | `wazuh-logtest` sur une vraie ligne pfSense 2.9 (BSD) | idem | ❌ `hostname: 'filterlog[34901]:'`, « No decoder matched » (voir 2.5) |
-| Rafale `ping -n 60 -w 200` | alerte **87702** (niveau 10) | à faire |
+| `wazuh-logtest`, décodeur local, ligne RFC 5424 réelle | `pfsense-filterlog`, règle 100302 | ✅ OK : `action: block`, `direction: in`, `interface: vmx0`, `protocol: icmp`, `srcip: 192.168.30.1`, `dstip: 192.168.30.131`, 100302 niveau 5 |
+| Rafale `ping -n 60 -w 200` | alertes 100302, puis **100303** (niveau 10) dans le dashboard | à faire |
 
 Sources : https://documentation.wazuh.com/current/user-manual/capabilities/log-data-collection/syslog.html,
 ruleset Wazuh 4.14 (`0455-pfsense_decoders.xml`, `0540-pfsense_rules.xml`), voir

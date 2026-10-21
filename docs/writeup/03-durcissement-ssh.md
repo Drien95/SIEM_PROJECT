@@ -19,28 +19,68 @@
 - Une fois les clés en place, on **désactive le mot de passe** côté serveur : la force brute
   SSH devient inutile. C'est exactement l'attaque que le scénario brute force simulera ensuite.
 
-**Depuis quel poste ?** La clé privée donne un accès administrateur au SIEM. Elle doit vivre sur
-le poste d'administration, c'est-à-dire **l'hôte**, pas sur la VM Windows 11, qui est la
-**cible** des attaques du lab. Si cette VM est compromise, l'attaquant hérite de l'accès au SIEM.
-(Recommandation ; Adrien a commencé depuis la VM Windows.)
+**Qui se connecte à quoi** (choix d'Adrien) :
+
+| Client | Clé | Vers | Usage |
+|---|---|---|---|
+| Hôte (PC, `10.10.10.1`) | `id_ed25519_siemlab` | Wazuh `wazuh-user@10.10.10.100`, pfSense `admin@10.10.10.254` | administration |
+| VM Windows 11 (`10.10.10.101`) | `id_ed25519` (générée dans la VM) | Wazuh uniquement | tests depuis le poste du lab |
+
+- **Une clé par poste client** : si la VM Windows (la cible des attaques) est compromise, on
+  retire sa seule clé de `authorized_keys`, sans toucher à celle de l'hôte.
+- **Une clé dédiée au lab** sur l'hôte, distincte des clés personnelles existantes (GitLab…) :
+  `IdentitiesOnly yes` dans `~/.ssh/config` empêche SSH de proposer les autres clés.
+- Chaque ligne de `authorized_keys` porte un commentaire (`-C`) qui dit à qui elle appartient.
 
 ## 2. Wazuh (Amazon Linux 2023)
 
-### 2.1 Générer la clé (PowerShell, poste d'administration)
+### 2.1 Générer les clés (PowerShell)
+
+Sur l'**hôte** :
 
 ```powershell
-ssh-keygen -t ed25519 -C "admin-siem-lab"      # phrase de passe recommandée
+ssh-keygen -t ed25519 -f $env:USERPROFILE\.ssh\id_ed25519_siemlab -C "adrien@hote-siemlab"
 ```
 
-Fichiers : `%USERPROFILE%\.ssh\id_ed25519` (privée, ne jamais copier ni versionner) et
-`id_ed25519.pub` (publique).
+Dans la **VM Windows 11** (déjà faite) :
+
+```powershell
+ssh-keygen -t ed25519 -C "adrien@siem-win11"
+```
+
+Phrase de passe recommandée. La clé privée (sans `.pub`) ne se copie ni ne se versionne jamais.
+
+Alias ajoutés au `~/.ssh/config` de l'hôte (sauvegarde `config.bak-siemlab`) :
+
+```
+Host siem-wazuh
+    HostName 10.10.10.100
+    User wazuh-user
+    IdentityFile ~/.ssh/id_ed25519_siemlab
+    IdentitiesOnly yes
+
+Host siem-pfsense
+    HostName 10.10.10.254
+    User admin
+    IdentityFile ~/.ssh/id_ed25519_siemlab
+    IdentitiesOnly yes
+```
+
+Ensuite `ssh siem-wazuh` suffit.
 
 ### 2.2 Déposer la clé publique
 
-Windows n'a pas `ssh-copy-id`. Équivalent :
+Windows n'a pas `ssh-copy-id`. Équivalent, depuis l'hôte (le mot de passe est encore
+accepté à ce stade) :
 
 ```powershell
-type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh wazuh-user@10.10.10.100 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+type $env:USERPROFILE\.ssh\id_ed25519_siemlab.pub | ssh wazuh-user@10.10.10.100 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+```
+
+La clé de la VM Windows a déjà été ajoutée de la même façon. Contrôle, une ligne par clé :
+
+```bash
+cut -d' ' -f3 ~/.ssh/authorized_keys
 ```
 
 Les droits comptent : OpenSSH refuse une clé si `~/.ssh` ou `authorized_keys` est accessible en
@@ -49,7 +89,8 @@ Les droits comptent : OpenSSH refuse une clé si `~/.ssh` ou `authorized_keys` e
 Test, qui ne doit plus demander que la phrase de passe de la clé :
 
 ```powershell
-ssh wazuh-user@10.10.10.100
+ssh siem-wazuh                      # depuis l'hôte
+ssh wazuh-user@10.10.10.100         # depuis la VM Windows 11
 ```
 
 ### 2.3 Interdire le mot de passe
@@ -88,7 +129,12 @@ Attendu : `Permission denied (publickey…)`. Le mot de passe est bien refusé.
    **Authorized SSH Keys**, puis *Save*.
 2. *System > Advanced > Admin Access*, section *Secure Shell* : cocher **Enable Secure Shell**,
    *SSHd Key Only* = **Public Key Only**, puis *Save*.
-3. Test : `ssh admin@10.10.10.254`, qui ouvre le menu console de pfSense.
+3. Test depuis l'hôte : `ssh siem-pfsense`, qui ouvre le menu console de pfSense.
+
+Constaté le 2026-10-21 : le port 22 de pfSense est **fermé** (`Test-NetConnection 10.10.10.254
+-Port 22` → `False`) ; SSH est désactivé par défaut. La règle LAN par défaut (« Default allow LAN
+to any ») laisse passer l'hôte, et l'« anti-lockout rule » protège l'accès d'administration
+depuis le LAN.
 
 L'interface web garde son mot de passe : ce réglage ne concerne que SSH.
 
@@ -96,8 +142,11 @@ L'interface web garde son mot de passe : ce réglage ne concerne que SSH.
 
 | Test | Attendu | Obtenu |
 |---|---|---|
-| Clé ed25519 générée | `id_ed25519` / `.pub` | ✅ (sur la VM Windows 11) |
-| Connexion par clé à Wazuh | session ouverte sans mot de passe | ✅ selon Adrien |
+| Hôte sur VMnet10 | `10.10.10.1` | ✅ |
+| Port 22 Wazuh depuis l'hôte | ouvert | ✅ |
+| Port 22 pfSense depuis l'hôte | ouvert après activation | ❌ fermé (SSH désactivé par défaut) |
+| Clé VM Windows → Wazuh | session sans mot de passe | ✅ selon Adrien |
+| Clé hôte `id_ed25519_siemlab` → Wazuh | session sans mot de passe | à faire |
 | Mot de passe refusé sur Wazuh | `Permission denied (publickey)` | à faire |
 | Connexion par clé à pfSense | menu console pfSense | à faire |
 

@@ -160,3 +160,16 @@ contourne la vérification au début de l'installation (à valider) :
   d'anciens matériels virtuels ou d'anciens CPU AMD (déduit).
 - Wazuh a obtenu `10.10.10.100` par DHCP (MAC `00:0c:29:9f:81:64`). À faire : une réservation
   DHCP dans pfSense pour `10.10.10.10`.
+
+### 2026-10-21 — Assistant web pfSense
+
+| Paramètre | Valeur |
+|---|---|
+| Hostname / domaine | `pfSense` / `siem.lab` |
+| DNS | `1.1.1.1`, `9.9.9.9` |
+| Fuseau | `Europe/Paris` |
+| WAN | DHCP ; « Block RFC1918 » **décoché**, car le WAN est lui-même sur un réseau privé (VMnet8 `192.168.30.0/24`) ; bogons bloqués |
+| LAN | `10.10.10.254/24` |
+| Compte `admin` | mot de passe par défaut changé (hors git) |
+
+Captures 22 à 29.

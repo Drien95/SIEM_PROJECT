@@ -39,10 +39,11 @@ attaques visent **uniquement** les VM du lab.
 
 ## 2. Architecture
 
-![Topologie du lab : zone WAN VMnet8, pfSense, zone LAN VMnet10, PC hôte](../diagrams/topologie-lab.png)
+![Topologie du lab : zone WAN VMnet8, pfSense, zone LAN VMnet10, zone ATTACK VMnet11, PC hôte](../diagrams/topologie-lab.png)
 
 *Vue logique façon Packet Tracer, à jour de l'état réel du lab (Wazuh en `10.10.10.100`, Windows 11
-en DHCP `.1xx`). Les flux numérotés sont expliqués dans le
+en `10.10.10.101` avec l'agent, Kali sur son réseau VMnet11 derrière l'interface ATTACK de pfSense,
+writeup 05). Les flux numérotés sont expliqués dans le
 [writeup 02, section 1.6](02-syslog-pfsense.md#16-comprendre-le-réseau-du-lab--wan-lan-et-chemin-dun-paquet).
 Source éditable : [`docs/diagrams/topologie-lab.html`](../diagrams/topologie-lab.html).*
 

@@ -64,18 +64,20 @@ Décidé le 2026-10-21 pour notre homelab (voir [homelab/plan.md](homelab/plan.m
 
 | Source | Destination | Port / proto | Usage | État |
 |---|---|---|---|---|
-| Hôte `10.10.10.1` | pfSense `10.10.10.254` | 443/tcp, 22/tcp (clé) | administration | 443 OK, 22 à activer |
+| Hôte `10.10.10.1` | pfSense `10.10.10.254` | 443/tcp, 22/tcp (clé) | administration | OK (SSH par clé, writeup 03) |
 | Hôte `10.10.10.1` | Wazuh `10.10.10.100` | 443/tcp, 22/tcp (clé) | dashboard, administration | OK |
 | pfSense `10.10.10.254` | Wazuh `10.10.10.100` | 514/udp | syslog du pare-feu | ✅ validé (writeup 02) |
-| Windows 11 `10.10.10.101` | Wazuh `10.10.10.100` | 1514/tcp, 1515/tcp | agent : événements, enrôlement | à faire |
-| Kali | Windows 11 | ports attaqués (22, 3389, 445…) | scénarios | plus tard |
-| Hôte | Kali | 22/tcp | piloter Kali (optionnel) | plus tard |
+| Windows 11 `10.10.10.101` | Wazuh `10.10.10.100` | 1514/tcp, 1515/tcp | agent : événements, enrôlement | ✅ validé (writeup 04) |
+| Kali `10.10.20.1xx` (VMnet11) | Windows 11 `10.10.10.101` | tout (règle 2 d'ATTACK, journalisée) | scénarios (22, 3389, 445…) | règle en place (writeup 05), Kali à installer |
+| Kali | pfSense `10.10.20.254` 53 ; Internet 80, 443 | TCP/UDP 53, TCP 80, 443 | DNS, mises à jour (règles 1, 6, 7, sans journal) | règles en place |
+| Hôte | Kali | 22/tcp | piloter Kali (optionnel) | plus tard ; via pfSense, route vers `10.10.20.0/24` à ajouter sur l'hôte (à valider) |
 | LAN | Internet via pfSense | 80, 443, 53 | mises à jour | OK (règle LAN par défaut) |
 
 À **ne pas** autoriser :
 
 - Kali vers Wazuh ou pfSense (22, 443, 55000) : l'attaquant ne doit pas atteindre la
-  supervision ;
+  supervision. Appliqué par les règles 3 (LAN), 4 (pfSense) et 5 (réseau WAN) de l'interface
+  ATTACK, avec journal (writeup 05) ;
 - Wazuh vers les postes : le manager reçoit, il n'initie rien ;
 - Windows 11 vers Wazuh en SSH (22) : Windows est la **cible** du lab ; s'il est compromis, sa
   clé SSH donnerait l'accès au SIEM (mouvement latéral, T1021.004). **Décidé le 2026-10-21 :
@@ -87,7 +89,7 @@ Source du schéma : `diagrams/flux-lab.html`.
 
 ### Qui peut faire respecter cette matrice ?
 
-Point clé : **pfSense ne voit pas le trafic interne au LAN**. Windows 11, Wazuh, Kali et l'hôte
+Point clé : **pfSense ne voit pas le trafic interne au LAN**. Windows 11, Wazuh et l'hôte
 sont sur le même switch virtuel (VMnet10, même sous-réseau `10.10.10.0/24`). Entre eux, les
 paquets vont directement de machine à machine sans passer par la passerelle. Une règle pfSense
 ne peut donc filtrer que :
@@ -95,7 +97,7 @@ ne peut donc filtrer que :
 - ce qui sort vers Internet ou le WAN ;
 - ce qui vise pfSense lui-même (22, 443).
 
-Pour filtrer à l'intérieur du LAN, deux options (à décider) :
+Pour filtrer à l'intérieur du LAN, deux options :
 
 1. **Pare-feu local sur chaque machine** : `firewalld` sur Wazuh, qui n'accepte 22 que depuis
    l'hôte, 1514/1515 que depuis les agents et 514 que depuis pfSense ; pare-feu Windows sur
@@ -103,4 +105,11 @@ Pour filtrer à l'intérieur du LAN, deux options (à décider) :
 2. **Segmenter le réseau** (recommandé pour la suite) : mettre Kali sur un réseau virtuel séparé
    (par exemple VMnet11, une 3ᵉ carte sur pfSense), pour que ses attaques **traversent**
    pfSense. Elles sont alors filtrées, journalisées et visibles dans Wazuh, comme dans une vraie
-   architecture où l'attaquant vient de l'extérieur.
+   architecture où l'attaquant vient de l'extérieur. **Retenu et en place** (2026-10-22,
+   [writeup 05](writeup/05-segment-attaque-kali.md)) : VMnet11 `10.10.20.0/24`, interface
+   ATTACK (`em0`, `10.10.20.254`), 7 règles.
+
+![Règles de l'interface ATTACK](diagrams/regles-attack.png)
+
+Source du schéma : `diagrams/regles-attack.html`. Les flux internes au LAN (Windows 11, Wazuh,
+hôte) relèvent toujours de l'option 1.

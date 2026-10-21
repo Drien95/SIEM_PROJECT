@@ -58,6 +58,7 @@
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.5;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
@@ -176,7 +177,7 @@ footer { color: var(--muted); font-size: 13px; }
     <div class="board">
       <div class="scroll">
         <svg id="canvas" viewBox="0 0 1200 650" role="img" aria-labelledby="cv-title">
-          <title id="cv-title">Topologie du lab : Internet, NAT VMware, pfSense, switch VMnet10 avec Wazuh, Windows 11 et le PC hôte, segment Kali prévu</title>
+          <title id="cv-title">Topologie du lab : Internet, NAT VMware, pfSense, switch VMnet10 avec Wazuh, Windows 11 et le PC hôte, segment Kali (ATTACK)</title>
           <defs>
             <symbol id="i-cloud" viewBox="-100 -55 200 110" overflow="visible">
               <path d="M-70 35 C-98 35 -98 -2 -70 -4 C-72 -32 -38 -44 -20 -26 C-10 -52 34 -50 40 -22 C66 -30 88 -6 74 12 C96 16 92 35 70 35 Z" fill="#dfeefc" stroke="#4f86c6" stroke-width="3"/>
@@ -285,7 +286,7 @@ footer { color: var(--muted); font-size: 13px; }
     </div>
   </section>
 
-  <footer>Source : <code>docs/diagrams/simulateur-paquets.html</code> du dépôt SIEM_PROJECT. IP du lab réelles. Adresses MAC d'exemple au format VMware (<code>00:0c:29</code> pour les VM, <code>00:50:56:c0:00:0a</code> pour la carte VMnet10 de l'hôte) : relever les vraies avec <code>arp -a</code>. <code>203.0.113.10</code> est une adresse de documentation qui remplace l'IP réelle du site. Le segment Kali (VMnet11, <code>10.10.20.0/24</code>) est prévu, pas encore construit.</footer>
+  <footer>Source : <code>docs/diagrams/simulateur-paquets.html</code> du dépôt SIEM_PROJECT. IP du lab réelles. Adresses MAC d'exemple au format VMware (<code>00:0c:29</code> pour les VM, <code>00:50:56:c0:00:0a</code> pour la carte VMnet10 de l'hôte) : relever les vraies avec <code>arp -a</code>. <code>203.0.113.10</code> est une adresse de documentation qui remplace l'IP réelle du site. Segment Kali : VMnet11, <code>10.10.20.0/24</code>, interface ATTACK (<code>em0</code>) de pfSense ; règles en place, VM Kali à installer, son adresse est un exemple.</footer>
 </div>
 
 <script>
@@ -312,7 +313,7 @@ footer { color: var(--muted); font-size: 13px; }
     { at: [400, 388], t: "routeur · DHCP · DNS", cls: "muted", anchor: "middle" },
     { at: [165, 290], t: "vmx0 · 192.168.30.131", cls: "mono" },
     { at: [458, 290], t: "vmx1 · 10.10.10.254", cls: "mono" },
-    { at: [412, 205], t: "vmx2 · 10.10.20.254", cls: "mono", planned: true },
+    { at: [412, 205], t: "em0 · 10.10.20.254", cls: "mono", planned: true },
     { at: [722, 252], t: "Switch VMnet10", cls: "b", anchor: "end" },
     { at: [722, 268], t: "10.10.10.0/24", cls: "mono", anchor: "end" },
     { at: [1040, 140], t: "Wazuh 4.14.9", cls: "b" },
@@ -325,8 +326,8 @@ footer { color: var(--muted); font-size: 13px; }
     { at: [1040, 474], t: "agent 001 SIEM-Win11", cls: "muted" },
     { at: [400, 604], t: "PC hôte (Windows, VMware)", cls: "b", anchor: "middle" },
     { at: [400, 621], t: "VMnet10 10.10.10.1 · VMnet8 192.168.30.1", cls: "mono", anchor: "middle" },
-    { at: [445, 152], t: "Kali Linux (prévu)", cls: "b", planned: true },
-    { at: [445, 168], t: "10.10.20.10", cls: "mono b", planned: true }
+    { at: [445, 152], t: "Kali Linux", cls: "b", planned: true },
+    { at: [445, 168], t: "10.10.20.1xx", cls: "mono b", planned: true }
   ];
   const LINKS = [
     { a: "inet", b: "sw8", pts: [[110, 80], [110, 300]] },
@@ -620,32 +621,39 @@ footer { color: var(--muted); font-size: 13px; }
       ]
     },
     {
-      id: "kali", name: "Kali bloqué par pfSense", color: "var(--kali)", status: "prévu", kali: true,
-      intro: "Le lab prévu : Kali sur son propre réseau VMnet11 (10.10.20.0/24, adresses d'exemple), derrière une 3e interface de pfSense. Kali tente de joindre Wazuh en SSH : bloqué et journalisé. Puis il attaque Windows 11 sur 445 : autorisé et routé.",
+      id: "kali", name: "Kali face aux règles ATTACK", color: "var(--kali)", status: "partiel", tag: "Kali à installer", kali: true,
+      intro: "Kali est seul sur VMnet11 (10.10.20.0/24), derrière la 3e carte de pfSense, em0, nommée ATTACK. Les 7 règles de cette interface sont en place (writeup 05) ; la VM Kali reste à installer, son adresse est donc un exemple. On suit trois paquets : vers Wazuh (bloqué), vers Windows 11 (autorisé) et vers l'interface web de pfSense (bloqué).",
       soc: [
-        "Segmenter fait de pfSense un passage obligé : chaque tentative de l'attaquant vers la supervision devient une ligne filterlog, donc une alerte. Un attaquant qui cherche le SIEM se trahit.",
-        "Les flux autorisés vers la cible doivent aussi être journalisés (règle pass avec log) : on reconstitue l'attaque même quand elle réussit.",
-        "Un balayage de ports depuis 10.10.20.10 produit une rafale de 100302, puis 100303 (T1046)."
+        "Segmenter fait de pfSense un passage obligé : chaque tentative de l'attaquant vers la supervision devient une ligne filterlog, donc une alerte 100302. Un attaquant qui cherche le SIEM se trahit.",
+        "La règle 2 (Kali vers Windows 11) journalise aussi ce qui passe : 100301 garde la trace de l'attaque même quand elle réussit.",
+        "Un balayage de ports depuis 10.10.20.1xx produit une rafale de 100302, puis 100303 (T1046). Les règles 1, 6 et 7 (DNS, HTTP, HTTPS) ne journalisent pas : une exfiltration en HTTPS resterait invisible."
       ],
-      verify: "# Kali (prévu)\nnmap -Pn -p 22,443,55000 10.10.10.100   # doit échouer\nnmap -Pn -p 445 10.10.10.101\n\n# pfSense : Status > System Logs > Firewall, filtre 10.10.20.10\n# Dashboard : data.srcip:10.10.20.10",
+      verify: "# Kali\nip -4 addr show eth0; ip route\nnc -zv -w 3 10.10.10.100 443    # règle 3 : « timed out »\nnc -zv -w 3 10.10.10.101 3389   # règle 2 : passe\n\n# pfSense\nssh siem-pfsense 'pfctl -sr | grep em0'\n# Dashboard : rule.id:(100301 or 100302) and data.srcip:10.10.20.*",
       steps: [
         { t: "Kali vise le SIEM", focus: ["kali"], p: "think",
-          d: "<p>Kali (<code>10.10.20.10/24</code>, passerelle <code>10.10.20.254</code>) veut joindre <code>10.10.10.100:22</code>. Autre réseau : il envoie le paquet à sa passerelle, l'interface <code>vmx2</code> de pfSense.</p>" },
-        { t: "SYN bloqué à l'entrée de pfSense", mv: [mv("kali>sw11>pf", "drop")], p: "ssh",
-          d: "<p>Règle de l'interface KALI : « bloquer tout vers <code>10.10.10.100</code> », placée avant la règle qui autorise la cible. pfSense lit les règles de haut en bas, la première qui correspond décide.</p><p>Le paquet est jeté sans réponse (block). Avec reject, Kali recevrait un RST.</p>",
-          pdu: [ETH(M.kali, M.pfKali, E_IP), IP4("10.10.20.10", "10.10.10.100", "64", "TCP (6)"), TCP("40512", "22", "SYN")] },
+          d: "<p>Kali a reçu du DHCP de pfSense une adresse de la plage <code>.100</code> à <code>.199</code> (ici <code>10.10.20.100</code>, en exemple) et la passerelle <code>10.10.20.254</code>. Il veut joindre <code>10.10.10.100:443</code>, le dashboard Wazuh.</p><p>Autre réseau : il envoie le paquet à sa passerelle, l'interface <code>em0</code> (ATTACK) de pfSense.</p>" },
+        { t: "Règle 3 : bloqué à l'entrée d'ATTACK", mv: [mv("kali>sw11>pf", "drop")], p: "https",
+          d: "<p>pfSense lit les règles d'ATTACK de haut en bas. Règle 1 : DNS vers pfSense, non. Règle 2 : vers Windows 11, non. Règle 3 : vers <code>LAN net</code> (<code>10.10.10.0/24</code>), oui : <strong>Block</strong> avec journal.</p><p>Le paquet est jeté sans réponse : Kali attend jusqu'à expiration.</p>",
+          pdu: [ETH(M.kali, M.pfKali, E_IP), IP4("10.10.20.100", "10.10.10.100", "64", "TCP (6)"), TCP("40512", "443", "SYN")] },
         { t: "Le blocage part vers Wazuh", mv: [mv("pf>sw10>wazuh", "ok")], p: "syslog",
-          d: "<p>Même chemin que dans le scénario syslog : une ligne <code>filterlog</code>, cette fois sur <code>vmx2</code> et en TCP, avec les ports.</p>",
-          pdu: [ETH(M.pfLan, M.wazuh, E_IP), IP4("10.10.10.254", "10.10.10.100", "64", "UDP (17)"), UDP("514", "514"), APP("Syslog", [["filterlog (exemple)", "…,vmx2,match,block,in,4,0x0,,64,…,tcp,60,10.10.20.10,10.10.10.100,40512,22,0,S,…"]])] },
-        { t: "Alerte dans Wazuh", focus: ["wazuh"], p: "think", badges: [["wazuh", "ok"]],
-          d: "<p>Décodeur <code>pfsense-filterlog</code>, règle <code>100302</code>. Si Kali balaie plusieurs ports, <code>100303</code> suit. L'attaquant n'a rien obtenu, mais l'analyste sait déjà qu'il cherche la supervision.</p>",
-          pdu: [APP("Alerte Wazuh", [["rule.id", "100302"], ["data.srcip", "10.10.20.10"], ["data.dstip", "10.10.10.100"], ["data.dstport", "22"], ["data.interface", "vmx2"]])] },
-        { t: "En face : Kali attaque la cible", mv: [mv("kali>sw11>pf", "ok")], p: "tcp",
-          d: "<p>Kali vise maintenant Windows 11 sur SMB (<code>445</code>). La règle « KALI vers Windows 11 » l'autorise : pfSense accepte et journalise (pass avec log).</p>",
-          pdu: [ETH(M.kali, M.pfKali, E_IP), IP4("10.10.20.10", "10.10.10.101", "64", "TCP (6)"), TCP("40528", "445", "SYN")] },
+          d: "<p>Même chemin que dans le scénario syslog : une ligne <code>filterlog</code>, cette fois sur <code>em0</code> et en TCP, avec les ports. Elle sort par le LAN, en UDP 514.</p>",
+          pdu: [ETH(M.pfLan, M.wazuh, E_IP), IP4("10.10.10.254", "10.10.10.100", "64", "UDP (17)"), UDP("514", "514"), APP("Syslog", [["filterlog (exemple)", "…,em0,match,block,in,4,0x0,,64,…,tcp,60,10.10.20.100,10.10.10.100,40512,443,0,S,…"]])] },
+        { t: "Alerte 100302 dans Wazuh", focus: ["wazuh"], p: "think", badges: [["wazuh", "ok"]],
+          d: "<p>Décodeur <code>pfsense-filterlog</code>, règle <code>100302</code> (niveau 5). Si Kali balaie plusieurs ports, <code>100303</code> suit. L'attaquant n'a rien obtenu, mais l'analyste sait déjà qu'il cherche la supervision.</p>",
+          pdu: [APP("Alerte Wazuh", [["rule.id", "100302"], ["data.srcip", "10.10.20.100"], ["data.dstip", "10.10.10.100"], ["data.dstport", "443"], ["data.interface", "em0"], ["data.action", "block"]])] },
+        { t: "Règle 2 : Kali attaque la cible", mv: [mv("kali>sw11>pf", "ok")], p: "tcp",
+          d: "<p>Kali vise maintenant Windows 11 en RDP (<code>3389</code>). Règle 1 : non. Règle 2 : destination <code>10.10.10.101</code>, oui : <strong>Pass</strong> avec journal. La règle 3 n'est jamais lue pour ce paquet : c'est pour cela que la 2 doit être au-dessus.</p>",
+          pdu: [ETH(M.kali, M.pfKali, E_IP), IP4("10.10.20.100", "10.10.10.101", "64", "TCP (6)"), TCP("40528", "3389", "SYN")] },
         { t: "pfSense route vers le LAN", mv: [mv("pf>sw10>win", "ok")], p: "tcp", diff: true,
-          d: "<p>Routage sans NAT entre deux réseaux internes : les IP restent les mêmes, seul l'en-tête Ethernet est refait (MAC de <code>vmx1</code> vers MAC de Windows) et le TTL baisse de 1.</p><p>Kali peut attaquer la cible, pas le SIEM. Et les deux tentatives sont dans Wazuh.</p>",
-          pdu: [ETH(M.pfLan, M.win, E_IP), IP4("10.10.20.10", "10.10.10.101", "63", "TCP (6)"), TCP("40528", "445", "SYN")] }
+          d: "<p>Routage sans NAT entre deux réseaux internes : les IP restent les mêmes, seul l'en-tête Ethernet est refait (MAC de <code>vmx1</code> vers MAC de Windows) et le TTL baisse de 1.</p><p>La réponse de Windows reviendra sans règle supplémentaire, grâce à la table d'états.</p>",
+          pdu: [ETH(M.pfLan, M.win, E_IP), IP4("10.10.20.100", "10.10.10.101", "63", "TCP (6)"), TCP("40528", "3389", "SYN")],
+          tb: { "Table d'états de pfSense": ["tcp 10.10.20.100:40528 → 10.10.10.101:3389 · SYN_SENT"] } },
+        { t: "Même autorisé, c'est journalisé", mv: [mv("pf>sw10>wazuh", "ok")], p: "syslog",
+          d: "<p>La règle 2 a l'option <em>Log</em> : pfSense écrit aussi une ligne <code>pass</code>. Wazuh lève <code>100301</code> (niveau 3) : l'attaque réussie laisse une trace, avec l'heure, les IP et le port.</p>",
+          pdu: [ETH(M.pfLan, M.wazuh, E_IP), IP4("10.10.10.254", "10.10.10.100", "64", "UDP (17)"), UDP("514", "514"), APP("Syslog", [["filterlog (exemple)", "…,em0,match,pass,in,4,0x0,,64,…,tcp,60,10.10.20.100,10.10.10.101,40528,3389,0,S,…"], ["Alerte", "100301 (pass, niveau 3)"]])] },
+        { t: "Règle 4 : l'interface web de pfSense", mv: [mv("kali>sw11>pf", "drop")], p: "https",
+          d: "<p>Dernier essai : <code>https://10.10.20.254</code>, l'adresse de pfSense côté ATTACK. Règle 1 : port 53 seulement, non. Règles 2 et 3 : non. Règle 4 : <code>This Firewall (self)</code>, toutes les adresses de pfSense : <strong>Block</strong> avec journal, puis alerte 100302.</p>",
+          pdu: [ETH(M.kali, M.pfKali, E_IP), IP4("10.10.20.100", "10.10.20.254", "64", "TCP (6)"), TCP("40536", "443", "SYN")] }
       ]
     }
   ];
@@ -701,7 +709,7 @@ footer { color: var(--muted); font-size: 13px; }
     el("text", { x: 1176, y: 508, class: "zt", "text-anchor": "end", style: "fill: var(--lan)" }, z).textContent = "LAN · VMnet10 (host-only)";
     const kz = el("rect", { x: 340, y: 25, width: 260, height: 160, rx: 10, style: "fill: var(--kali-bg); stroke: var(--kali)", "stroke-width": 1.6, "stroke-dasharray": "8 6" }, z);
     const kt = el("text", { x: 354, y: 44, class: "zt", style: "fill: var(--kali)" }, z);
-    kt.textContent = "ATTAQUE · VMnet11 (prévu)";
+    kt.textContent = "ATTACK · VMnet11";
     const kt2 = el("text", { x: 354, y: 60, class: "mono muted" }, z);
     kt2.textContent = "10.10.20.0/24";
     labelEls.push({ e: kt2, planned: true });
@@ -847,7 +855,7 @@ footer { color: var(--muted); font-size: 13px; }
     const s = sc(), n = s.steps.length, i = S.i;
     $("explain").style.setProperty("--c", s.color);
     if (i < 0) {
-      $("ex-step").textContent = "Scénario · " + (s.status === "prévu" ? "lab prévu" : "lab réel");
+      $("ex-step").textContent = "Scénario · " + (s.status === "réel" ? "lab réel" : "règles réelles, " + s.tag);
       $("ex-title").textContent = s.name;
       $("ex-route").textContent = n + " étapes";
       $("ex-text").innerHTML = "<p>" + esc(s.intro) + "</p><p class=\"empty\">Lecture pour dérouler, ou Suivant pour avancer pas à pas. Clavier : espace, flèches.</p>";
@@ -941,7 +949,7 @@ footer { color: var(--muted); font-size: 13px; }
 
   function buildChips() {
     $("scenarios").innerHTML = SCENARIOS.map((s, j) =>
-      '<li><button type="button" aria-pressed="false" data-j="' + j + '"><span class="sw" style="--c: ' + s.color + '"></span>' + esc(s.name) + (s.status === "prévu" ? '<span class="tag">prévu</span>' : "") + "</button></li>").join("");
+      '<li><button type="button" aria-pressed="false" data-j="' + j + '"><span class="sw" style="--c: ' + s.color + '"></span>' + esc(s.name) + (s.tag ? '<span class="tag">' + esc(s.tag) + "</span>" : "") + "</button></li>").join("");
     $("scenarios").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) select(+b.dataset.j); });
   }
 

@@ -42,7 +42,8 @@ switch, ne voit **rien** de ce trafic : il n'est pas sur le chemin (scène 1).
 à sa **passerelle**, ici pfSense. pfSense est un **routeur** : il reçoit sur une interface,
 applique ses règles (passer, bloquer, journaliser dans `filterlog`) et ressort par une autre
 (scène 2). C'est pourquoi on prévoit de mettre Kali sur son propre réseau VMnet11 : ses
-attaques traverseront pfSense, qui pourra les filtrer et les journaliser.
+attaques traverseront pfSense, qui pourra les filtrer et les journaliser. Fait dans le
+[writeup 05](05-segment-attaque-kali.md) (interface ATTACK, 7 règles).
 
 **Et l'agent sur un autre réseau ?** Il fonctionne, à deux conditions : une route existe
 (pfSense relie les deux réseaux) et les règles autorisent **TCP 1514 et 1515** vers Wazuh.
@@ -57,8 +58,8 @@ personne n'a répondu et Windows s'est attribué seul une adresse **APIPA** `169
 permet de joindre personne. Règle du lab : démarrer pfSense en premier.
 
 **Ce qui reste à faire côté pfSense** : le syslog (writeup 02) et le SSH par clé (writeup 03)
-sont faits. Restent le segment VMnet11 pour Kali (3ᵉ interface et règles) et les règles qui
-font respecter la [matrice des flux](../architecture.md) pour ce qui traverse pfSense.
+sont faits. Le segment VMnet11 pour Kali (3ᵉ interface et règles) est traité dans le
+[writeup 05](05-segment-attaque-kali.md), avec le [schéma des règles](../diagrams/regles-attack.png).
 
 ### 1.3 Pourquoi Sysmon
 

@@ -135,7 +135,7 @@ footer { color: var(--muted); font-size: 13px; }
       </defs>
 
       <text x="30" y="40" class="b" style="font-size: 18px">Homelab Wazuh · flux autorisés et interdits</text>
-      <text x="1370" y="40" text-anchor="end" class="muted mono">décidé le 2026-10-21</text>
+      <text x="1370" y="40" text-anchor="end" class="muted mono">décidé le 2026-10-21 · Kali en place le 2026-10-22</text>
 
       <!-- Zones -->
       <rect x="20" y="62" width="340" height="200" rx="10" style="fill: var(--wan-bg); stroke: var(--wan)" stroke-width="2" stroke-dasharray="10 6"/>
@@ -148,15 +148,15 @@ footer { color: var(--muted); font-size: 13px; }
       <text x="40" y="380" class="muted">le poste d'administration</text>
       <text x="440" y="600" class="ztitle" style="fill: var(--lan)">ZONE LAN · VMnet10</text>
       <text x="440" y="618" class="muted">10.10.10.0/24 · même switch : pfSense ne voit pas ces flux</text>
-      <text x="900" y="830" class="ztitle" style="fill: var(--kali)">ZONE ATTAQUE · VMnet11 (prévu)</text>
-      <text x="900" y="850" class="muted">derrière pfSense : ses paquets le traverseront</text>
+      <text x="900" y="830" class="ztitle" style="fill: var(--kali)">ZONE ATTACK · VMnet11 · 10.10.20.0/24</text>
+      <text x="900" y="850" class="muted">derrière pfSense (em0) : ses paquets le traversent</text>
 
       <!-- Flux autorisés -->
       <path class="flow ok" d="M635 168 L292 150" marker-end="url(#m-ok)"/>
       <path class="flow ok" d="M245 428 L628 220" marker-end="url(#m-ok)"/>
       <path class="flow ok" d="M245 460 H640" marker-end="url(#m-ok)"/>
       <path class="flow ok" d="M700 240 V395" marker-end="url(#m-ok)"/>
-      <path class="flow plan" d="M1135 445 H762" marker-end="url(#m-plan)"/>
+      <path class="flow ok" d="M1135 445 H762" marker-end="url(#m-ok)"/>
       <path class="flow atk" d="M1180 725 V522" marker-end="url(#m-atk)"/>
       <path class="flow plan" d="M190 505 V770 H1125" marker-end="url(#m-plan)"/>
 
@@ -194,7 +194,10 @@ footer { color: var(--muted); font-size: 13px; }
       <text x="140" y="453" text-anchor="end" class="mono">10.10.10.1</text>
 
       <text x="1232" y="762" class="b" style="font-size: 15px">Kali Linux</text>
-      <text x="1232" y="779" class="muted">l'attaquant</text>
+      <text x="1232" y="779" class="mono">10.10.20.1xx</text>
+      <text x="1232" y="796" class="muted">l'attaquant (DHCP)</text>
+      <text x="900" y="796" class="t-ok b" style="font-size: 12px">DNS 53 → pfSense · 80, 443 → Internet</text>
+      <text x="900" y="811" class="t-ok" style="font-size: 12px">règles 1, 6, 7 : mises à jour, sans journal</text>
 
       <!-- Étiquettes des flux -->
       <g class="badge" transform="translate(560 164)"><circle r="11" style="fill: var(--f-ok)"/><text>1</text></g>
@@ -213,19 +216,19 @@ footer { color: var(--muted); font-size: 13px; }
       <text x="718" y="286" class="b t-ok">syslog 514/UDP</text>
       <text x="718" y="302" class="t-ok">validé (writeup 02)</text>
 
-      <g class="badge" transform="translate(1075 445)"><circle r="11" style="fill: var(--f-plan)"/><text>5</text></g>
-      <text x="790" y="433" class="b t-plan">agent 1514/TCP · 1515/TCP <tspan style="font-weight: 400">(à installer)</tspan></text>
+      <g class="badge" transform="translate(1075 445)"><circle r="11" style="fill: var(--f-ok)"/><text>5</text></g>
+      <text x="790" y="433" class="b t-ok">agent 1514/TCP · 1515/TCP <tspan style="font-weight: 400">(validé, writeup 04)</tspan></text>
 
       <text x="790" y="519" class="b t-no">SSH 22 interdit <tspan style="font-weight: 400">: Windows est la cible</tspan></text>
 
       <g class="badge" transform="translate(1180 690)"><circle r="11" style="fill: var(--f-atk)"/><text>6</text></g>
       <text x="1200" y="594" class="b t-atk">attaques simulées</text>
       <text x="1200" y="610" class="mono t-atk">22, 3389, 445…</text>
-      <text x="1200" y="644" class="t-atk">c'est ce que Wazuh</text>
-      <text x="1200" y="660" class="t-atk">doit détecter</text>
+      <text x="1200" y="644" class="t-atk">règle 2 d'ATTACK :</text>
+      <text x="1200" y="660" class="t-atk">passe, journalisé</text>
 
-      <text x="650" y="700" class="b t-no">Kali → Wazuh ou pfSense</text>
-      <text x="650" y="716" class="mono t-no">22, 443, 55000 : interdit</text>
+      <text x="650" y="700" class="b t-no">Kali → LAN, pfSense, WAN</text>
+      <text x="650" y="716" class="t-no">règles 3 à 5 : bloqué, journalisé</text>
 
       <text x="665" y="560" text-anchor="end" class="b t-no">Wazuh n'initie rien</text>
       <text x="665" y="576" text-anchor="end" class="t-no">il reçoit seulement</text>
@@ -256,22 +259,23 @@ footer { color: var(--muted); font-size: 13px; }
         <li><strong>Hôte → pfSense</strong> 443 et 22 par clé : administration.</li>
         <li><strong>Hôte → Wazuh</strong> 443 et 22 par clé : dashboard et administration.</li>
         <li><strong>pfSense → Wazuh</strong> 514/UDP : journaux du pare-feu, déjà validé.</li>
-        <li><strong>Windows 11 → Wazuh</strong> 1514 et 1515/TCP : l'agent, à installer.</li>
-        <li><strong>Kali → Windows 11</strong> : les attaques des scénarios, dans le lab seulement.</li>
-        <li><strong>Hôte → Kali</strong> 22 : optionnel, pour piloter Kali.</li>
+        <li><strong>Windows 11 → Wazuh</strong> 1514 et 1515/TCP : l'agent, en place (writeup 04).</li>
+        <li><strong>Kali → Windows 11</strong> : les attaques des scénarios, dans le lab seulement. Règle 2 de l'interface ATTACK, journalisée.</li>
+        <li><strong>Kali → pfSense</strong> 53 et <strong>Internet</strong> 80, 443 : DNS et mises à jour (règles 1, 6, 7), sans journal.</li>
+        <li><strong>Hôte → Kali</strong> 22 : optionnel. L'hôte n'a pas de carte sur VMnet11 : il passerait par pfSense, avec une route vers <code>10.10.20.0/24</code> par <code>10.10.10.254</code> (à valider).</li>
       </ol>
     </section>
     <section class="card" style="--c: var(--f-no)">
       <h2>Interdit, et pourquoi</h2>
       <ul>
         <li><strong>Windows 11 → Wazuh en SSH</strong> : Windows est la machine attaquée. Une clé SSH vers le SIEM donnerait à l'attaquant la console de l'outil censé le voir.</li>
-        <li><strong>Kali → Wazuh ou pfSense</strong> : l'attaquant ne doit pas toucher la supervision.</li>
+        <li><strong>Kali → LAN, pfSense, réseau WAN</strong> : l'attaquant ne doit pas toucher la supervision. Règles 3 à 5 d'ATTACK, bloqué et journalisé (alerte 100302).</li>
         <li><strong>Wazuh → les postes</strong> : le manager reçoit, il n'ouvre aucune connexion.</li>
       </ul>
     </section>
     <section class="card" style="--c: var(--host)">
       <h2>Qui fait respecter la matrice ?</h2>
-      <p>Dans VMnet10, tout le monde partage le même switch : les paquets vont directement d'une machine à l'autre, <strong>sans passer par pfSense</strong>. Ces flux se filtrent avec le pare-feu local de chaque machine. Kali, placé sur son propre réseau VMnet11, devra traverser pfSense, qui pourra alors bloquer et journaliser ses tentatives vers Wazuh.</p>
+      <p>Dans VMnet10, tout le monde partage le même switch : les paquets vont directement d'une machine à l'autre, <strong>sans passer par pfSense</strong>. Ces flux se filtrent avec le pare-feu local de chaque machine. Kali, placé sur son propre réseau VMnet11, traverse pfSense : les 7 règles de l'interface ATTACK bloquent et journalisent ses tentatives vers Wazuh (writeup 05).</p>
     </section>
   </div>
 

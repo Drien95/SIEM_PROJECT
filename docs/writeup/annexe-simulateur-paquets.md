@@ -165,11 +165,14 @@ keepalive).
 **Valeur SOC** : le SSH vers le SIEM ne vient que de `10.10.10.1` par construction ; toute autre
 source est une alerte à fort signal. Échecs en rafale puis succès : force brute réussie (T1110).
 
-### 3.8 Kali bloqué par pfSense (lab prévu)
+### 3.8 Kali face aux règles ATTACK
 
-Kali sur VMnet11 (`10.10.20.10`, adresses d'exemple) tente `10.10.10.100:22` : bloqué sur `vmx2`,
-journalisé, alerte `100302`. En face, `10.10.10.101:445` est autorisé et routé (MAC réécrite,
-TTL 63, IP inchangées).
+Kali sur VMnet11 (adresse DHCP `10.10.20.1xx`, ici `10.10.20.100` en exemple) derrière l'interface
+ATTACK (`em0`) de pfSense, avec les 7 vraies règles du [writeup 05](05-segment-attaque-kali.md).
+`10.10.10.100:443` : règle 3, bloqué, journalisé, alerte `100302`. `10.10.10.101:3389` : règle 2,
+passé et routé (MAC réécrite, TTL 63, IP inchangées), journalisé aussi (alerte `100301`).
+`10.10.20.254:443` (interface web de pfSense) : règle 4, bloqué. Voir aussi le
+[schéma des règles](../diagrams/regles-attack.png).
 
 ![Kali bloqué](../diagrams/videos/kali.gif)
 
@@ -193,7 +196,7 @@ Le simulateur est **pédagogique** : il reconstitue les échanges, il ne capture
 | Ports source (`50123`, `41722`…), identifiant DHCP `xid` | ⚠️ exemples (choisis au hasard par le système en vrai) |
 | Passerelle NAT VMware `192.168.30.2` | ⚠️ valeur par défaut de VMware, à valider dans *Virtual Network Editor* |
 | Règle `5715` sur la connexion SSH, règles `503`/`504` de l'agent | à valider dans notre lab |
-| Segment Kali (VMnet11, `10.10.20.0/24`, règles pfSense) | prévu, pas construit |
+| Segment Kali : interface ATTACK `em0`, DHCP, 7 règles | ✅ en place (writeup 05) ; VM Kali à installer, son adresse est un exemple |
 
 Exercice recommandé : capturer le vrai trafic (`tcpdump -w` sur Wazuh, ou Wireshark sur la carte
 VMnet10 de l'hôte) et comparer champ par champ avec le panneau du simulateur.

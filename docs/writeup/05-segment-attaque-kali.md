@@ -33,6 +33,12 @@ sa **passerelle**, pfSense. On gagne trois choses :
 | DHCP | serveur DHCP de pfSense sur ATTACK, plage `10.10.20.100` à `.199` |
 | Kali | carte réseau sur VMnet11, adresse reçue par DHCP |
 
+![Topologie du lab avec la zone ATTACK](../diagrams/topologie-lab.png)
+
+*Le lab à trois réseaux : WAN (VMnet8), LAN (VMnet10) et ATTACK (VMnet11). Flux ⑤ : Kali vers
+Windows 11, qui traverse pfSense ; flux ⑥ : Kali vers Wazuh, bloqué à l'entrée d'`em0`. Source :
+[`topologie-lab.html`](../diagrams/topologie-lab.html).*
+
 Pourquoi **sans carte sur l'hôte** : l'hôte n'a rien à faire sur le réseau de l'attaquant. Avec
 une carte, Kali pourrait joindre l'hôte directement, sans passer par pfSense.
 Pourquoi **sans DHCP VMware** : c'est pfSense qui distribue les adresses, et il annonce
@@ -63,6 +69,42 @@ Le sens retour (Windows 11 qui répond à Kali) est autorisé automatiquement : 
 
 **Ordre** : la règle 2 doit précéder la règle 3, sinon le blocage du LAN entier masquerait
 l'exception pour Windows 11.
+
+#### Lire les règles avec des paquets
+
+![Règles de l'interface ATTACK, cinq paquets d'exemple](../diagrams/regles-attack.png)
+
+*Source : [`regles-attack.html`](../diagrams/regles-attack.html). Kali est noté `10.10.20.1xx` :
+son adresse viendra du DHCP.*
+
+Chaque colonne est un paquet de Kali qui **entre** par `em0`. pfSense descend la liste et
+s'arrête à la **première** règle qui correspond :
+
+| Paquet | Règles lues | Décision | Journal | Dans Wazuh |
+|---|---|---|---|---|
+| A · Windows 11 `10.10.10.101:3389` | 1, 2 | Pass (règle 2), routé vers le LAN | oui | 100301 (niveau 3) |
+| B · Wazuh `10.10.10.100:443` | 1, 2, 3 | Block (règle 3, LAN net) | oui | 100302 (niveau 5) |
+| C · pfSense `10.10.20.254:443` | 1 à 4 | Block (règle 4, This Firewall) | oui | 100302 |
+| D · Internet, TCP 443 | 1 à 7 | Pass (règle 7), NAT sortant vers le WAN | non | rien |
+| E · Internet, ping ICMP | toutes | Block (règle par défaut, implicite) | oui, par défaut | 100302 |
+
+Trois points à retenir :
+
+- **C** : la règle 1 vise bien `10.10.20.254`, mais seulement le port 53. Le port ne correspond
+  pas, donc on continue. *This Firewall (self)* couvre **toutes** les adresses de pfSense, y
+  compris `10.10.10.254` (même si, pour cette adresse, la règle 3 décide avant).
+- **E** : aucune règle ne parle d'ICMP vers Internet, le paquet tombe dans la règle par défaut.
+  pfSense journalise ses blocages par défaut (*Status > System Logs > Settings*, *Log packets
+  matched from the default block rules*, coché d'origine).
+- **D** : pas de journal, choix fait pour ne pas noyer Wazuh sous les mises à jour de Kali.
+  C'est un **angle mort** connu : une exfiltration en HTTPS depuis Kali ne laisserait pas de
+  trace dans Wazuh. Pour un scénario d'exfiltration, cocher *Log* sur les règles 6 et 7.
+
+**Valeur pour l'analyste SOC** : chaque tentative de l'attaquant vers la supervision (B, C)
+devient une alerte, et l'attaque autorisée (A) laisse aussi une trace horodatée. Une rafale de
+blocages depuis `10.10.20.1xx` (balayage de ports) déclenche 100303 (T1046). Pour suivre ces
+paquets un par un, avec les en-têtes, voir le scénario « Kali face aux règles ATTACK » du
+[simulateur de paquets](annexe-simulateur-paquets.md).
 
 ## 2. Mise en œuvre
 

@@ -183,14 +183,14 @@ footer { color: var(--muted); font-size: 13px; }
       <!-- Scène 2 : réseau routé -->
       <rect class="panel" x="710" y="20" width="670" height="510" rx="8"/>
       <text x="730" y="52" class="b" style="font-size: 16px">2 · Autre sous-réseau : par la passerelle pfSense</text>
-      <text x="730" y="72" class="muted">Kali sur VMnet11 (prévu, adresses en exemple) → Wazuh</text>
+      <text x="730" y="72" class="muted">Kali sur VMnet11 (interface ATTACK de pfSense) → Wazuh</text>
 
       <use href="#i-kali" x="760" y="205" width="80" height="80"/>
       <use href="#i-firewall" x="995" y="200" width="110" height="90"/>
       <use href="#i-server" x="1265" y="195" width="70" height="100"/>
       <path class="wire" d="M840 245 H1000 M1100 245 H1265"/>
       <text x="800" y="305" text-anchor="middle" class="b">Kali</text>
-      <text x="800" y="321" text-anchor="middle" class="mono">10.10.20.10</text>
+      <text x="800" y="321" text-anchor="middle" class="mono">10.10.20.1xx</text>
       <text x="1050" y="310" text-anchor="middle" class="b">pfSense</text>
       <text x="1050" y="326" text-anchor="middle" class="mono">.20.254 | .10.254</text>
       <text x="1300" y="310" text-anchor="middle" class="b">Wazuh</text>
@@ -205,8 +205,8 @@ footer { color: var(--muted); font-size: 13px; }
       <text x="1050" y="433" text-anchor="middle" class="t-no" style="font-size: 12px">passe ou bloque</text>
       <text x="1114" y="426" class="t-no" style="font-size: 12px">+ journal filterlog</text>
       <path class="flow ok" d="M1050 475 H1286" marker-end="url(#m-ok)"/>
-      <text x="1064" y="465" class="b t-ok">③ transmis sur le LAN</text>
-      <text x="730" y="515" class="muted">Un agent marche aussi ici, si pfSense route et autorise 1514/1515 vers Wazuh.</text>
+      <text x="1064" y="465" class="b t-ok">③ transmis si une règle autorise</text>
+      <text x="730" y="515" class="muted">Dans le lab, la règle 3 d'ATTACK bloque Kali → Wazuh ; vers Windows 11, la règle 2 passe.</text>
 
       <!-- Scène 3 : DHCP -->
       <rect class="panel" x="20" y="550" width="1360" height="430" rx="8"/>
@@ -250,5 +250,5 @@ footer { color: var(--muted); font-size: 13px; }
     </section>
   </div>
 
-  <footer>Source : <code>docs/diagrams/reseau-chemins.html</code> du dépôt SIEM_PROJECT. Le segment Kali (VMnet11, 10.10.20.0/24) est prévu, pas encore construit.</footer>
+  <footer>Source : <code>docs/diagrams/reseau-chemins.html</code> du dépôt SIEM_PROJECT. Segment Kali : VMnet11, 10.10.20.0/24, interface ATTACK (em0) de pfSense, writeup 05.</footer>
 </div>

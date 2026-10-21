@@ -18,7 +18,7 @@ simulation d'attaques.
 | [docs/sources.md](docs/sources.md) | Sources utilisées, ce qu'on en retient, limites |
 | [docs/homelab/plan.md](docs/homelab/plan.md) | Plan du homelab VMware : réseau, VM, ordre de montage, images |
 | [docs/homelab/screenshots/](docs/homelab/screenshots/README.md) | Captures d'écran du montage, numérotées |
-| [docs/diagrams/](docs/diagrams/README.md) | Schémas : réseau du lab façon Packet Tracer, pipeline Wazuh annoté, modèle de scénario (sources HTML et PNG) |
+| [docs/diagrams/](docs/diagrams/README.md) | Schémas : réseau du lab façon Packet Tracer, règles pare-feu ATTACK, matrice des flux, pipeline Wazuh annoté, modèle de scénario (sources HTML et PNG) |
 | [docs/writeup/01-homelab.md](docs/writeup/01-homelab.md) | Writeup du montage : étapes, commandes, captures, incidents et leçons |
 | [docs/writeup/02-syslog-pfsense.md](docs/writeup/02-syslog-pfsense.md) | Writeup : journaux pfSense vers Wazuh en syslog, avec une partie « Comprendre » |
 | [docs/writeup/03-durcissement-ssh.md](docs/writeup/03-durcissement-ssh.md) | Writeup : SSH par clé vers Wazuh et pfSense, mot de passe interdit |

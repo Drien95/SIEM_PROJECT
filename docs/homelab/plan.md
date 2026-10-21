@@ -84,6 +84,8 @@ Les images restent dans `D:\VM\SIEM_LAB\images\`, hors git (`*.ova` et `*.iso` s
 
 ## Journal de montage
 
+Captures d'écran de chaque étape : [screenshots/](screenshots/README.md).
+
 ### 2026-10-21 — VM créées (non démarrées)
 
 | VM | Fichier | État |

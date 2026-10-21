@@ -477,6 +477,22 @@ mv /d/VM/SIEM_LAB/SIEM-Win11 /d/VM/SIEM_LAB/SIEM-Win11.old-hdd   # ancienne VM g
 Résultat : sur le SSD, l'installation va jusqu'au bout du premier coup (compte local, VMware
 Tools 13.1.5 installés). Plus aucune latence d'écriture de plusieurs secondes.
 
+**VMware Tools.** Le menu *VM > Install VMware Tools* échoue (« Could not find component on
+update server » : Workstation 17.0.0 ne trouve plus le paquet sur ses serveurs de mise à jour).
+Contournement : télécharger l'installeur Windows depuis le dépôt officiel
+https://packages.vmware.com/tools/releases/ (version 13.1.5 installée), puis redémarrer la VM.
+
+**Réseau.** Premier bail en APIPA (`169.254.x.x`) : la VM a démarré avant que pfSense ait fini de
+démarrer, donc pas de serveur DHCP. Après `ipconfig /renew` :
+
+| Paramètre | Valeur |
+|---|---|
+| Adresse IPv4 | `10.10.10.101` (DHCP pfSense) |
+| Passerelle | `10.10.10.254` |
+| Suffixe DNS | `siem.lab` |
+
+Ordre de démarrage du lab à retenir : **pfSense d'abord**, puis Wazuh, puis les postes.
+
 **Copier-coller hôte ↔ VM.** Il ne marche pas juste après l'installation des Tools. Le journal
 montre que le composant copier-coller des Tools (`toolbox-dnd`) ne répond pas (`GuestRpcSendTimedOut:
 message to toolbox-dnd timed out`) jusqu'au redémarrage, puis se connecte

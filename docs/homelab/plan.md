@@ -273,3 +273,21 @@ Correctif appliqué (choix d'Adrien) : VM Windows 11 déplacée sur `C:` (SSD NV
   ratée, à supprimer une fois Windows installé) ;
 - Wazuh et pfSense restent sur `D:` pour l'instant. Si l'indexeur Wazuh rame, même remède.
 Leçon : vérifier le **type de disque** de l'hôte avant d'y placer des VM (`Get-PhysicalDisk`).
+
+### 2026-10-21 — API Wazuh « Offline » : le manager ne démarrait pas au boot
+
+Symptôme : le dashboard affiche l'API `https://127.0.0.1:55000` hors ligne, impossible de
+déployer l'agent Windows. Diagnostic par `ssh siem-wazuh` :
+
+- `systemctl is-active` : `wazuh-indexer` et `wazuh-dashboard` actifs, **`wazuh-manager`
+  inactif** ; `systemctl is-enabled wazuh-manager` → **`disabled`** ;
+- dernières lignes de `ossec.log` datées de la session précédente : le manager n'a pas été
+  relancé après le redémarrage de la VM (17:58Z) ;
+- RAM (2,7 Go disponibles) et disque (33 %) corrects.
+
+Correction : `sudo systemctl enable --now wazuh-manager`. Ports en écoute ensuite : 55000
+(API), 1514 (agents), 1515 (enrôlement). Conséquence à retenir : tant que le manager est
+arrêté, **rien n'est analysé**, y compris le syslog pfSense. Pourquoi le service était
+désactivé (livré ainsi dans l'OVA ou désactivé pendant une manipulation antérieure) : **à
+valider**. Vérification à faire après chaque démarrage du lab :
+`systemctl is-active wazuh-manager wazuh-indexer wazuh-dashboard`.

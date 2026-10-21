@@ -175,7 +175,8 @@ un en-tête syslog BSD, que Wazuh sait découper.
 |---|---|---|
 | `remoted` écoute en UDP 514 | ligne `wazuh-remoted` dans `ss` | ✅ OK |
 | Syslog reçu par Wazuh (`tcpdump`) | `10.10.10.254 > 10.10.10.100.syslog` | ✅ OK : `local0.info`, ~1 paquet/s pendant la rafale |
-| `wazuh-logtest` sur une ligne `filterlog` | décodeur `pf`, règle 87701 | à faire |
+| `wazuh-logtest` sur la ligne d'exemple | décodeur `pf`, règle 87701 | ✅ OK : `action: block`, `srcip: 192.168.30.1`, 87701 niveau 5 (logtest affiche « Alert to be generated » ; il n'applique probablement pas `no_log`, déduit) |
+| `wazuh-logtest` sur une vraie ligne pfSense 2.9 | idem | à faire |
 | Rafale `ping -n 60 -w 200` | alerte **87702** (niveau 10) | à faire |
 
 Sources : https://documentation.wazuh.com/current/user-manual/capabilities/log-data-collection/syslog.html,

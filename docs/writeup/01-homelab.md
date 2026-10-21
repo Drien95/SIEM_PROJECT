@@ -474,7 +474,22 @@ vmware-vdiskmanager -c -s 64GB -a lsilogic -t 0 'C:\VM\SIEM_LAB\SIEM-Win11\SIEM-
 mv /d/VM/SIEM_LAB/SIEM-Win11 /d/VM/SIEM_LAB/SIEM-Win11.old-hdd   # ancienne VM gardée
 ```
 
-Résultat de la réinstallation : à compléter.
+Résultat : sur le SSD, l'installation va jusqu'au bout du premier coup (compte local, VMware
+Tools 13.1.5 installés). Plus aucune latence d'écriture de plusieurs secondes.
+
+**Copier-coller hôte ↔ VM.** Il ne marche pas juste après l'installation des Tools. Le journal
+montre que le composant copier-coller des Tools (`toolbox-dnd`) ne répond pas (`GuestRpcSendTimedOut:
+message to toolbox-dnd timed out`) jusqu'au redémarrage, puis se connecte
+(`DnDCP: set guest controllers to version 4`). Le `.vmx` ne contient aucune ligne
+`isolation.tools.*` qui le désactiverait. À vérifier dans l'ordre : réessayer après le
+redémarrage, puis *VM > Settings > Options > Guest Isolation*, puis, VM éteinte, forcer dans le
+`.vmx` :
+
+```ini
+isolation.tools.copy.disable = "FALSE"
+isolation.tools.paste.disable = "FALSE"
+isolation.tools.dnd.disable = "FALSE"
+```
 
 **Leçon.** Avant de placer des VM sur un disque, vérifier son **type** (`Get-PhysicalDisk`) et
 sa latence. Un disque mécanique convient pour stocker des ISO, pas pour un système qui écrit
@@ -488,7 +503,7 @@ beaucoup (installation de Windows, indexeur Wazuh). Et quand un correctif ne cha
 | VMnet10 | ✅ host-only, DHCP VMware désactivé |
 | pfSense CE 2.9.0 | ✅ installé, assistant fait, mot de passe changé |
 | Wazuh 4.14.9 | ✅ services actifs, disque étendu, index débloqués, mot de passe `admin` changé, Filebeat OK, connexion au dashboard OK |
-| Windows 11 | 🔄 réinstallation sur le SSD `C:` (voir §11) |
+| Windows 11 | ✅ installé sur le SSD `C:` (voir §11), VMware Tools 13.1.5 |
 | Kali | ⏳ à rebrancher sur VMnet10 |
 
 Prochaines étapes :

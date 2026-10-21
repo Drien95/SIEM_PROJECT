@@ -173,3 +173,15 @@ contourne la vérification au début de l'installation (à valider) :
 | Compte `admin` | mot de passe par défaut changé (hors git) |
 
 Captures 22 à 29.
+
+### 2026-10-21 — Dashboard Wazuh arrêté au premier démarrage
+
+Après une dizaine de minutes, le manager (1514) et l'API (55000) répondaient, mais pas le
+dashboard (443). Sur la VM : `wazuh-indexer` actif, `wazuh-dashboard` « inactive (dead) ».
+Mémoire : 7,8 Gio, dont 4,9 utilisés, 2,6 disponibles, pas de swap.
+
+Correctif : `sudo systemctl enable --now wazuh-dashboard`.
+
+Cause non établie : le service n'était peut-être pas activé au démarrage, ou il est parti
+avant que l'indexeur soit prêt (hypothèse). Si ça se reproduit, lire
+`sudo journalctl -u wazuh-dashboard -b --no-pager | tail -50`.

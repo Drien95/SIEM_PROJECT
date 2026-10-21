@@ -220,3 +220,7 @@ vérifier une fois l'import terminé).
 Effet de bord : `wazuh-passwords-tool.sh`, lancé pendant que le disque était plein, a mis à jour
 le keystore de Filebeat, puis a échoué (« Could not load the changes »). Il faut le relancer
 après avoir libéré de la place, puis vérifier avec `sudo filebeat test output`.
+
+Déblocage des index (2026-10-21) : le `curl` sur `_all` a renvoyé un 403, car `_all` inclut
+l'index de sécurité de l'indexeur, protégé même pour `admin`. En ciblant seulement
+`wazuh-*,.kibana*`, l'indexeur a répondu `{"acknowledged":true}`.

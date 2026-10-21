@@ -167,6 +167,24 @@ Get-Service Sysmon64
 Get-WinEvent -LogName Microsoft-Windows-Sysmon/Operational -MaxEvents 5 | Format-Table TimeCreated, Id, Message -Wrap
 ```
 
+**Ce que cette installation a fait**, ligne par ligne de la sortie (capture 73) :
+
+- `Loading configuration file with schema version 4.50` puis `Configuration file validated` :
+  Sysmon a lu les **règles de filtrage** de SwiftOnSecurity. Ce fichier dit quoi journaliser
+  et quoi ignorer (par exemple, les mises à jour Windows connues). Le binaire (schéma 4.91)
+  accepte les configurations plus anciennes.
+- `SysmonDrv installed / started` : un **pilote noyau**. Il observe le système au plus bas
+  niveau (création de processus, connexions réseau, fichiers, registre), là où un programme
+  ordinaire ne voit rien.
+- `Sysmon64 installed / started` : le **service** qui reçoit ce que voit le pilote, applique
+  le filtre et écrit les événements dans le canal `Microsoft-Windows-Sysmon/Operational`.
+- Les deux démarrent avec Windows : Sysmon surveille en permanence, sans session ouverte.
+
+À ce stade, les événements existent **dans la VM** (Observateur d'événements), mais Wazuh ne
+les voit pas encore : l'agent ne lit que les canaux qu'on lui indique.
+
+![Installation de Sysmon](../homelab/screenshots/73-win11-installation-sysmon.png)
+
 ### 5.2 Faire lire Sysmon par l'agent : configuration centralisée
 
 Plutôt que de modifier `ossec.conf` dans la VM, on utilise la **configuration centralisée** :
@@ -197,12 +215,53 @@ sudo systemctl restart wazuh-manager
 L'agent récupère la nouvelle configuration et redémarre ses collecteurs ; si rien ne bouge
 après quelques minutes, `Restart-Service WazuhSvc` dans la VM.
 
+**Déployé dans notre lab le 2026-10-21**, depuis l'hôte, sans toucher à la VM :
+
+```bash
+ssh siem-wazuh 'sudo cp /var/ossec/etc/shared/default/agent.conf /var/ossec/etc/shared/default/agent.conf.bak   && sudo tee /var/ossec/etc/shared/default/agent.conf >/dev/null   && sudo /var/ossec/bin/verify-agent-conf && sudo systemctl restart wazuh-manager'   < configs/manager/shared/default/agent.conf
+```
+
+Comment savoir que l'agent a bien reçu la configuration : le manager regroupe les fichiers du
+groupe dans `merged.mg`. Quand le **Shared file hash** de l'agent égale le hash de ce fichier,
+l'agent est à jour :
+
+```bash
+sudo /var/ossec/bin/agent_control -i 001 | grep 'Shared file hash'   # f39c7922…
+sudo md5sum /var/ossec/etc/shared/default/merged.mg                    # f39c7922…
+```
+
+Premier événement Sysmon reçu : **19:59:09Z**, environ une minute après le redémarrage du
+manager.
+
 ### 5.3 Tester
 
 Dans la VM : lancer `powershell.exe`, ce qui crée un événement Sysmon 1. La règle locale
 **100100** (enfant de 61603) le fait remonter au niveau 8 :
 [configs/manager/local_rules.xml](../../configs/manager/local_rules.xml). Dashboard, *Threat
 Hunting* : `rule.id:100100`, ou `data.win.system.channel:"Microsoft-Windows-Sysmon/Operational"`.
+
+### 5.4 Ce que Sysmon a remonté dans la première minute
+
+Alertes du canal Sysmon dans `alerts.json`, regroupées par règle (comptage Python sur le
+manager) :
+
+| Nb | Règle | Niv. | Sysmon ID | Description | Lecture |
+|---|---|---|---|---|---|
+| 10 | 92205 | 9 | 11 | PowerShell a créé un exécutable dans la racine Windows | très probablement l'installation de Sysmon elle-même, lancée depuis PowerShell (déduction, à valider) |
+| 9 | **100100** | 8 | 1 | **notre règle locale** : exécution de PowerShell | ✅ la règle du dépôt fonctionne |
+| 8 | 92066 | 4 | 1 | `SecEdit.exe` lancé depuis un emplacement « suspect » | probablement l'évaluation SCA de l'agent Wazuh (déduction, à valider) |
+| 5 | 92031 | 3 | 1 | activité de découverte | commandes d'inventaire (`net.exe`…) |
+| 1 | 92052 | 4 | 1 | invite de commandes lancée par un processus inhabituel | à examiner |
+| 1 | 92036 | 3 | 1 | `net.exe` lancé par `cmd` | même famille que 92031 |
+
+**Leçon SOC** : dès la première minute, des alertes de niveau 9 apparaissent, alors que rien
+de malveillant ne s'est passé. C'est normal : une installation d'outil ressemble à une attaque
+(PowerShell qui dépose un exécutable dans `C:\Windows`). Le travail de l'analyste est
+d'**expliquer** chaque alerte, puis de **régler** les règles (exceptions ciblées) pour ne garder
+que le signal. On le fera après le premier scénario d'attaque, pour comparer bruit et attaque.
+
+Le nom d'hôte remonté est `DESKTOP-A2AMF2E` (nom Windows par défaut). Le renommer en
+`SIEM-Win11` rendrait les alertes plus lisibles : à faire.
 
 ## 6. Résultats dans notre lab
 
@@ -211,9 +270,9 @@ Hunting* : `rule.id:100100`, ou `data.win.system.channel:"Microsoft-Windows-Sysm
 | API Wazuh `55000` | Online | ❌ Offline (manager désactivé) ; ✅ après `enable --now` |
 | Agent 001 `SIEM-Win11` | Active, v4.14.9 | ✅ `agent_control -l` et dashboard |
 | Premières alertes de l'agent | présentes | ✅ 490 lignes d'alertes de l'agent 001 dans `alerts.json` dans la première heure (comptage `grep`) |
-| Sysmon installé | service `Sysmon64` en cours | à faire |
-| Événements Sysmon dans Wazuh | canal `Microsoft-Windows-Sysmon/Operational` | à faire |
-| Règle 100100 (PowerShell) | alerte niveau 8 | à faire |
+| Sysmon installé | service `Sysmon64` en cours | ✅ v15.22, `Sysmon64` et `SysmonDrv` démarrés |
+| Événements Sysmon dans Wazuh | canal `Microsoft-Windows-Sysmon/Operational` | ✅ dès 19:59:09Z, 34 alertes en ~1 min |
+| Règle 100100 (PowerShell) | alerte niveau 8 | ✅ 9 alertes |
 
 Sources :
 https://documentation.wazuh.com/current/installation-guide/wazuh-agent/wazuh-agent-package-windows.html,

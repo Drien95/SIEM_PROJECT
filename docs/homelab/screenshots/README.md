@@ -89,3 +89,4 @@ Captures volontairement **non versionnées** (mot de passe visible) : les sortie
 | 70 | [70-wazuh-api-offline.png](70-wazuh-api-offline.png) | Dashboard : API `127.0.0.1:55000` **Offline** (wazuh-manager arrêté) |
 | 71 | [71-win11-installation-agent.png](71-win11-installation-agent.png) | Windows 11 : installation de l'agent 4.14.9 (MSI) et `NET START Wazuh` |
 | 72 | [72-wazuh-agent-001-actif.png](72-wazuh-agent-001-actif.png) | Endpoints : agent **001 SIEM-Win11** `10.10.10.101`, Windows 11 Pro, v4.14.9, *active* |
+| 73 | [73-win11-installation-sysmon.png](73-win11-installation-sysmon.png) | Windows 11 : Sysmon v15.22 installé avec la configuration SwiftOnSecurity (schéma 4.50), `Sysmon64` et `SysmonDrv` démarrés |

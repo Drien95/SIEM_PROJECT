@@ -237,6 +237,76 @@ nc -zv -w 3 10.10.10.100 443    # Wazuh : la règle 3 bloque, attendu « timed o
 Dans Wazuh, *Threat Hunting* : `rule.id:100302 and data.srcip:10.10.20.*`. Le blocage vers
 Wazuh doit apparaître, avec l'interface ATTACK.
 
+### 2.7 SSH de l'hôte vers Kali
+
+C'est le flux optionnel « Hôte → Kali 22 » de la [matrice des flux](../architecture.md).
+
+**Le chemin.** L'hôte n'a pas de carte sur VMnet11 (choix du § 1.2). Pour joindre
+`10.10.20.0/24`, il doit donc passer par pfSense, son voisin sur VMnet10. On lui ajoute une
+**route** : « pour `10.10.20.0/24`, passe par `10.10.10.254` ». Le paquet entre dans pfSense
+par le LAN, où la règle par défaut *allow LAN to any* le laisse passer, et ressort par ATTACK
+vers Kali. La réponse de Kali revient par l'**état** de la connexion (pfSense est stateful).
+La règle ATTACK 3 (blocage vers le LAN) continue d'empêcher Kali **d'ouvrir** une connexion
+vers l'hôte : la session ne peut venir que de l'hôte.
+
+**Une adresse fixe pour Kali.** L'alias SSH a besoin d'une adresse stable. On réserve donc
+`10.10.20.10` pour la carte de Kali (MAC `00:0c:29:89:a5:00`, lue dans le `.vmx`), hors de la
+plage dynamique `.100`-`.199`. Fait en ligne de commande le 2026-10-22, avec
+[configs/pfsense/dhcp-kali.php](../../configs/pfsense/dhcp-kali.php) (sauvegarde
+`config.xml.avant-dhcp-kali`), puis vérifié dans `/var/dhcpd/etc/dhcpd.conf` :
+
+```
+host s_opt1_0 {
+	hardware ethernet 00:0c:29:89:a5:00;
+	fixed-address 10.10.20.10;
+	option host-name "siem-kali";
+}
+```
+
+**Côté hôte** :
+
+```powershell
+# PowerShell administrateur : route persistante (-p) vers le réseau d'attaque
+route -p add 10.10.20.0 mask 255.255.255.0 10.10.10.254
+```
+
+Alias ajouté au `~/.ssh/config` (sauvegarde `config.bak-kali`), avec la clé ECDSA du lab
+(writeup 03) :
+
+```
+Host siem-kali
+    HostName 10.10.20.10
+    User kali
+    IdentityFile ~/.ssh/id_ecdsa_siemlab
+    IdentitiesOnly yes
+```
+
+**Côté Kali**, dans un terminal de la VM :
+
+```bash
+passwd                                    # remplacer le mot de passe par défaut de l'image
+sudo nmcli connection up "Wired connection 1"   # renouveler le bail : 10.10.20.10 attendu
+sudo systemctl enable --now ssh           # SSH n'est pas démarré par défaut sur Kali
+```
+
+Puis, depuis l'hôte, déposer la clé (le mot de passe de Kali est demandé une dernière fois),
+tester, et interdire le mot de passe comme sur Wazuh (writeup 03, § 2.4) :
+
+```powershell
+type $env:USERPROFILE\.ssh\id_ecdsa_siemlab.pub | ssh kali@10.10.20.10 "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+ssh siem-kali
+```
+
+```bash
+sudo tee /etc/ssh/sshd_config.d/00-durcissement.conf >/dev/null <<'EOF'
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin no
+PubkeyAuthentication yes
+EOF
+sudo sshd -t && sudo systemctl reload ssh
+```
+
 ## 3. Résultats dans notre lab
 
 | Test | Attendu | Obtenu |
@@ -248,6 +318,8 @@ Wazuh doit apparaître, avec l'interface ATTACK.
 | 7 règles ATTACK chargées dans `pf` | oui | ✅ `pfctl -sr` (2026-10-22) |
 | Kali → Wazuh 443 | bloqué, alerte 100302 | à faire |
 | Kali → administration pfSense | bloqué | à faire |
+| Réservation DHCP Kali `10.10.20.10` | dans `dhcpd.conf` | ✅ |
+| `ssh siem-kali` depuis l'hôte, par clé | session sans mot de passe | à faire |
 
 Sources :
 https://docs.netgate.com/pfsense/en/latest/firewall/rule-methodology.html (ordre des règles,

@@ -169,6 +169,39 @@ dashboard. Seule 87702 s'y affiche, et elle se tait ensuite 4 minutes (`ignore="
 Le décodeur natif `pf` reconnaît la ligne par son `program_name` (`filterlog`). Il faut donc
 un en-tête syslog BSD, que Wazuh sait découper.
 
+### 2.5 Piège rencontré : pas de hostname dans le syslog BSD de pfSense 2.9
+
+Vraie ligne capturée avec `tcpdump -A` (format BSD / RFC 3164, réglage par défaut) :
+
+```
+<134>Oct 21 02:33:00 filterlog[34901]: 1,6,,1000000103,vmx0,match,block,in,4,0x0,,128,22534,0,none,1,icmp,60,192.168.30.1,192.168.30.131,request,1,16140
+```
+
+`wazuh-logtest` sur cette ligne (sans `<134>`) :
+
+```
+**Phase 1: Completed pre-decoding.
+        timestamp: 'Oct 21 02:33:00'
+        hostname: 'filterlog[34901]:'
+**Phase 2: Completed decoding.
+        No decoder matched.
+```
+
+**Cause** : un en-tête syslog BSD attend `date hostname programme:`. pfSense envoie
+`date programme[pid]:` sans hostname : le pré-décodeur prend donc le programme pour l'hôte,
+`program_name` reste vide, et le décodeur natif `pf` (qui exige `program_name` = `filterlog`)
+ne s'applique pas. Aucune règle pfSense ne se déclenche, sans aucun message d'erreur.
+
+**Leçon** : toujours tester `wazuh-logtest` avec une **vraie** ligne capturée, pas avec
+l'exemple de la documentation. Ici, l'exemple contenait un hostname et passait.
+
+Correctifs envisagés :
+
+1. pfSense en **RFC 5424** (*Log Message Format*), qui inclut toujours le hostname. Support par
+   le pré-décodeur Wazuh à valider avec logtest.
+2. À défaut : décodeur local reconnaissant le CSV `filterlog` par son contenu, et règles
+   locales (plage 100000+) qui reprennent 87701 / 87702.
+
 ## 3. Résultats dans notre lab
 
 | Test | Attendu | Obtenu |
@@ -176,7 +209,7 @@ un en-tête syslog BSD, que Wazuh sait découper.
 | `remoted` écoute en UDP 514 | ligne `wazuh-remoted` dans `ss` | ✅ OK |
 | Syslog reçu par Wazuh (`tcpdump`) | `10.10.10.254 > 10.10.10.100.syslog` | ✅ OK : `local0.info`, ~1 paquet/s pendant la rafale |
 | `wazuh-logtest` sur la ligne d'exemple | décodeur `pf`, règle 87701 | ✅ OK : `action: block`, `srcip: 192.168.30.1`, 87701 niveau 5 (logtest affiche « Alert to be generated » ; il n'applique probablement pas `no_log`, déduit) |
-| `wazuh-logtest` sur une vraie ligne pfSense 2.9 | idem | à faire |
+| `wazuh-logtest` sur une vraie ligne pfSense 2.9 (BSD) | idem | ❌ `hostname: 'filterlog[34901]:'`, « No decoder matched » (voir 2.5) |
 | Rafale `ping -n 60 -w 200` | alerte **87702** (niveau 10) | à faire |
 
 Sources : https://documentation.wazuh.com/current/user-manual/capabilities/log-data-collection/syslog.html,

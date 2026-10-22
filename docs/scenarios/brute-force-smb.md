@@ -188,7 +188,7 @@ colonne MITRE du dashboard sans la relire. Correction possible : une règle enfa
 | Mot de passe long pour les comptes locaux, ou LAPS en entreprise | rend la liste inutile | recommandation |
 | Limiter SMB entrant aux postes d'administration | réduit la surface d'attaque | recommandation |
 | Réduire NTLM au profit de Kerberos (en domaine) | supprime la voie NTLM réseau | hors lab (pas de domaine) |
-| Réponse active Wazuh sur 60204 (`netsh` sur l'agent, ou blocage sur pfSense) | bloque l'IP source dès la corrélation | à écrire et à tester |
+| Réponse active Wazuh sur 60204 (`block-ip-win` sur l'agent, 180 s) | bloque l'IP source dès la corrélation | ✅ testée le 2026-10-22 (writeup 07, § 4) |
 
 ### Règle locale proposée : succès après une rafale
 
@@ -214,6 +214,20 @@ alerte critique « mot de passe deviné ». Proposition, **non testée** (à val
 </rule>
 ```
 
+## Suite : la réponse active coupe l'attaquant (2026-10-22, 17:04 heure locale)
+
+La règle 60204 déclenche désormais une **réponse active** (`block-ip-win`, `location` local,
+`timeout` 180 s) : rejoué avec `smbclient`, le scénario a produit 8 × 60122 puis la 60204 à
+17:03:49, et l'agent a aussitôt créé la règle pare-feu `Wazuh AR block 10.10.20.10`. L'essai
+suivant de Kali a échoué en `NT_STATUS_IO_TIMEOUT` ; la règle s'est retirée seule après 180 s.
+Windows 11 a en plus verrouillé le compte `analyste` (événement 4740). Détail, captures et
+limites : [writeup 07, § 4](../writeup/07-regles-et-reponse-active.md#4-test-réel--la-réponse-active-coupe-lattaquant).
+
+> **Correction du piège ②.** Lors de ce second test, `nxc` (impacket) n'envoyait **pas**
+> l'identifiant : bannière SMB, puis `NETBIOS timed out`, et **aucun** 4625. Le rejeu a donc
+> été fait avec `smbclient`, qui produit un 4625 par essai. L'origine exacte des dix 4625 du
+> premier passage (§ 6) est à revérifier avant de réutiliser `nxc` pour ce scénario (à valider).
+
 ## 9. Captures à ajouter
 
 À déposer dans `docs/homelab/screenshots/` puis à insérer ici (aucune ne doit montrer de mot
@@ -233,3 +247,4 @@ de passe, ni la liste utilisée) :
 | Date | Cible | Règles observées | Délai de détection | Remarques |
 |---|---|---|---|---|
 | 2026-10-22 | SIEM-Win11 (001), compte `analyste`, SMB/NTLM depuis Kali 10.10.20.10 | 60122 ×10 (niv. 5), 60204 ×1 (niv. 10), 92652 ×1 (niv. 6, 02:15:46) | non mesuré (alertes visibles pendant l'exercice) | pièges : pare-feu Windows limité au sous-réseau local ; console `nxc` en timeout sur les échecs. MITRE natif de 60122 = T1531, inexact |
+| 2026-10-22 17:04 | idem, rejoué avec `smbclient`, réponse active en place | 60122 ×8, 60204 (17:03:49) → règle `Wazuh AR block 10.10.20.10` | blocage en quelques secondes après 60204 (non mesuré) | Kali coupé (`NT_STATUS_IO_TIMEOUT`), levée après 180 s, compte verrouillé (4740) ; captures 84-86 |

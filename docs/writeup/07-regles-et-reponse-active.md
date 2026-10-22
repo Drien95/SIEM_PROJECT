@@ -145,7 +145,7 @@ D'où notre script [`block-ip-win.ps1`](../../configs/agent-windows/active-respo
 
 ## 3. Mise en place
 
-### 3.1 Sur le manager (Adrien) — à faire
+### 3.1 Sur le manager (Adrien) — fait le 2026-10-22
 
 Le fichier à insérer : [`configs/manager/ossec-active-response.xml`](../../configs/manager/ossec-active-response.xml).
 Depuis l'hôte, dans le dépôt :
@@ -173,7 +173,7 @@ sudo grep -iE "error|critical" /var/ossec/logs/ossec.log | tail
 `wazuh-analysisd -t` teste la configuration sans démarrer le service : s'il signale une erreur,
 on restaure la sauvegarde (`sudo cp -p /var/ossec/etc/ossec.conf.avant-ar /var/ossec/etc/ossec.conf`).
 
-### 3.2 Sur Windows 11 (Adrien) — à faire
+### 3.2 Sur Windows 11 (Adrien) — fait le 2026-10-22
 
 Copier `block-ip-win.cmd` et `block-ip-win.ps1` sur le bureau de la VM (glisser-déposer
 VMware), puis dans un PowerShell **administrateur** :
@@ -187,7 +187,7 @@ Le dossier `active-response\bin` n'est modifiable que par un administrateur : c'
 scripts s'exécutent avec les droits de l'agent (SYSTEM). Le redémarrage de l'agent lui fait
 relire la configuration des réponses actives (à valider : il n'est peut-être pas indispensable).
 
-### 3.3 Vérifier sans attaque — à faire, à valider
+### 3.3 Vérifier sans attaque — fait le 2026-10-22
 
 On peut tester le script seul, avec une alerte fabriquée et une IP fictive du réseau ATTACK
 (PowerShell administrateur, sur Windows 11) :
@@ -204,18 +204,111 @@ Get-Content "C:\Program Files (x86)\ossec-agent\active-response\active-responses
 Attendu : la règle `Wazuh AR block 10.10.20.99` apparaît après `add`, disparaît après `delete`,
 et le journal montre les deux lignes.
 
-## 4. Résultats dans notre lab
+Obtenu (16:30 heure locale) : les deux lignes `ajout` puis `retrait` pour `10.10.20.99` sont
+dans le journal (capture 86). Les accents y sont cassés (`bloquÃ©e`) : voir § 4.4.
+
+![Journal active-responses.log après le test manuel](../homelab/screenshots/86-win11-active-responses-log.png)
+
+## 4. Test réel : la réponse active coupe l'attaquant
+
+Joué le 2026-10-22 vers 17:04 heure locale (15:04 UTC), contre le lab uniquement : Kali
+`10.10.20.10` (réseau ATTACK) attaque le compte local `analyste` de SIEM-Win11
+`10.10.10.101` (agent 001) en SMB.
+
+### 4.1 Déroulé observé
+
+| # | Où | Ce qui se passe |
+|---|---|---|
+| 1 | Kali | boucle `smbclient` : un essai toutes les 2 s, mots de passe faux (`m1` à `m10`) |
+| 2 | Windows 11 | chaque essai refusé → événement **4625** ; Kali reçoit `NT_STATUS_LOGON_FAILURE` |
+| 3 | Wazuh | **8 × 60122** (niveau 5), puis **60204** (niveau 10) à **17:03:49** : 8 échecs en 240 s depuis la même `ipAddress` |
+| 4 | manager → agent | 60204 est dans `rules_id` : le manager envoie `block-ip-win` à l'agent qui a produit l'alerte (`location` local) |
+| 5 | Windows 11 | `wazuh-execd` (compte SYSTEM) lance le script : règle entrante **`Wazuh AR block 10.10.20.10`**, action **Block** (capture 84) |
+| 6 | Kali | l'essai suivant n'obtient même plus la bannière SMB : `do_connect: Connection to 10.10.10.101 failed (Error NT_STATUS_IO_TIMEOUT)` (capture 85) |
+| 7 | Windows 11 | 180 s plus tard, `execd` relance le script avec `delete` : la règle disparaît d'elle-même |
+
+![Dashboard : 8 alertes 60122 puis 60204 niveau 10](../homelab/screenshots/87-wazuh-60122-60204-ar.png)
+
+*Capture 87, à ajouter : Threat Hunting, agent SIEM-Win11, les 60122 puis la 60204 de 17:03:49.*
+
+![Règle pare-feu Wazuh AR block 10.10.20.10 créée sur Windows 11](../homelab/screenshots/84-win11-ar-regle-blocage.png)
+
+*Capture 84 : la règle créée par la réponse active, pendant la fenêtre de 180 s.*
+
+![Kali : échecs d'authentification puis timeout une fois bloqué](../homelab/screenshots/85-kali-smbclient-io-timeout.png)
+
+*Capture 85 : côté attaquant, les refus d'authentification puis le timeout. Les mots de passe
+`m1`… sont des valeurs de test fausses.*
+
+### 4.2 Lire la preuve
+
+- **Le changement de message est la preuve que le blocage mord.** `NT_STATUS_LOGON_FAILURE`
+  veut dire « Windows a reçu et refusé l'identifiant ». `NT_STATUS_IO_TIMEOUT` veut dire « plus
+  rien ne répond » : le pare-feu jette les paquets de Kali avant même SMB. L'attaquant est coupé
+  en pleine rafale.
+- **Un essai passe encore après la 8ᵉ alerte.** Sur la capture 85, neuf refus précèdent le
+  timeout, alors que la capture du dashboard relève 8 × 60122 (écart non expliqué, à valider :
+fenêtre de recherche ou événement en cours de traitement). Entre le 8ᵉ échec et la règle pare-feu, il y a la remontée par l'agent, l'analyse, la
+  corrélation, l'ordre au retour et le lancement de PowerShell : quelques secondes pendant
+  lesquelles l'attaque continue. Une réponse active **réduit** la fenêtre, elle ne la ferme pas
+  (déduction à partir des captures ; délai exact non mesuré).
+- **Blocage ciblé et temporaire.** Seule `10.10.20.10` est bloquée, seulement sur la machine
+  attaquée, pendant 180 s : assez pour casser une devinette automatisée, sans risque de couper
+  durablement un poste légitime en cas de faux positif.
+
+### 4.3 Trois pièges traversés
+
+**① `nxc` (impacket) ne porte pas l'authentification jusqu'à ce Windows 11.** L'outil
+récupère la bannière SMB puis affiche `NETBIOS timed out` **avant** d'envoyer l'identifiant :
+aucune authentification n'atteint Windows, donc **aucun 4625**, donc rien à détecter. Avec
+`smbclient` (`smbclient -L //10.10.10.101 -U 'analyste%<mot de passe>'`), chaque essai produit
+bien `NT_STATUS_LOGON_FAILURE` et un 4625. Leçon : avant de juger une détection, vérifier que
+l'outil d'attaque produit vraiment l'action attendue ; les journaux de la cible font foi.
+
+**② Un agent arrêté est un angle mort silencieux.** Un `Restart-Service WazuhSvc` qui avait
+échoué avait laissé l'agent à l'état *Stopped*. Les 4625 s'écrivaient bien dans le journal
+Windows, mais plus rien n'arrivait à Wazuh : dashboard calme, poste aveugle. Leçon : l'absence
+de journaux est un signal en soi. Wazuh lève une alerte quand un agent se déconnecte (règles
+505/506, à valider dans le ruleset), et on vérifie avant chaque exercice :
+
+```powershell
+Get-Service WazuhSvc     # attendu : Status = Running
+```
+
+**③ Le ping vers Windows ne prouve rien.** Le pare-feu Windows refuse l'ICMP entrant par
+défaut : un ping qui échoue ne dit rien de la connectivité ni du MTU. Tester le service visé
+(ici 445/TCP) plutôt que le ping.
+
+**En plus : Windows verrouille le compte tout seul.** Pendant les essais, Windows 11 a
+verrouillé `analyste` (événement **4740**) : la stratégie de verrouillage de compte native est
+une **deuxième couche** de défense, indépendante de Wazuh. Pour rejouer l'exercice, il faut
+déverrouiller le compte, et ce 4740 mérite lui aussi d'être suivi dans Wazuh (règle à
+identifier, à valider).
+
+### 4.4 Limites à corriger
+
+| Constat | Cause probable | Correction prévue |
+|---|---|---|
+| Lancé par `execd` (SYSTEM), le script crée bien la règle mais **n'écrit pas** sa ligne dans `active-responses.log` ; lancé à la main, il l'écrit | à identifier : chemin relatif `..ctive-responses.log` résolu autrement sous SYSTEM, ou fichier tenu ouvert par l'agent au même moment (hypothèses à valider) | journaliser avec un chemin absolu et une écriture qui tolère le partage du fichier ; tracer l'erreur au lieu de la taire |
+| Accents cassés dans le journal (`bloquÃ©e`, `rÃ¨gle`) | Windows PowerShell 5.1 lit un `.ps1` sans BOM comme du Windows-1252 : les chaînes UTF-8 du script sont mal relues | réenregistrer `block-ip-win.ps1` en **UTF-8 avec BOM** |
+
+Tant que le journal de l'agent est muet, la trace fiable de la réponse est la règle pare-feu
+elle-même et, côté Wazuh, l'alerte 60204 qui l'a déclenchée.
+
+## 5. Résultats dans notre lab
 
 | Test | Attendu | Obtenu |
 |---|---|---|
 | Règles natives 60122 / 60204 relues | corrélation sur `win.eventdata.ipAddress` | ✅ (2026-10-22) |
 | Alerte 60204 sans `srcip` | IP seulement dans `win.eventdata` | ✅ (2026-10-22) |
-| `wazuh-analysisd -t` après insertion | aucune erreur | à faire |
-| Script testé seul (§ 3.3) | règle créée puis retirée | à faire |
-| 60204 déclenche le blocage | règle `Wazuh AR block <IP>` sur Windows 11 | à faire |
-| Levée automatique après 180 s | règle retirée, ligne « retrait » au journal | à faire |
+| Configuration du manager chargée | aucune erreur | ✅ la réponse s'est déclenchée (sortie de `wazuh-analysisd -t` non relevée) |
+| Script testé seul (§ 3.3) | règle créée puis retirée | ✅ 16:30, IP fictive `10.10.20.99` (capture 86) |
+| 60204 déclenche le blocage | règle `Wazuh AR block <IP>` sur Windows 11 | ✅ 60204 à 17:03:49, règle `Wazuh AR block 10.10.20.10` (capture 84) |
+| L'attaquant est coupé | plus de réponse SMB | ✅ `NT_STATUS_IO_TIMEOUT` (capture 85) |
+| Levée automatique après 180 s | règle retirée, ligne « retrait » au journal | ✅ règle retirée ; ⚠ aucune ligne au journal sous SYSTEM (§ 4.4) |
+| Accents du journal | lisibles | ❌ script à réenregistrer en UTF-8 avec BOM |
 
-## 5. Sources
+## 6. Sources
 
 - Réponse active, configuration et scripts personnalisés (protocole JSON, `check_keys`) :
   https://documentation.wazuh.com/current/user-manual/capabilities/active-response/index.html,

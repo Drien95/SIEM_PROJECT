@@ -94,3 +94,7 @@ Captures volontairement **non versionnées** (mot de passe visible) : les sortie
 | 75 | [75-pfsense-interface-attack.png](75-pfsense-interface-attack.png) | Interface ATTACK : Static IPv4 `10.10.20.254/24`, pas de passerelle amont |
 | 76 | [76-pfsense-dhcp-attack.png](76-pfsense-dhcp-attack.png) | DHCP activé sur ATTACK |
 | 77 | [77-pfsense-dhcp-attack-plage.png](77-pfsense-dhcp-attack-plage.png) | Plage DHCP ATTACK `10.10.20.100` à `.199`, DNS `10.10.20.254` |
+| 84 | [84-win11-ar-regle-blocage.png](84-win11-ar-regle-blocage.png) | Réponse active réelle : règle pare-feu **`Wazuh AR block 10.10.20.10`** (Block) créée par l'agent ; dessous, le journal du test manuel (IP fictive `10.10.20.99`) |
+| 85 | [85-kali-smbclient-io-timeout.png](85-kali-smbclient-io-timeout.png) | Kali : boucle `smbclient`, `NT_STATUS_LOGON_FAILURE` puis **`NT_STATUS_IO_TIMEOUT`** une fois l'IP bloquée |
+| 86 | [86-win11-active-responses-log.png](86-win11-active-responses-log.png) | `active-responses.log` : lignes ajout/retrait du test manuel, accents cassés (script sans BOM) |
+| 87 | *à ajouter* `87-wazuh-60122-60204-ar.png` | Dashboard : 8 × 60122 puis **60204** niveau 10 à 17:03:49, agent SIEM-Win11 |

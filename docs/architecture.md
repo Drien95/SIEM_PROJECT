@@ -72,13 +72,30 @@ de blocs contient notre fichier : `sudo grep -c '<ossec_config>' /var/ossec/etc/
 | Agent | `wazuh-agentd` | chiffre (AES) et envoie tout au manager sur 1514/TCP |
 | Agent | `wazuh-execd` | exécute les réponses actives reçues |
 | Manager | `wazuh-remoted` | reçoit les agents (1514) et le syslog (514) ; renvoie les ordres de réponse active aux agents |
+| Manager | `wazuh-authd` | enrôlement des agents (1515) : leur délivre leur clé |
 | Manager | `wazuh-analysisd` | le moteur : pré-décodage, décodage, règles ; écrit les alertes dans `alerts.json` |
 | Manager | `wazuh-integratord` | lit les alertes et appelle les intégrations (VirusTotal, Slack…) |
 | Manager | `wazuh-execd` | exécute les réponses actives `location` `server` |
 | Manager | `wazuh-modulesd` | modules côté serveur, dont la détection de vulnérabilités |
+| Manager | `wazuh-db` | bases d'état des agents (SQLite) : FIM, inventaire, SCA |
+| Manager | `wazuh-monitord` | état de connexion des agents, rotation et compression des journaux |
+| Manager | `wazuh-apid` | API REST (55000), interrogée par le dashboard |
+| Manager (optionnel) | `wazuh-clusterd`, `wazuh-maild`, `wazuh-csyslogd`, `wazuh-agentlessd`, `wazuh-dbd` | cluster (1516), e-mail, renvoi syslog, surveillance sans agent par SSH, copie vers une base SQL ; ne démarrent que s'ils sont configurés |
 | Manager | Filebeat | expédie `alerts.json` vers l'indexer (9200/TCP, TLS) |
 | Indexer | `wazuh-indexer` | stocke et indexe (OpenSearch) |
 | Dashboard | `wazuh-dashboard` | l'interface de l'analyste (443) |
+
+Le manager fait aussi tourner `wazuh-logcollector` et `wazuh-syscheckd` pour se surveiller
+lui-même. Listes vérifiées dans les scripts de contrôle de la v4.14.0 (`src/init/wazuh-server.sh`
+et `wazuh-client.sh`).
+
+**Carte complète** : tous les démons, les modules de `wazuh-modulesd` (SCA, syscollector,
+osquery, cloud, vulnérabilités…) et les capacités qu'ils portent, cochées quand le lab les a
+déjà exercées.
+
+![Carte de Wazuh : démons, modules et capacités](diagrams/carte-wazuh.png)
+
+*Source : [`carte-wazuh.html`](diagrams/carte-wazuh.html).*
 
 Sur **Windows**, la partie agent tourne dans un seul service, `WazuhSvc` (`wazuh-agent.exe`), qui
 regroupe collecte, FIM, SCA et réponse active ; sur Linux ce sont des démons séparés. Un agent
@@ -119,6 +136,9 @@ sudo /var/ossec/bin/wazuh-analysisd -t && sudo systemctl restart wazuh-manager
 Sources : https://documentation.wazuh.com/current/user-manual/reference/ossec-conf/index.html,
 https://documentation.wazuh.com/current/user-manual/reference/daemons/index.html,
 https://documentation.wazuh.com/current/user-manual/reference/daemons/wazuh-analysisd.html,
+https://github.com/wazuh/wazuh/blob/v4.14.0/src/init/wazuh-server.sh et
+https://github.com/wazuh/wazuh/blob/v4.14.0/src/init/wazuh-client.sh (listes des démons),
+https://github.com/wazuh/wazuh/tree/v4.14.0/src/wazuh_modules (modules),
 https://documentation.wazuh.com/current/user-manual/capabilities/vulnerability-detection/index.html,
 https://documentation.wazuh.com/current/user-manual/capabilities/malware-detection/virus-total-integration.html,
 ruleset v4.14.0 `0490-virustotal_rules.xml` (règle 87105).

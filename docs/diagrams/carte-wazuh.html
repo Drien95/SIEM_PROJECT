@@ -1,0 +1,216 @@
+<title>Carte de Wazuh</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Même famille visuelle que demons-wazuh.html, mais exhaustive : tous les démons de Wazuh 4.14 (agent, manager, stockage) et les capacités qu'ils portent, exercées ou non dans le lab. */
+:root {
+  --bg: #f3f5f8;
+  --canvas: #ffffff;
+  --fg: #1c2633;
+  --muted: #5a6778;
+  --line: #d5dbe3;
+  --row: #f6f8fa;
+  --agent: #c2569f;
+  --agent-bg: #fbf0f7;
+  --mgr: #3b6fd0;
+  --mgr-bg: #edf2fc;
+  --store: #0f7f86;
+  --store-bg: #e7f5f6;
+  --ok: #1f8a4c;
+  --plan: #7d8591;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+    --agent: #e07bbf; --agent-bg: #2a1a26; --mgr: #7fa6f0; --mgr-bg: #19213a; --store: #4fc9cf; --store-bg: #15282a;
+    --ok: #4fcf83; --plan: #9aa3ae; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+  --agent: #e07bbf; --agent-bg: #2a1a26; --mgr: #7fa6f0; --mgr-bg: #19213a; --store: #4fc9cf; --store-bg: #15282a;
+  --ok: #4fcf83; --plan: #9aa3ae; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 72ch; color: var(--muted); }
+figure { margin: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 980px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 12px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .ztitle { font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+svg .sm { font-size: 12px; }
+.arrow { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+footer { color: var(--muted); font-size: 13px; }
+code { font-family: var(--font-mono); font-size: .9em; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14 · carte complète</span>
+    <h1>Tout ce que Wazuh sait faire, démon par démon</h1>
+    <p>Les démons de l'agent et du manager, les modules qu'ils portent, et les capacités qui en découlent. Une coche verte marque ce qu'on a déjà exercé dans le lab ; le reste est la suite du parcours (voir la roadmap).</p>
+  </header>
+
+  <figure id="carte">
+    <svg viewBox="0 0 1400 1060" role="img" aria-labelledby="svg-title">
+      <title id="svg-title">Carte de Wazuh 4.14 : démons de l'agent (agentd, logcollector, syscheckd, modulesd, execd), démons du manager (remoted, authd, analysisd, integratord, execd, modulesd, wazuh-db, monitord, apid, clusterd, maild, csyslogd, agentlessd, dbd), stockage (Filebeat, indexer, dashboard) et capacités exercées ou non dans le lab</title>
+      <defs id="defs"></defs>
+      <g id="g"></g>
+    </svg>
+  </figure>
+
+  <footer>Listes des démons : scripts de contrôle <code>wazuh-server.sh</code> et <code>wazuh-client.sh</code> de la version v4.14.0 (dépôt <code>wazuh/wazuh</code>, <code>src/init/</code>) ; modules : <code>src/wazuh_modules/</code>. Les démons « optionnels » ne démarrent que s'ils sont configurés. Détail et sources : <code>docs/architecture.md</code>.</footer>
+</div>
+
+<script>
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const T = (x, y, s, cls = "", extra = "") => `<text x="${x}" y="${y}"${cls ? ` class="${cls}"` : ""} ${extra}>${esc(s)}</text>`;
+document.getElementById("defs").innerHTML = ["--agent", "--mgr", "--store"].map(c =>
+  `<marker id="m${c}" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(${c})"/></marker>`).join("");
+
+const o = [];
+const check = (x, y) => {
+  o.push(`<circle cx="${x}" cy="${y}" r="9" style="fill: var(--ok)"/>`);
+  o.push(`<path d="M${x - 4} ${y} L${x - 1} ${y + 3} L${x + 4.5} ${y - 3.5}" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`);
+};
+/* tuile de démon : nom, rôle (1 ou 2 lignes), used = exercé dans le lab, opt = optionnel */
+const tile = (x, y, w, h, c, bg, d) => {
+  o.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" style="fill: var(${bg}); stroke: var(${c})" stroke-width="1.6"${d.opt ? ' stroke-dasharray="6 4"' : ""}/>`);
+  o.push(T(x + 12, y + 21, d.n, "b mono", `style="font-size: 12.5px; fill: var(${c})"`));
+  if (d.opt) o.push(T(x + w - 12, y + 21, "optionnel", "sm muted", `text-anchor="end"`));
+  [].concat(d.r).forEach((l, i) => o.push(T(x + 12, y + 40 + i * 16, l, "sm")));
+  if (d.used) check(x + w - 16, y + h - 16);
+};
+
+// ===== zones =====
+o.push(`<rect x="20" y="20" width="440" height="720" rx="10" style="fill: none; stroke: var(--agent)" stroke-width="1.6" stroke-dasharray="9 6"/>`);
+o.push(T(38, 46, "AGENT · un par poste", "ztitle", `style="fill: var(--agent)"`));
+o.push(T(38, 64, "Windows : un seul service, WazuhSvc (wazuh-agent.exe)", "sm muted"));
+o.push(`<rect x="500" y="20" width="620" height="720" rx="10" style="fill: none; stroke: var(--mgr)" stroke-width="1.6" stroke-dasharray="9 6"/>`);
+o.push(T(518, 46, "MANAGER · le serveur Wazuh", "ztitle", `style="fill: var(--mgr)"`));
+o.push(T(518, 64, "Linux : un processus par démon (wazuh-control status)", "sm muted"));
+o.push(T(1160, 46, "STOCKER ET CONSULTER", "ztitle", `style="fill: var(--store)"`));
+
+// ===== agent =====
+const A = [
+  { n: "wazuh-agentd", r: ["lien chiffré (AES) avec le manager,", "1514/TCP ; s'enrôle sur 1515"], used: 1 },
+  { n: "wazuh-logcollector", r: ["journaux : fichiers, Windows Event", "Channel (Sysmon), sorties de commandes"], used: 1 },
+  { n: "wazuh-syscheckd", r: ["FIM : intégrité des fichiers et du", "registre ; rootcheck : anomalies, rootkits"], used: 1 },
+  { n: "wazuh-execd", r: ["exécute les réponses actives", "(block-ip-win dans le lab)"], used: 1 }
+];
+A.forEach((d, i) => tile(40, 80 + i * 84, 400, 72, "--agent", "--agent-bg", d));
+// modulesd agent : grand bloc avec puces
+o.push(`<rect x="40" y="420" width="400" height="300" rx="6" style="fill: var(--agent-bg); stroke: var(--agent)" stroke-width="1.6"/>`);
+o.push(T(52, 441, "wazuh-modulesd", "b mono", `style="font-size: 12.5px; fill: var(--agent)"`));
+o.push(T(52, 460, "les modules (« wodles ») de l'agent", "sm"));
+const MA = [
+  ["sca", "audit de configuration (CIS)"], ["syscollector", "inventaire : paquets, ports, processus"],
+  ["osquery", "requêtes SQL sur le système"], ["ciscat", "évaluations CIS-CAT"],
+  ["command", "commandes périodiques"], ["docker-listener", "événements Docker"],
+  ["aws-s3 · azure · gcp", "cloud (plutôt sur le manager)"]
+];
+MA.forEach((m, i) => {
+  const y = 478 + i * 33;
+  o.push(`<rect x="52" y="${y}" width="376" height="27" rx="4" style="fill: var(--canvas); stroke: var(--line)"/>`);
+  o.push(T(62, y + 18, m[0], "mono b", `style="font-size: 11.5px"`));
+  o.push(T(418, y + 18, m[1], "sm muted", `text-anchor="end"`));
+});
+
+// ===== manager =====
+const M = [
+  { n: "wazuh-remoted", r: ["reçoit agents (1514) et syslog (514),", "renvoie les ordres de réponse active"], used: 1 },
+  { n: "wazuh-analysisd", r: ["décodeurs, règles, corrélation ;", "écrit les alertes (alerts.json)"], used: 1 },
+  { n: "wazuh-authd", r: ["enrôlement des agents (1515),", "délivre les clés"], used: 1 },
+  { n: "wazuh-integratord", r: ["intégrations : VirusTotal, Slack,", "PagerDuty, Shuffle, scripts"], used: 1, opt: 1 },
+  { n: "wazuh-execd", r: ["réponses actives côté serveur", "(location server)"] },
+  { n: "wazuh-db", r: ["bases d'état des agents (SQLite) :", "FIM, inventaire, SCA"] },
+  { n: "wazuh-monitord", r: ["état de connexion des agents,", "rotation et compression des journaux"] },
+  { n: "wazuh-apid", r: ["API REST (55000) : utilisée par", "le dashboard"], used: 1 },
+  { n: "wazuh-clusterd", r: ["cluster master / workers", "(1516)"], opt: 1 },
+  { n: "wazuh-maild", r: ["alertes par e-mail"], opt: 1 },
+  { n: "wazuh-csyslogd", r: ["renvoie les alertes en syslog", "vers un autre outil"], opt: 1 },
+  { n: "wazuh-agentlessd", r: ["surveille sans agent (SSH) :", "routeurs, équipements"], opt: 1 },
+  { n: "wazuh-dbd", r: ["copie les alertes dans", "MySQL / PostgreSQL"], opt: 1 }
+];
+M.forEach((d, i) => {
+  const col = i % 2, row = Math.floor(i / 2);
+  tile(520 + col * 296, 80 + row * 84, 284, 72, "--mgr", "--mgr-bg", d);
+});
+// modulesd manager
+o.push(`<rect x="816" y="584" width="284" height="140" rx="6" style="fill: var(--mgr-bg); stroke: var(--mgr)" stroke-width="1.6"/>`);
+o.push(T(828, 605, "wazuh-modulesd", "b mono", `style="font-size: 12.5px; fill: var(--mgr)"`));
+["vulnerability-scanner : CVE (CTI)", "office365 · github · ms-graph", "aws · azure · gcp (cloud)", "database (synchronisation), fluent"].forEach((l, i) =>
+  o.push(T(828, 627 + i * 22, l, "sm")));
+["Le manager fait aussi tourner", "logcollector et syscheckd", "pour se surveiller lui-même."].forEach((l, i) => o.push(T(530, 686 + i * 16, l, "sm muted")));
+
+// ===== stockage =====
+const S = [
+  { n: "Filebeat", r: ["expédie alerts.json", "vers l'indexer (TLS)"], used: 1 },
+  { n: "wazuh-indexer", r: ["OpenSearch, 9200/TCP :", "alertes, événements, états"], used: 1 },
+  { n: "wazuh-dashboard", r: ["interface web 443 :", "l'écran de l'analyste"], used: 1 }
+];
+S.forEach((d, i) => tile(1160, 80 + i * 120, 220, 72, "--store", "--store-bg", d));
+o.push(`<path class="arrow" d="M1270 152 V194" style="stroke: var(--store)" marker-end="url(#m--store)"/>`);
+o.push(`<path class="arrow" d="M1270 272 V314" style="stroke: var(--store)" marker-end="url(#m--store)"/>`);
+
+// flèches inter-zones
+o.push(`<path class="arrow" d="M440 116 H514" style="stroke: var(--agent)" marker-end="url(#m--agent)"/>`);
+o.push(T(466, 108, "1514", "mono b", `style="font-size: 11px; fill: var(--agent)"`));
+o.push(`<path class="arrow" d="M440 132 Q478 132 478 170 V200 H514" style="stroke: var(--agent)" stroke-dasharray="5 4" marker-end="url(#m--agent)"/>`);
+o.push(T(466, 192, "1515", "mono b", `style="font-size: 11px; fill: var(--agent)"`));
+o.push(`<path class="arrow" d="M1100 116 H1154" style="stroke: var(--store)" marker-end="url(#m--store)"/>`);
+
+// légende démons
+o.push(`<rect x="1160" y="420" width="220" height="110" rx="6" style="fill: var(--row); stroke: var(--line)"/>`);
+o.push(T(1174, 442, "LÉGENDE", "ztitle muted"));
+check(1184, 464); o.push(T(1200, 468, "exercé dans le lab", "sm"));
+o.push(`<rect x="1174" y="482" width="20" height="14" rx="3" style="fill: none; stroke: var(--mgr)" stroke-width="1.6" stroke-dasharray="5 3"/>`);
+o.push(T(1200, 494, "optionnel (si configuré)", "sm"));
+o.push(T(1174, 518, "trait plein : démarre toujours", "sm muted"));
+
+// ===== capacités =====
+const cy = 760;
+o.push(`<rect x="20" y="${cy}" width="1360" height="290" rx="10" style="fill: var(--row); stroke: var(--line)"/>`);
+o.push(T(40, cy + 28, "LES CAPACITÉS, ET QUI LES PORTE", "ztitle muted"));
+const C = [
+  ["Analyse de journaux, décodage, règles", "logcollector → analysisd", "scénarios 1 à 3", 1],
+  ["Corrélation, détection de scan", "analysisd", "scénarios 1 et 2", 1],
+  ["FIM, intégrité des fichiers", "syscheckd", "scénario 3", 1],
+  ["Threat intel : VirusTotal", "integratord", "scénario 3", 1],
+  ["Réponse active", "execd (agent)", "scénario 1", 1],
+  ["Conformité : PCI DSS, GDPR, HIPAA, NIST", "étiquettes des règles", "étiquettes vues", 0],
+  ["SCA, audit CIS", "modulesd · sca", "à venir", 0],
+  ["Détection de vulnérabilités", "modulesd · vulnerability-scanner", "à venir", 0],
+  ["Inventaire matériel et logiciel", "modulesd · syscollector", "à venir", 0],
+  ["Rootkits et anomalies", "syscheckd · rootcheck", "à venir", 0],
+  ["Sécurité cloud et SaaS", "modulesd · cloud", "hors lab", 0],
+  ["osquery", "modulesd · osquery", "à venir", 0],
+  ["Alertes e-mail, sortie syslog", "maild, csyslogd", "à venir", 0],
+  ["Surveillance sans agent", "agentlessd", "à venir", 0]
+];
+C.forEach((c, i) => {
+  const col = i % 2, row = Math.floor(i / 2);
+  const x = 40 + col * 670, y = cy + 48 + row * 33;
+  if (c[3]) check(x + 9, y + 9);
+  else o.push(`<circle cx="${x + 9}" cy="${y + 9}" r="8" style="fill: none; stroke: var(--plan)" stroke-width="1.8" stroke-dasharray="3 2.5"/>`);
+  o.push(T(x + 26, y + 14, c[0], c[3] ? "b" : "", c[3] ? "" : `style="fill: var(--muted)"`));
+  o.push(T(x + 320, y + 14, c[1], "mono", `style="font-size: 11px"`));
+  o.push(T(x + 650, y + 14, c[2], "sm muted", `text-anchor="end"`));
+});
+
+document.getElementById("g").innerHTML = o.join("");
+</script>

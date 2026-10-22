@@ -99,3 +99,5 @@ Captures volontairement **non versionnées** (mot de passe visible) : les sortie
 | 86 | [86-win11-active-responses-log.png](86-win11-active-responses-log.png) | `active-responses.log` : lignes ajout/retrait du test manuel, accents cassés (script sans BOM) |
 | 87 | *à ajouter* `87-wazuh-60122-60204-ar.png` | Dashboard : 8 × 60122 puis **60204** niveau 10 à 17:03:49, agent SIEM-Win11 |
 | 88 | [88-wazuh-100400-succes-apres-rafale.png](88-wazuh-100400-succes-apres-rafale.png) | Threat Hunting `rule.id:100400` : **1 hit niveau 12**, SIEM-Win11, « connexion réussie de labtest depuis 10.10.20.10 juste après une rafale d'échecs » (20:48:02) |
+| 89 | [89-wazuh-100302-rafale-scan.png](89-wazuh-100302-rafale-scan.png) | Scan nmap : rafale de **100302** `pfSense : paquet bloqué 10.10.20.10 -> 10.10.10.100 (tcp) sur em0`, niveau 5 (21:00:46) |
+| 90 | [90-wazuh-100303-scan-probable.png](90-wazuh-100303-scan-probable.png) | **100303** niveau 10 : « blocages répétés depuis 10.10.20.10 (scan probable) » (21:00:45) |

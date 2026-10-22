@@ -26,9 +26,10 @@ simulation d'attaques.
 | [docs/writeup/05-segment-attaque-kali.md](docs/writeup/05-segment-attaque-kali.md) | Réseau d'attaque VMnet11 pour Kali, interface ATTACK et règles pfSense |
 | [docs/writeup/06-scenario-brute-force-smb.md](docs/writeup/06-scenario-brute-force-smb.md) | Premier scénario de détection : brute force SMB sur Windows 11, deux pièges de préparation, alertes 60122, 60204 et 92652 |
 | [docs/writeup/07-regles-et-reponse-active.md](docs/writeup/07-regles-et-reponse-active.md) | Cours : décodeurs, règles et corrélation (60122, 60204), ajouter une règle, puis réponse active qui bloque l'IP source sur Windows 11 |
+| [docs/writeup/08-scenario-scan-nmap.md](docs/writeup/08-scenario-scan-nmap.md) | Deuxième scénario : scan nmap repéré par pfSense (100302, 100303), pièges `-Pn` et cible autorisée |
 | [docs/writeup/annexe-simulateur-paquets.md](docs/writeup/annexe-simulateur-paquets.md) | Annexe : simulateur de paquets façon Packet Tracer (ARP, DHCP, NAT, syslog, agent, SSH, Kali), avec vidéos |
 | [docs/integrations/](docs/integrations/) | Un guide par intégration : Windows/Sysmon, FIM, VirusTotal, Suricata, pfSense |
-| [docs/scenarios/](docs/scenarios/) | Scénarios d'attaque et détection (brute force SSH/RDP attendu, [brute force SMB joué et observé](docs/scenarios/brute-force-smb.md)), avec un [modèle de fiche et de planche](docs/scenarios/modele-scenario.md) |
+| [docs/scenarios/](docs/scenarios/) | Scénarios d'attaque et détection (brute force SSH/RDP attendu, [brute force SMB joué et observé](docs/scenarios/brute-force-smb.md), [scan nmap joué et observé](docs/scenarios/scan-nmap.md)), avec un [modèle de fiche et de planche](docs/scenarios/modele-scenario.md) |
 | [configs/](configs/) | Configurations d'exemple : règles locales, syslog, VirusTotal, agent Windows, Suricata |
 | [docs/lab-marxgoo.md](docs/lab-marxgoo.md) | Notes de lecture des PDF du lab marxgoo, avec les erreurs corrigées |
 | [CLAUDE.md](CLAUDE.md) | Objectif, conventions et règles de contribution (humains et Claude) |

@@ -45,7 +45,7 @@ consigner (alerte, `rule.id`, niveau, capture).
 | 2 | Modification de fichiers surveillés | Manuel | Alertes FIM (niveaux 5 et 7 selon UsmanPrime) | T1565 (déduit) |
 | 3 | Fichier malveillant de test | EICAR | Alerte Defender et/ou VirusTotal | T1204 (déduit) |
 | 4 | Exécution de processus | `powershell.exe` | Règle personnalisée Sysmon niveau 8 | T1059.001 |
-| 5 | Trafic réseau suspect | Scan nmap depuis Kali | Alerte Suricata / pfSense | T1046 (déduit) |
+| 5 | [Scan de ports nmap](scenarios/scan-nmap.md) — **joué le 2026-10-22** | `nmap -sS -Pn` depuis Kali vers Wazuh | Observé : 100302 en rafale (niv. 5), 100303 ×1 (niv. 10) ; Suricata à venir | T1046 |
 
 « Déduit » : correspondance MITRE établie par nous, absente des sources.
 

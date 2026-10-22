@@ -12,6 +12,9 @@ https://documentation.wazuh.com/current/proof-of-concept-guide/detect-brute-forc
 *Planche faite avec le [modèle de scénario](modele-scenario.md). Les règles sont celles attendues
 d'après la documentation et le PDF marxgoo, à confirmer quand le scénario sera joué.*
 
+> **Variante jouée** : le brute force **SMB** contre Windows 11 a été joué le 2026-10-22, avec
+> les règles 60122 et 60204 observées. Voir [brute-force-smb.md](brute-force-smb.md).
+
 ## Familles d'attaque
 
 Simple (toutes les combinaisons), dictionnaire, hybride (dictionnaire + variantes),
@@ -72,4 +75,4 @@ Champs utiles d'une alerte 4625 (relevés dans le PDF) :
 
 | Date | Cible | Règles observées | Délai de détection | Remarques |
 |---|---|---|---|---|
-| à remplir | | | | |
+| 2026-10-22 | Windows 11, **SMB** (pas SSH/RDP) | 60122 ×10, 60204 ×1, 92652 | non mesuré | détail dans [brute-force-smb.md](brute-force-smb.md) ; SSH/RDP restent à jouer |

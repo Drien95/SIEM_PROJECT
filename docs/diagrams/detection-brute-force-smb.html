@@ -1,0 +1,328 @@
+<title>Détection brute force SMB</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Même planche « Packet Tracer » que regles-attack.html : le chemin de l'attaque, la chaîne de règles dans Wazuh, puis la frise des alertes vue par l'analyste. */
+:root {
+  --bg: #f3f5f8;
+  --canvas: #ffffff;
+  --fg: #1c2633;
+  --muted: #5a6778;
+  --line: #d5dbe3;
+  --row: #f6f8fa;
+  --kali: #3b6fd0;
+  --kali-bg: #edf2fc;
+  --lan: #2c8a4b;
+  --lan-bg: #ecf7ef;
+  --fail: #d23c3c;
+  --fail-bg: #fbeaea;
+  --corr: #9b1c31;
+  --succ: #c77d0a;
+  --succ-bg: #fdf3e2;
+  --log: #7445c9;
+  --alert: #0f7f86;
+  --warn: #b7791f;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+    --kali: #7fa6f0; --kali-bg: #19213a; --lan: #5cc27d; --lan-bg: #17271d;
+    --fail: #ff6b6b; --fail-bg: #2c1a1c; --corr: #ff8fa3; --succ: #f0a73a; --succ-bg: #2a2119;
+    --log: #a98bf0; --alert: #4fc9cf; --warn: #e8b53a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+  --kali: #7fa6f0; --kali-bg: #19213a; --lan: #5cc27d; --lan-bg: #17271d;
+  --fail: #ff6b6b; --fail-bg: #2c1a1c; --corr: #ff8fa3; --succ: #f0a73a; --succ-bg: #2a2119;
+  --log: #a98bf0; --alert: #4fc9cf; --warn: #e8b53a; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 72ch; color: var(--muted); }
+figure { margin: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 980px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 12px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .ztitle { font-size: 13px; font-weight: 700; letter-spacing: .06em; }
+svg .sm { font-size: 12px; }
+.arrow { fill: none; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.box { fill: var(--row); stroke: var(--line); stroke-width: 1.2; }
+.axis { stroke: var(--line); stroke-width: 1.4; }
+.cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.card { display: grid; gap: 6px; align-content: start; padding: 14px 16px; background: var(--canvas); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 4px; min-width: 0; }
+.card h2 { margin: 0; font-size: 15px; }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
+code { font-family: var(--font-mono); font-size: .9em; color: var(--fg); }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14.9 · scénario joué le 2026-10-22</span>
+    <h1>Détection d'un brute force SMB sur Windows 11</h1>
+    <p>Kali devine le mot de passe du compte <code>analyste</code> en SMB. Chaque essai raté laisse un événement 4625 dans le journal Security de Windows. L'agent l'envoie à Wazuh, qui lève une alerte par échec, puis une alerte de corrélation, puis l'alerte du succès. Les règles et les niveaux ci-dessous sont ceux observés dans le dashboard.</p>
+  </header>
+
+  <figure id="detection">
+    <svg viewBox="0 0 1400 1010" role="img" aria-labelledby="svg-title">
+      <title id="svg-title">Flux de détection du brute force SMB : Kali, pfSense, Windows 11, agent Wazuh, manager, puis les alertes 60122, 60204 et 92652 dans l'ordre observé</title>
+      <defs>
+        <marker id="m-kali" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--kali)"/></marker>
+        <marker id="m-log" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--log)"/></marker>
+        <marker id="m-alert" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--alert)"/></marker>
+        <marker id="m-muted" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--muted)"/></marker>
+        <symbol id="i-firewall" viewBox="-55 -45 110 90" overflow="visible">
+          <polygon points="-44,-22 -30,-36 50,-36 36,-22" fill="#e46b55"/>
+          <polygon points="36,-22 50,-36 50,26 36,40" fill="#7d2417"/>
+          <rect x="-44" y="-22" width="80" height="62" fill="#b8392a"/>
+          <g stroke="#f4c9bf" stroke-width="1.6">
+            <path d="M-44 -6 H36 M-44 10 H36 M-44 25 H36"/>
+            <path d="M-24 -22 V-6 M4 -22 V-6 M-38 -6 V10 M-10 -6 V10 M18 -6 V10 M-24 10 V25 M4 10 V25 M-38 25 V40 M-10 25 V40 M18 25 V40"/>
+          </g>
+        </symbol>
+        <symbol id="i-server" viewBox="-35 -50 70 100" overflow="visible">
+          <polygon points="-24,-34 -12,-46 30,-46 18,-34" fill="#9aa9bd"/>
+          <polygon points="18,-34 30,-46 30,34 18,46" fill="#3e4b5c"/>
+          <rect x="-24" y="-34" width="42" height="80" fill="#64748a"/>
+          <g fill="#2a3442"><rect x="-18" y="-26" width="30" height="7"/><rect x="-18" y="-15" width="30" height="7"/><rect x="-18" y="-4" width="30" height="7"/></g>
+          <circle cx="-12" cy="30" r="3" fill="#57e389"/><circle cx="-2" cy="30" r="3" fill="#f5c542"/>
+        </symbol>
+        <symbol id="i-pc" viewBox="-40 -40 80 80" overflow="visible">
+          <rect x="-32" y="-32" width="64" height="44" rx="3" fill="#33414f"/>
+          <rect x="-27" y="-27" width="54" height="34" fill="#8cc4f0"/>
+          <rect x="-5" y="12" width="10" height="9" fill="#5b6876"/>
+          <rect x="-20" y="21" width="40" height="5" rx="2" fill="#33414f"/>
+          <rect x="-30" y="29" width="60" height="7" rx="2" fill="#a6b2bf"/>
+        </symbol>
+        <symbol id="i-kali" viewBox="-40 -40 80 80" overflow="visible">
+          <rect x="-32" y="-32" width="64" height="44" rx="3" fill="#33414f"/>
+          <rect x="-27" y="-27" width="54" height="34" fill="#1d2b3a"/>
+          <path d="M-18 0 C-8 -18 10 -20 18 -8 M6 -12 L14 -2" stroke="#4fa3f7" stroke-width="2.4" fill="none"/>
+          <rect x="-5" y="12" width="10" height="9" fill="#5b6876"/>
+          <rect x="-20" y="21" width="40" height="5" rx="2" fill="#33414f"/>
+          <rect x="-30" y="29" width="60" height="7" rx="2" fill="#a6b2bf"/>
+        </symbol>
+        <symbol id="i-warn" viewBox="-12 -12 24 24" overflow="visible">
+          <path d="M0 -10 L10 8 H-10 Z" style="fill: var(--warn)"/>
+          <path d="M0 -3 V3" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="0" cy="6" r="1.3" fill="#fff"/>
+        </symbol>
+      </defs>
+
+      <text x="30" y="40" class="b" style="font-size: 18px">Scénario · brute force SMB contre Windows 11</text>
+      <text x="1370" y="40" text-anchor="end" class="muted mono">docs/scenarios/brute-force-smb.md</text>
+
+      <!-- ===== A. Le chemin de l'attaque et de la collecte ===== -->
+      <rect x="30" y="60" width="1340" height="250" rx="10" style="fill: var(--row); stroke: var(--line)" stroke-width="1.4"/>
+      <text x="48" y="84" class="ztitle muted">LE CHEMIN : DE L'ATTAQUANT À L'ANALYSTE</text>
+
+      <!-- flèches -->
+      <path class="arrow" d="M155 150 H280" style="stroke: var(--kali)" marker-end="url(#m-kali)"/>
+      <text x="160" y="124" class="b sm" style="fill: var(--kali)">SMB 445/TCP</text>
+      <text x="160" y="140" class="mono" style="font-size: 11px; fill: var(--kali)">NTLM · logonType 3</text>
+      <text x="160" y="172" class="sm" style="fill: var(--kali)">10 échecs, 1 succès</text>
+
+      <path class="arrow" d="M378 150 H545" style="stroke: var(--kali)" marker-end="url(#m-kali)"/>
+      <text x="390" y="124" class="b sm" style="fill: var(--kali)">routé, sans NAT</text>
+      <text x="390" y="140" class="sm" style="fill: var(--kali)">règle 2 d'ATTACK : passe</text>
+      <text x="390" y="172" class="sm muted">source vue : 10.10.20.10</text>
+
+      <path class="arrow" d="M650 150 H835" style="stroke: var(--log)" marker-end="url(#m-log)"/>
+      <text x="662" y="124" class="b sm" style="fill: var(--log)">agent 1514/TCP</text>
+      <text x="662" y="140" class="sm" style="fill: var(--log)">journal Security (eventchannel)</text>
+      <text x="662" y="172" class="mono" style="font-size: 11px; fill: var(--log)">4625 ×10 · 4624</text>
+
+      <path class="arrow" d="M925 150 H1065" style="stroke: var(--alert)" marker-end="url(#m-alert)"/>
+      <text x="937" y="124" class="b sm" style="fill: var(--alert)">alertes</text>
+      <text x="937" y="140" class="sm" style="fill: var(--alert)">indexer → dashboard</text>
+
+      <!-- icônes -->
+      <use href="#i-kali" x="70" y="110" width="80" height="80"/>
+      <use href="#i-firewall" x="290" y="117" width="80" height="66"/>
+      <use href="#i-pc" x="560" y="110" width="80" height="80"/>
+      <use href="#i-server" x="845" y="100" width="70" height="100"/>
+      <use href="#i-pc" x="1075" y="110" width="80" height="80"/>
+
+      <!-- étiquettes -->
+      <text x="110" y="210" text-anchor="middle" class="b">Kali Linux</text>
+      <text x="110" y="226" text-anchor="middle" class="mono">10.10.20.10</text>
+      <text x="110" y="242" text-anchor="middle" class="sm muted">attaquant · nxc smb</text>
+      <text x="330" y="210" text-anchor="middle" class="b">pfSense</text>
+      <text x="330" y="226" text-anchor="middle" class="mono">em0 → LAN</text>
+      <text x="330" y="242" text-anchor="middle" class="sm muted">ATTACK → Windows 11</text>
+      <text x="600" y="210" text-anchor="middle" class="b">SIEM-Win11</text>
+      <text x="600" y="226" text-anchor="middle" class="mono">10.10.10.101</text>
+      <text x="600" y="242" text-anchor="middle" class="sm muted">cible · compte analyste · agent 001</text>
+      <text x="880" y="210" text-anchor="middle" class="b">Wazuh 4.14.9</text>
+      <text x="880" y="226" text-anchor="middle" class="mono">10.10.10.100</text>
+      <text x="880" y="242" text-anchor="middle" class="sm muted">décodage · règles · corrélation</text>
+      <text x="1115" y="210" text-anchor="middle" class="b">Analyste</text>
+      <text x="1115" y="226" text-anchor="middle" class="mono">dashboard 443</text>
+      <text x="1115" y="242" text-anchor="middle" class="sm muted">hôte 10.10.10.1</text>
+
+      <!-- bilan -->
+      <rect x="1200" y="96" width="155" height="156" rx="6" style="fill: var(--canvas); stroke: var(--line)" stroke-width="1.2"/>
+      <text x="1214" y="118" class="ztitle muted" style="font-size: 12px">BILAN</text>
+      <text x="1214" y="146" class="mono b" style="fill: var(--fail)">10 × 60122</text>
+      <text x="1214" y="162" class="sm muted">échecs · niv. 5</text>
+      <text x="1214" y="188" class="mono b" style="fill: var(--corr)">1 × 60204</text>
+      <text x="1214" y="204" class="sm muted">corrélation · niv. 10</text>
+      <text x="1214" y="230" class="mono b" style="fill: var(--succ)">1 × 92652</text>
+      <text x="1214" y="246" class="sm muted">succès · niv. 6</text>
+
+      <!-- pièges de préparation -->
+      <use href="#i-warn" x="48" y="262" width="20" height="20"/>
+      <text x="76" y="276" class="b sm">Piège ② console de l'attaquant</text>
+      <text x="76" y="293" class="sm muted">nxc affiche « NETBIOS timed out » sur les échecs : les journaux de la cible font foi.</text>
+      <use href="#i-warn" x="640" y="262" width="20" height="20"/>
+      <text x="668" y="276" class="b sm">Piège ① pare-feu Windows</text>
+      <text x="668" y="293" class="sm muted">SMB n'est ouvert qu'au sous-réseau local : sans règle entrante 10.10.20.0/24, aucun 4625.</text>
+
+      <!-- ===== B. La chaîne de règles dans Wazuh ===== -->
+      <text x="30" y="346" class="ztitle muted">DANS WAZUH : D'UN ÉVÉNEMENT 4625 À L'ALERTE DE CORRÉLATION</text>
+      <g id="chain"></g>
+
+      <!-- ===== C. La frise des alertes ===== -->
+      <text x="30" y="566" class="ztitle muted">CE QUE VOIT L'ANALYSTE · ORDRE OBSERVÉ, ÉCHELLE NON TEMPORELLE</text>
+      <g id="timeline"></g>
+
+      <!-- ===== D. MITRE ATT&CK ===== -->
+      <g id="mitre"></g>
+    </svg>
+  </figure>
+
+  <div class="cards">
+    <section class="card" style="--c: var(--warn)">
+      <h2>① Sans accès réseau, rien à détecter</h2>
+      <p>Le pare-feu Windows limite par défaut le partage de fichiers (SMB 445) au <strong>sous-réseau local</strong>. Kali étant sur <code>10.10.20.0/24</code>, ses paquets étaient jetés sans bruit : pas d'authentification, donc pas de 4625. Il a fallu une règle entrante autorisant <code>10.10.20.0/24</code>. Un silence dans le SIEM peut vouloir dire « rien n'est arrivé jusqu'à la cible ».</p>
+    </section>
+    <section class="card" style="--c: var(--kali)">
+      <h2>② La console de l'attaquant ment</h2>
+      <p>nxc n'a affiché que le succès et des « Connection Error / NETBIOS timed out » pour les échecs. Pourtant Wazuh a reçu 10 événements 4625 : chaque tentative a bien été authentifiée par Windows. Un timeout côté outil ne veut pas dire « pas de tentative ». La source de vérité, ce sont les journaux défensifs.</p>
+    </section>
+    <section class="card" style="--c: var(--fail)">
+      <h2>Lire un 4625</h2>
+      <p><code>subStatus 0xC000006A</code> : le compte existe, le mot de passe est faux. <code>0xC0000064</code> voudrait dire « utilisateur inconnu ». Ici l'analyste apprend que l'attaquant visait un compte réel. <code>logonType 3</code> = ouverture réseau (SMB), pas une session au clavier.</p>
+    </section>
+    <section class="card" style="--c: var(--succ)">
+      <h2>Le signal qui compte : le succès après la rafale</h2>
+      <p>60204 dit « quelqu'un essaie ». 92652 juste après, pour le même compte, dit « il a réussi ». C'est cette suite qui fait passer d'une tentative à une <strong>compromission</strong>. Wazuh ne relie pas les deux d'office : une règle locale peut le faire (proposition dans la fiche, à valider).</p>
+    </section>
+    <section class="card" style="--c: var(--muted)">
+      <h2>MITRE : une étiquette à corriger</h2>
+      <p>L'attaque est un <strong>T1110 Brute Force</strong> (Credential Access). La règle 60204 le dit. La règle 60122, elle, porte nativement <strong>T1531</strong> (Account Access Removal, tactique Impact) : l'étiquette ne décrit pas ce qui se passe. À ne pas recopier telle quelle dans un rapport.</p>
+    </section>
+  </div>
+
+  <footer>Règles 60122 et 60204 : ruleset Wazuh v4.14.0, <code>0580-win-security_rules.xml</code> (<code>$MS_FREQ</code> = 8, <code>timeframe</code> 240 s, même <code>win.eventdata.ipAddress</code>). Règle 92652 : description relevée dans le dashboard, fichier du ruleset à identifier. Comptes et niveaux observés dans le lab ; seule l'heure du succès (02:15:46) est reportée.</footer>
+</div>
+
+<script>
+const NS = "http://www.w3.org/2000/svg";
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const T = (x, y, s, cls = "", extra = "") => `<text x="${x}" y="${y}"${cls ? ` class="${cls}"` : ""} ${extra}>${esc(s)}</text>`;
+
+/* B. chaîne de règles : cinq étapes, de gauche à droite */
+const CHAIN = [
+  { t: "Événement 4625", c: "--fg", l: [["sm muted", "journal Security de Windows"], ["mono", "logonType 3 · NTLM"], ["mono", "subStatus 0xC000006A"], ["mono", "ipAddress : IP de Kali"]] },
+  { t: "Agent → manager", c: "--log", l: [["sm muted", "canal eventchannel, en JSON"], ["sm muted", "décodé en champs :"], ["mono", "win.system.eventID"], ["mono", "win.eventdata.*"]] },
+  { t: "Règles parentes", c: "--muted", l: [["mono", "60001 → 60104 → 60105"], ["sm muted", "audit failure, logon failure"], ["sm muted", "la règle enfant la plus"], ["sm muted", "précise donne l'alerte"]] },
+  { t: "60122 · niveau 5", c: "--fail", l: [["sm", "Logon Failure - Unknown"], ["sm", "user or bad password"], ["sm b", "une alerte par essai : ×10"], ["mono", "MITRE intégré : T1531 ⚠"]] },
+  { t: "60204 · niveau 10", c: "--corr", l: [["sm", "Multiple Windows Logon Failures"], ["mono", "8 échecs en 240 s"], ["mono", "même ipAddress source"], ["mono", "MITRE : T1110"]] }
+];
+(function () {
+  const o = [], w = 250, gap = 22, y = 362, h = 150;
+  CHAIN.forEach((s, i) => {
+    const x = 30 + i * (w + gap);
+    o.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" style="fill: var(--canvas); stroke: var(${s.c})" stroke-width="${i >= 3 ? 2.2 : 1.4}"/>`);
+    o.push(`<rect x="${x}" y="${y}" width="${w}" height="5" rx="2" style="fill: var(${s.c})"/>`);
+    o.push(T(x + 16, y + 32, s.t, "b", `style="font-size: 15px; fill: var(${s.c === "--muted" ? "--fg" : s.c})"`));
+    s.l.forEach((l, j) => o.push(T(x + 16, y + 60 + j * 22, l[1], l[0])));
+    if (i < CHAIN.length - 1) o.push(`<path class="arrow" d="M${x + w + 3} ${y + h / 2} H${x + w + gap - 4}" style="stroke: var(--muted)" stroke-width="2" marker-end="url(#m-muted)"/>`);
+  });
+  o.push(T(1092, 532, "corrélation : une seule alerte pour la rafale", "sm muted", `text-anchor="end"`));
+  o.push(`<path d="M1100 528 H1180 V514" fill="none" style="stroke: var(--corr)" stroke-width="1.4" stroke-dasharray="4 3"/>`);
+  document.getElementById("chain").innerHTML = o.join("");
+})();
+
+/* C. frise : une ligne par règle, positions schématiques */
+(function () {
+  const o = [], x0 = 290, x1 = 1360;
+  const LANES = [
+    { y: 616, r: "bruit de fond", d: "92652 ANONYMOUS LOGON · 60106 niv. 3", c: "--muted" },
+    { y: 680, r: "60122 · niv. 5", d: "échec : 4625", c: "--fail" },
+    { y: 744, r: "60204 · niv. 10", d: "corrélation : brute force", c: "--corr" },
+    { y: 808, r: "92652 · niv. 6", d: "succès réseau NTLM : 4624", c: "--succ" }
+  ];
+  LANES.forEach(L => {
+    o.push(`<path class="axis" d="M${x0} ${L.y} H${x1}"/>`);
+    o.push(T(30, L.y - 3, L.r, "b mono", `style="fill: var(${L.c})"`));
+    o.push(T(30, L.y + 14, L.d, "sm muted"));
+  });
+  // bruit : sondages anonymes de nxc au début, ouvertures normales ici et là
+  [[320, "A"], [352, "A"], [1180, "N"], [1290, "N"]].forEach(([x, k]) =>
+    o.push(`<circle cx="${x}" cy="616" r="${k === "A" ? 7 : 5}" style="fill: var(--canvas); stroke: var(--muted)" stroke-width="2"/>`));
+  o.push(T(370, 604, "sondage nxc : ANONYMOUS LOGON", "sm muted"));
+  o.push(T(1180, 604, "60106 : ouvertures normales", "sm muted"));
+  // 10 échecs
+  const xs = Array.from({ length: 10 }, (_, i) => 420 + i * 52);
+  xs.forEach((x, i) => {
+    o.push(`<rect x="${x - 9}" y="671" width="18" height="18" rx="3" style="fill: var(--fail)"/>`);
+    o.push(`<text x="${x}" y="684" text-anchor="middle" class="mono b" style="font-size: 10px; fill: #fff">${i + 1}</text>`);
+  });
+  o.push(`<path d="M${xs[0] - 9} 662 V656 H${xs[9] + 9} V662" fill="none" style="stroke: var(--fail)" stroke-width="1.4"/>`);
+  o.push(T((xs[0] + xs[9]) / 2, 650, "rafale depuis 10.10.20.10 sur le compte analyste · subStatus 0xC000006A", "sm", `text-anchor="middle" style="fill: var(--fail)"`));
+  // corrélation
+  const xc = xs[9] + 46;
+  o.push(`<path d="M${xc} 690 V730" style="stroke: var(--corr)" stroke-width="1.4" stroke-dasharray="3 3"/>`);
+  o.push(`<polygon points="${xc},728 ${xc + 16},744 ${xc},760 ${xc - 16},744" style="fill: var(--corr)"/>`);
+  o.push(T(xc + 26, 740, "seuil franchi : 1 alerte", "sm b", `style="fill: var(--corr)"`));
+  o.push(T(xc + 26, 756, "(8 échecs, même source)", "sm muted"));
+  // succès
+  const xs2 = xc + 70;
+  o.push(`<circle cx="${xs2}" cy="808" r="12" style="fill: var(--succ)"/>`);
+  o.push(`<path d="M${xs2 - 5} 808 L${xs2 - 1} 812 L${xs2 + 6} 803" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`);
+  o.push(T(xs2 + 22, 803, "02:15:46 · User: \\analyste · NTLM", "mono b", `style="fill: var(--succ)"`));
+  o.push(T(xs2 + 22, 820, "« possible pass-the-hash » : ici, le mot de passe trouvé", "sm muted"));
+  // axe du temps
+  o.push(`<path d="M${x0} 852 H${x1}" class="arrow" style="stroke: var(--muted)" stroke-width="1.6" marker-end="url(#m-muted)"/>`);
+  o.push(T(x1 - 4, 870, "temps", "sm muted", `text-anchor="end"`));
+  o.push(T(x0, 870, "début du scénario", "sm muted"));
+  document.getElementById("timeline").innerHTML = o.join("");
+})();
+
+/* D. MITRE */
+(function () {
+  const o = [];
+  o.push(`<rect x="30" y="894" width="1340" height="96" rx="6" class="box"/>`);
+  o.push(T(48, 920, "MITRE ATT&CK", "ztitle muted"));
+  const chips = [
+    ["T1110", "Brute Force", "Credential Access · 60204", "--corr"],
+    ["T1110.001", "Password Guessing", "sous-technique, déduite", "--fail"],
+    ["T1078", "Valid Accounts", "le succès (92652) · déduit", "--succ"],
+    ["T1531 ⚠", "Account Access Removal", "étiquette native de 60122, inexacte ici", "--muted"]
+  ];
+  chips.forEach((c, i) => {
+    const x = 48 + i * 330;
+    o.push(`<rect x="${x}" y="934" width="${c[0].length * 8 + 22}" height="24" rx="12" style="fill: var(--canvas); stroke: var(${c[3]})" stroke-width="1.8"/>`);
+    o.push(T(x + 11, 951, c[0], "mono b", `style="fill: var(${c[3]})"`));
+    o.push(T(x + c[0].length * 8 + 32, 951, c[1], "b sm"));
+    o.push(T(x, 978, c[2], "sm muted"));
+  });
+  document.getElementById("mitre").innerHTML = o.join("");
+})();
+</script>

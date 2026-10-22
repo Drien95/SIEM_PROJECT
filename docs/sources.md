@@ -56,6 +56,18 @@ Utilisées par l'[annexe simulateur](writeup/annexe-simulateur-paquets.md) :
 - Enrôlement des agents Wazuh :
   https://documentation.wazuh.com/current/user-manual/agent/agent-enrollment/index.html
 
+## Scénario brute force SMB
+
+Utilisées par la [fiche brute force SMB](scenarios/brute-force-smb.md) et le
+[writeup 06](writeup/06-scenario-brute-force-smb.md) :
+
+- Événement 4625, champs `status` / `subStatus` (0xC000006A, 0xC0000064) :
+  https://learn.microsoft.com/en-us/windows/security/threat-protection/auditing/event-4625
+- Règles 60105, 60122, 60204 et variable `MS_FREQ` (ruleset v4.14.0) :
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0580-win-security_rules.xml
+- MITRE ATT&CK T1110 (Brute Force) et T1531 (Account Access Removal) :
+  https://attack.mitre.org/techniques/T1110/, https://attack.mitre.org/techniques/T1531/
+
 ## À explorer
 
 - Guide de preuve de concept Wazuh, pour des scénarios officiels reproductibles.

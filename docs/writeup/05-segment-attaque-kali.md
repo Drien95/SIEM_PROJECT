@@ -329,7 +329,7 @@ sudo sshd -t && sudo systemctl reload ssh
 | VMnet11 créé, sans carte hôte ni DHCP | oui | à faire |
 | pfSense ATTACK `10.10.20.254` | interface active, DHCP `.100`-`.199` | ✅ (captures 74-77) |
 | Kali reçoit `10.10.20.1xx`, passerelle `.254` | oui | à faire |
-| Kali → Windows 11 | autorisé, journalisé | à faire |
+| Kali → Windows 11 | autorisé, journalisé | ✅ SMB 445 joint Windows 11 à travers pfSense ([writeup 06](06-scenario-brute-force-smb.md)) ; journal pfSense à valider |
 | 7 règles ATTACK chargées dans `pf` | oui | ✅ `pfctl -sr` (2026-10-22) |
 | Kali → Wazuh 443 | bloqué, alerte 100302 | à faire |
 | Kali → administration pfSense | bloqué | à faire |

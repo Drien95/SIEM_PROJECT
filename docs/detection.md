@@ -41,6 +41,7 @@ consigner (alerte, `rule.id`, niveau, capture).
 | # | Scénario | Outil | Détection attendue | MITRE ATT&CK |
 |---|---|---|---|---|
 | 1 | [Brute force SSH / RDP](scenarios/brute-force.md) | Hydra depuis Kali | Linux sshd : règles 5551, 5712 ; Windows RDP : 60122, 60204 (Event ID 4625) ; réponse active | T1110 (déduit) |
+| 1 bis | [Brute force SMB sur Windows 11](scenarios/brute-force-smb.md) — **joué le 2026-10-22** | `nxc smb` depuis Kali (10.10.20.10) | Observé : 60122 ×10 (niv. 5), 60204 ×1 (niv. 10), 92652 au succès (niv. 6) | T1110, T1110.001 (déduit) |
 | 2 | Modification de fichiers surveillés | Manuel | Alertes FIM (niveaux 5 et 7 selon UsmanPrime) | T1565 (déduit) |
 | 3 | Fichier malveillant de test | EICAR | Alerte Defender et/ou VirusTotal | T1204 (déduit) |
 | 4 | Exécution de processus | `powershell.exe` | Règle personnalisée Sysmon niveau 8 | T1059.001 |

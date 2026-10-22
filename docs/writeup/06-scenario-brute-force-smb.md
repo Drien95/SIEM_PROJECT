@@ -74,6 +74,12 @@ et refusé.
 
 **À retenir.** Les journaux de la cible font foi, pas l'écran de l'attaquant.
 
+> **Mise à jour du 2026-10-22 (après-midi).** Au rejeu, `nxc` n'envoyait plus du tout
+> l'identifiant : bannière SMB puis `NETBIOS timed out`, et **aucun** 4625. Les tests suivants
+> ont été faits avec `smbclient`, qui produit un 4625 par essai
+> ([writeup 07, § 4.3](07-regles-et-reponse-active.md)). L'origine exacte des dix 4625 de ce
+> premier passage est à revérifier (à valider).
+
 ## 4. Ce que l'analyste en tire
 
 - Partir de la **60204** (niveau 10), puis ouvrir les 60122 pour le détail.

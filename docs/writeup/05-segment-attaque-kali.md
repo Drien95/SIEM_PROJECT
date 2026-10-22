@@ -108,7 +108,7 @@ paquets un par un, avec les en-têtes, voir le scénario « Kali face aux règle
 
 ## 2. Mise en œuvre
 
-### 2.1 Créer VMnet11 (à faire)
+### 2.1 Créer VMnet11
 
 *Edit > Virtual Network Editor > Change Settings* (droits administrateur), *Add Network…*
 → **VMnet11** :
@@ -122,7 +122,7 @@ paquets un par un, avec les en-têtes, voir le scénario « Kali face aux règle
 Constaté le 2026-10-21 : VMnet11 existe dans le registre de VMware sans configuration (pas
 de carte associée). Il faut donc bien le créer dans l'éditeur.
 
-### 2.2 Ajouter la 3ᵉ carte à pfSense (à faire)
+### 2.2 Ajouter la 3ᵉ carte à pfSense
 
 pfSense **éteint** (*Shut Down*, pas *Suspend*) : *VM > Settings > Add… > Network Adapter*,
 *Custom* : **VMnet11**. Démarrer pfSense.
@@ -224,7 +224,7 @@ s'applique (d'où l'importance de l'ordre) ; `log` = journalisé, donc envoyé �
 autorisent le DHCP sur l'interface. Retour arrière : restaurer `config.xml.avant-attack` ou
 une version de *Config History*.
 
-### 2.5 Kali (à faire)
+### 2.5 Kali
 
 - Image : la **machine virtuelle VMware** officielle, sur https://www.kali.org/get-kali/
   (section *Virtual Machines*). Vérifier le **SHA256** affiché sur la page avant
@@ -238,7 +238,7 @@ une version de *Config History*.
 - Premier démarrage : changer le mot de passe par défaut (`passwd`). Il ne va jamais dans
   git.
 
-### 2.6 Vérifier (à faire)
+### 2.6 Vérifier
 
 Dans Kali :
 
@@ -326,15 +326,15 @@ sudo sshd -t && sudo systemctl reload ssh
 
 | Test | Attendu | Obtenu |
 |---|---|---|
-| VMnet11 créé, sans carte hôte ni DHCP | oui | à faire |
+| VMnet11 créé, sans carte hôte ni DHCP | oui | ✅ Kali y fonctionne, scénarios joués (writeups 06 à 08) |
 | pfSense ATTACK `10.10.20.254` | interface active, DHCP `.100`-`.199` | ✅ (captures 74-77) |
-| Kali reçoit `10.10.20.1xx`, passerelle `.254` | oui | à faire |
+| Kali reçoit son adresse, passerelle `.254` | oui | ✅ réservation `10.10.20.10` |
 | Kali → Windows 11 | autorisé, journalisé | ✅ SMB 445 joint Windows 11 à travers pfSense ([writeup 06](06-scenario-brute-force-smb.md)) ; journal pfSense à valider |
 | 7 règles ATTACK chargées dans `pf` | oui | ✅ `pfctl -sr` (2026-10-22) |
-| Kali → Wazuh 443 | bloqué, alerte 100302 | à faire |
+| Kali → Wazuh | bloqué, alerte 100302 | ✅ scan des ports 1-200 bloqué, 100302 puis 100303 ([writeup 08](08-scenario-scan-nmap.md)) |
 | Kali → administration pfSense | bloqué | à faire |
 | Réservation DHCP Kali `10.10.20.10` | dans `dhcpd.conf` | ✅ |
-| `ssh siem-kali` depuis l'hôte, par clé | session sans mot de passe | à faire |
+| `ssh siem-kali` depuis l'hôte, par clé | session sans mot de passe | ✅ (2026-10-22) |
 
 Sources :
 https://docs.netgate.com/pfsense/en/latest/firewall/rule-methodology.html (ordre des règles,

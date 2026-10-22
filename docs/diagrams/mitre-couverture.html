@@ -1,0 +1,130 @@
+<title>Couverture MITRE ATT&amp;CK</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Même famille visuelle que regles-attack.html : une colonne par tactique ATT&CK, une tuile par technique, la couleur dit où on en est. */
+:root {
+  --bg: #f3f5f8;
+  --canvas: #ffffff;
+  --fg: #1c2633;
+  --muted: #5a6778;
+  --line: #d5dbe3;
+  --row: #f6f8fa;
+  --ok: #1f8a4c;
+  --ok-bg: #e8f5ed;
+  --rule: #3b6fd0;
+  --rule-bg: #edf2fc;
+  --plan: #7d8591;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+    --ok: #4fcf83; --ok-bg: #16281d; --rule: #7fa6f0; --rule-bg: #19213a; --plan: #9aa3ae; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+  --ok: #4fcf83; --ok-bg: #16281d; --rule: #7fa6f0; --rule-bg: #19213a; --plan: #9aa3ae; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 72ch; color: var(--muted); }
+figure { margin: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 980px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 12px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .ztitle { font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+svg .sm { font-size: 12px; }
+footer { color: var(--muted); font-size: 13px; }
+code { font-family: var(--font-mono); font-size: .9em; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14.9 · état au 2026-10-22</span>
+    <h1>Couverture MITRE ATT&amp;CK du lab</h1>
+    <p>Une colonne par tactique, dans l'ordre d'une attaque. Vert : détection prouvée par un scénario joué. Bleu : règle en place et vue en action, pas encore dans un scénario d'attaque. Gris : prévu dans la roadmap.</p>
+  </header>
+
+  <figure id="mitre">
+    <svg viewBox="0 0 1400 640" role="img" aria-labelledby="svg-title">
+      <title id="svg-title">Couverture MITRE ATT&amp;CK du lab Wazuh : techniques détectées, règles en place et techniques prévues, par tactique</title>
+      <g id="grid"></g>
+    </svg>
+  </figure>
+
+  <footer>Correspondances MITRE : celles des règles (natives ou locales) quand elles sont justes, sinon les nôtres, marquées « déduit » dans les fiches. La règle native 60122 porte T1531, inexact pour un échec de connexion : on la classe sous T1110. Détail : <code>docs/mitre.md</code>.</footer>
+</div>
+
+<script>
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const T = (x, y, s, cls = "", extra = "") => `<text x="${x}" y="${y}"${cls ? ` class="${cls}"` : ""} ${extra}>${esc(s)}</text>`;
+
+/* s : ok = scénario joué, rule = règle en place, plan = prévu */
+const TACTICS = [
+  { id: "TA0001", n: "Accès initial", t: [
+    { id: "T1078", n: "Valid Accounts", r: "100400 · 92652", sc: "scénario 1", s: "ok" } ] },
+  { id: "TA0002", n: "Exécution", t: [
+    { id: "T1059.001", n: "PowerShell", r: "100100 (Sysmon)", sc: "writeup 04", s: "rule" },
+    { id: "T1204.002", n: "Malicious File", r: "FIM + VirusTotal", sc: "scénario 3", s: "plan" } ] },
+  { id: "TA0003", n: "Persistance", t: [
+    { id: "T1547.001", n: "Run Keys", r: "Sysmon EID 13", sc: "scénario 5", s: "plan" },
+    { id: "T1053.005", n: "Scheduled Task", r: "Sysmon, 4698", sc: "scénario 5", s: "plan" } ] },
+  { id: "TA0006", n: "Accès aux identifiants", t: [
+    { id: "T1110", n: "Brute Force", r: "60204 · réponse active", sc: "scénario 1", s: "ok" },
+    { id: "T1110.001", n: "Password Guessing", r: "60122 (×N)", sc: "scénario 1", s: "ok" },
+    { id: "T1003.001", n: "LSASS Memory", r: "Sysmon EID 10", sc: "scénario 5", s: "plan" } ] },
+  { id: "TA0007", n: "Découverte", t: [
+    { id: "T1046", n: "Network Service Discovery", r: "100302 → 100303", sc: "scénario 2", s: "ok" } ] },
+  { id: "TA0011", n: "Commande et contrôle", t: [
+    { id: "T1105", n: "Ingress Tool Transfer", r: "FIM + VirusTotal", sc: "scénario 3", s: "plan" },
+    { id: "T1071", n: "Application Layer Protocol", r: "Suricata", sc: "scénario 4", s: "plan" } ] }
+];
+const ST = { ok: ["--ok", "--ok-bg", "détecté (scénario joué)"], rule: ["--rule", "--rule-bg", "règle en place"], plan: ["--plan", "--canvas", "prévu"] };
+
+(function () {
+  const o = [], x0 = 30, colW = 213, gap = 10, top = 70, tileH = 112;
+  o.push(T(30, 40, "Techniques couvertes, par tactique", "b", `style="font-size: 18px"`));
+  // légende
+  let lx = 1370;
+  ["plan", "rule", "ok"].forEach(k => {
+    const w = ST[k][2].length * 6.6 + 34; lx -= w;
+    o.push(`<rect x="${lx}" y="28" width="16" height="16" rx="3" style="fill: var(${ST[k][1]}); stroke: var(${ST[k][0]})" stroke-width="2"${k === "plan" ? ' stroke-dasharray="4 3"' : ""}/>`);
+    o.push(T(lx + 22, 41, ST[k][2], "sm"));
+  });
+  TACTICS.forEach((c, i) => {
+    const x = x0 + i * (colW + gap);
+    o.push(`<rect x="${x}" y="${top}" width="${colW}" height="54" rx="6" style="fill: var(--row); stroke: var(--line)"/>`);
+    o.push(T(x + 12, top + 22, c.n, "b"));
+    o.push(T(x + 12, top + 40, c.id, "mono muted"));
+    c.t.forEach((t, j) => {
+      const y = top + 66 + j * (tileH + 10), [col, bg] = ST[t.s];
+      o.push(`<rect x="${x}" y="${y}" width="${colW}" height="${tileH}" rx="6" style="fill: var(${bg}); stroke: var(${col})" stroke-width="${t.s === "plan" ? 1.6 : 2}"${t.s === "plan" ? ' stroke-dasharray="6 4"' : ""}/>`);
+      o.push(T(x + 12, y + 24, t.id, "mono b", `style="font-size: 14px; fill: var(${col})"`));
+      o.push(T(x + 12, y + 44, t.n, "b sm"));
+      o.push(T(x + 12, y + 72, t.r, "mono", `style="font-size: 11.5px"`));
+      o.push(T(x + 12, y + 94, t.sc, "sm muted"));
+    });
+  });
+  // bandeau bas : chaîne d'un incident joué
+  const by = 540;
+  o.push(`<rect x="30" y="${by}" width="1340" height="80" rx="6" style="fill: var(--row); stroke: var(--line)"/>`);
+  o.push(T(48, by + 26, "LE SCÉNARIO 1 SUR LA MATRICE", "ztitle muted"));
+  o.push(T(48, by + 52, "T1110.001 (60122 ×N) → T1110 (60204, blocage 180 s) → T1078 (100400 niveau 12 : le succès après la rafale = compte compromis)", "sm"));
+  o.push(T(48, by + 70, "Scénario 2, séparé : T1046 (100302 → 100303), vu par pfSense et non par un agent.", "sm muted"));
+  document.getElementById("grid").innerHTML = o.join("");
+})();
+</script>

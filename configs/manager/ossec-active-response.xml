@@ -1,0 +1,20 @@
+<!--
+  Active Response du lab : extrait à insérer dans <ossec_config> de /var/ossec/etc/ossec.conf
+  (manager Wazuh 4.14.9). Writeup 07.
+
+  Quand la règle native 60204 (échecs de connexion Windows répétés) se déclenche, le manager
+  demande à l'agent qui l'a remontée (location local) d'exécuter block-ip-win.cmd : l'IP source
+  est bloquée dans le pare-feu Windows pendant 180 s, puis débloquée automatiquement.
+-->
+<command>
+  <name>block-ip-win</name>
+  <executable>block-ip-win.cmd</executable>
+  <timeout_allowed>yes</timeout_allowed>
+</command>
+
+<active-response>
+  <command>block-ip-win</command>
+  <location>local</location>
+  <rules_id>60204</rules_id>
+  <timeout>180</timeout>
+</active-response>

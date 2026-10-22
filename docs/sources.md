@@ -68,6 +68,17 @@ Utilisées par la [fiche brute force SMB](scenarios/brute-force-smb.md) et le
 - MITRE ATT&CK T1110 (Brute Force) et T1531 (Account Access Removal) :
   https://attack.mitre.org/techniques/T1110/, https://attack.mitre.org/techniques/T1531/
 
+## Règles et réponse active
+
+Utilisées par le [writeup 07](writeup/07-regles-et-reponse-active.md) :
+
+- Réponse active : https://documentation.wazuh.com/current/user-manual/capabilities/active-response/index.html,
+  https://documentation.wazuh.com/current/user-manual/capabilities/active-response/custom-active-response-scripts.html,
+  https://documentation.wazuh.com/current/user-manual/reference/ossec-conf/active-response.html
+- Syntaxe des règles : https://documentation.wazuh.com/current/user-manual/ruleset/ruleset-xml-syntax/rules.html
+- `wazuh-logtest` : https://documentation.wazuh.com/current/user-manual/reference/tools/wazuh-logtest.html
+- `New-NetFirewallRule` : https://learn.microsoft.com/powershell/module/netsecurity/new-netfirewallrule
+
 ## À explorer
 
 - Guide de preuve de concept Wazuh, pour des scénarios officiels reproductibles.

@@ -1,0 +1,221 @@
+<title>Règle et réponse active</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Même charte que pipeline-wazuh.html : détection (ligne du haut) puis réponse (ligne du bas). */
+:root {
+  --bg: #f3f5f8; --canvas: #ffffff; --fg: #1c2633; --muted: #5a6778; --line: #d5dbe3; --cable: #27313d;
+  --det: #2f6fb7; --det-bg: #e8f1fb; --rule: #7445c9; --rule-bg: #f1ebfc;
+  --resp: #b5541a; --resp-bg: #fdf0e6; --ok: #2c8a4b; --ok-bg: #ecf7ef; --ko: #d23c3c;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --cable: #c9d3de;
+    --det: #7fb3ef; --det-bg: #172536; --rule: #a98bf0; --rule-bg: #221a33;
+    --resp: #ee9a5c; --resp-bg: #2c1f15; --ok: #5cc27d; --ok-bg: #17271d; --ko: #ff6b6b; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --cable: #c9d3de;
+  --det: #7fb3ef; --det-bg: #172536; --rule: #a98bf0; --rule-bg: #221a33;
+  --resp: #ee9a5c; --resp-bg: #2c1f15; --ok: #5cc27d; --ok-bg: #17271d; --ko: #ff6b6b; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px; margin: 0;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 70ch; color: var(--muted); }
+figure { margin: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 980px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 12.5px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .small { font-size: 11.5px; }
+svg .ztitle { font-size: 14px; font-weight: 700; letter-spacing: .06em; }
+svg .det { fill: var(--det-bg); stroke: var(--det); stroke-width: 1.8; }
+svg .rule { fill: var(--rule-bg); stroke: var(--rule); stroke-width: 1.8; }
+svg .resp { fill: var(--resp-bg); stroke: var(--resp); stroke-width: 1.8; }
+svg .okb { fill: var(--ok-bg); stroke: var(--ok); stroke-width: 1.8; }
+svg .frame { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 5 5; }
+svg .arrow { stroke: var(--cable); stroke-width: 2.2; fill: none; }
+svg .arrow.r { stroke: var(--resp); }
+svg .t-det { fill: var(--det) !important; } svg .t-rule { fill: var(--rule) !important; }
+svg .t-resp { fill: var(--resp) !important; } svg .t-ok { fill: var(--ok) !important; } svg .t-ko { fill: var(--ko) !important; }
+.badge circle { stroke: var(--canvas); stroke-width: 2; }
+.badge text { fill: #fff; font-weight: 700; font-size: 12px; text-anchor: middle; dominant-baseline: central; }
+.cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); margin: 0; padding: 0; list-style: none; }
+.cards li { display: grid; gap: 6px; align-content: start; padding: 14px 16px; background: var(--canvas); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 4px; min-width: 0; }
+.cards h2 { margin: 0; font-size: 15px; }
+.cards p { margin: 0; color: var(--muted); font-size: 14px; }
+pre { margin: 0; padding: 10px 12px; background: var(--bg); border-radius: 4px; overflow-x: auto; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.5; }
+code { font-family: var(--font-mono); font-size: .9em; }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14.9 · comprendre</span>
+    <h1>De la règle à la mesure : la réponse active</h1>
+    <p>En haut, la détection : un échec de connexion Windows devient une alerte 60204 quand il se répète. En bas, la réponse : le manager demande à l'agent qui a vu l'alerte de bloquer l'IP source dans le pare-feu Windows, puis de la débloquer 180 s plus tard.</p>
+  </header>
+  <figure id="schema">
+<svg viewBox="0 0 1400 760" role="img" aria-labelledby="svg-title"><title id="svg-title">Chaîne détection puis réponse active pour la règle 60204 dans le lab</title>
+<defs>
+<marker id="m" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--cable)"/></marker>
+<marker id="mr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(--resp)"/></marker>
+</defs>
+
+<text x="30" y="44" class="ztitle t-det">1 · DÉTECTION</text>
+<text x="1370" y="44" class="muted mono" text-anchor="end">agent SIEM-Win11 10.10.10.101 → manager 10.10.10.100</text>
+
+<!-- Ligne du haut : détection -->
+<rect x="30" y="80" width="240" height="210" rx="8" class="det"/>
+<g class="badge" transform="translate(50 102)"><circle r="11" style="fill: var(--det)"/><text>1</text></g>
+<text x="70" y="107" class="b">Windows 11</text>
+<text x="46" y="140">Une connexion échoue :</text>
+<text x="46" y="160" class="mono">EventID 4625</text>
+<text x="46" y="180" class="muted small">canal Security</text>
+<text x="46" y="212" class="small">L'IP de la machine distante</text>
+<text x="46" y="230" class="small">est notée dans l'événement :</text>
+<text x="46" y="250" class="mono small t-det">IpAddress</text>
+
+<rect x="320" y="80" width="240" height="210" rx="8" class="det"/>
+<g class="badge" transform="translate(340 102)"><circle r="11" style="fill: var(--det)"/><text>2</text></g>
+<text x="360" y="107" class="b">Agent Wazuh</text>
+<text x="336" y="140" class="small">lit le canal en</text>
+<text x="336" y="158" class="mono small">log_format eventchannel</text>
+<text x="336" y="190" class="small">l'envoie au manager,</text>
+<text x="336" y="208" class="small">chiffré, en</text>
+<text x="336" y="226" class="mono small">TCP 1514</text>
+<text x="336" y="258" class="muted small">(wazuh-agent, service WazuhSvc)</text>
+
+<rect x="610" y="80" width="270" height="210" rx="8" class="det"/>
+<g class="badge" transform="translate(630 102)"><circle r="11" style="fill: var(--det)"/><text>3</text></g>
+<text x="650" y="107" class="b">analysisd : décodage</text>
+<text x="626" y="140" class="small">Le décodeur natif</text>
+<text x="626" y="158" class="mono small">windows_eventchannel</text>
+<text x="626" y="176" class="small">transforme le JSON en champs :</text>
+<text x="626" y="206" class="mono small">win.system.eventID = 4625</text>
+<text x="626" y="226" class="mono small t-det">win.eventdata.ipAddress</text>
+<text x="626" y="244" class="mono small t-det">  = IP de la source</text>
+<text x="626" y="272" class="muted small">mais data.srcip reste vide</text>
+
+<rect x="930" y="70" width="440" height="230" rx="8" class="frame"/>
+<g class="badge" transform="translate(950 92)"><circle r="11" style="fill: var(--rule)"/><text>4</text></g>
+<text x="970" y="97" class="b">analysisd : règles (arbre)</text>
+<rect x="950" y="112" width="400" height="44" rx="6" class="rule"/>
+<text x="966" y="132" class="mono small b">60105</text><text x="1020" y="132" class="small">parent des événements du canal Security</text>
+<text x="966" y="148" class="muted small">niveau bas, pas d'alerte seule (à valider)</text>
+<rect x="950" y="168" width="400" height="44" rx="6" class="rule"/>
+<text x="966" y="188" class="mono small b">60122</text><text x="1020" y="188" class="small">niveau 5 · if_sid 60105 + eventID 4625</text>
+<text x="966" y="204" class="muted small">groupe authentication_failed : un échec</text>
+<rect x="950" y="224" width="400" height="62" rx="6" class="rule" style="stroke-width: 2.6"/>
+<text x="966" y="244" class="mono small b">60204</text><text x="1020" y="244" class="small b">niveau 10 · corrélation</text>
+<text x="966" y="262" class="small">8 échecs (frequency) en 240 s (timeframe)</text>
+<text x="966" y="278" class="small">même <tspan class="mono t-rule">win.eventdata.ipAddress</tspan> (same_field)</text>
+
+<path class="arrow" d="M270 185 H314" marker-end="url(#m)"/>
+<path class="arrow" d="M560 185 H604" marker-end="url(#m)"/>
+<path class="arrow" d="M880 185 H924" marker-end="url(#m)"/>
+<path class="arrow" d="M1008 156 V166" marker-end="url(#m)"/>
+<path class="arrow" d="M1008 212 V222" marker-end="url(#m)"/>
+
+<!-- Passage détection vers réponse -->
+<path class="arrow r" d="M1150 300 V372" marker-end="url(#mr)"/>
+<text x="1162" y="342" class="small t-resp">alerte niveau 10</text>
+
+<text x="30" y="360" class="ztitle t-resp">2 · RÉPONSE ACTIVE</text>
+
+<!-- Ligne du bas : réponse, de droite à gauche -->
+<rect x="1030" y="380" width="340" height="200" rx="8" class="resp"/>
+<g class="badge" transform="translate(1050 402)"><circle r="11" style="fill: var(--resp)"/><text>5</text></g>
+<text x="1070" y="407" class="b">Manager : &lt;active-response&gt;</text>
+<text x="1046" y="438" class="mono small">rules_id   60204</text>
+<text x="1046" y="456" class="mono small">command    block-ip-win</text>
+<text x="1046" y="474" class="mono small">location   local</text>
+<text x="1046" y="492" class="mono small">timeout    180</text>
+<text x="1046" y="522" class="small">« local » : c'est l'agent qui a</text>
+<text x="1046" y="540" class="small">remonté l'alerte qui exécute.</text>
+<text x="1046" y="562" class="muted small">L'alerte entière part avec l'ordre.</text>
+
+<rect x="690" y="380" width="290" height="200" rx="8" class="resp"/>
+<g class="badge" transform="translate(710 402)"><circle r="11" style="fill: var(--resp)"/><text>6</text></g>
+<text x="730" y="407" class="b">Agent : wazuh-execd</text>
+<text x="706" y="438" class="small">lance, depuis</text>
+<text x="706" y="456" class="mono small">active-response\bin\</text>
+<text x="706" y="480" class="mono small b">block-ip-win.cmd</text>
+<text x="706" y="498" class="mono small">  → block-ip-win.ps1</text>
+<text x="706" y="528" class="small">et lui écrit l'alerte en JSON</text>
+<text x="706" y="546" class="small">sur l'entrée standard</text>
+<text x="706" y="564" class="mono small muted">command = "add"</text>
+
+<rect x="350" y="380" width="290" height="200" rx="8" class="resp"/>
+<g class="badge" transform="translate(370 402)"><circle r="11" style="fill: var(--resp)"/><text>7</text></g>
+<text x="390" y="407" class="b">Le script</text>
+<text x="366" y="438" class="small">lit l'IP dans</text>
+<text x="366" y="456" class="mono small t-resp">alert.data.win.eventdata</text>
+<text x="366" y="472" class="mono small t-resp">  .ipAddress</text>
+<text x="366" y="500" class="small">ignore le LAN 10.10.10.0/24</text>
+<text x="366" y="518" class="small">demande check_keys à execd</text>
+<text x="366" y="536" class="small">(pas de double blocage)</text>
+<text x="366" y="562" class="muted small">journal : active-responses.log</text>
+
+<rect x="30" y="380" width="270" height="200" rx="8" class="okb"/>
+<g class="badge" transform="translate(50 402)"><circle r="11" style="fill: var(--ok)"/><text>8</text></g>
+<text x="70" y="407" class="b">Pare-feu Windows</text>
+<text x="46" y="438" class="small">nouvelle règle entrante :</text>
+<text x="46" y="456" class="mono small">Wazuh AR block &lt;IP&gt;</text>
+<text x="46" y="474" class="mono small t-ko b">Action Block</text>
+<text x="46" y="506" class="small">L'IP source ne joint plus</text>
+<text x="46" y="524" class="small">Windows 11 (aucun port).</text>
+<text x="46" y="556" class="muted small">Les autres machines : inchangées</text>
+
+<path class="arrow r" d="M1030 480 H986" marker-end="url(#mr)"/>
+<path class="arrow r" d="M690 480 H646" marker-end="url(#mr)"/>
+<path class="arrow r" d="M350 480 H306" marker-end="url(#mr)"/>
+
+<!-- Frise temporelle -->
+<text x="30" y="640" class="ztitle muted">CHRONOLOGIE</text>
+<line x1="60" y1="690" x2="1340" y2="690" class="arrow"/>
+<rect x="160" y="680" width="900" height="20" rx="4" style="fill: var(--ok-bg); stroke: var(--ok)"/>
+<text x="610" y="694" class="small t-ok b" text-anchor="middle">IP bloquée : 180 s (timeout)</text>
+<line x1="160" y1="664" x2="160" y2="716" class="arrow r"/>
+<line x1="1060" y1="664" x2="1060" y2="716" class="arrow r"/>
+<text x="160" y="658" class="small b" text-anchor="middle">t = 0 · command « add »</text>
+<text x="160" y="736" class="small muted" text-anchor="middle">règle créée</text>
+<text x="1060" y="658" class="small b" text-anchor="middle">t = 180 s · command « delete »</text>
+<text x="1060" y="736" class="small muted" text-anchor="middle">execd relance le script, règle retirée</text>
+</svg>
+  </figure>
+  <ul class="cards">
+    <li style="--c: var(--rule)">
+      <h2>Une règle, c'est un test sur des champs</h2>
+      <pre>&lt;rule id="100100" level="8"&gt;
+  &lt;if_sid&gt;61603&lt;/if_sid&gt;
+  &lt;field name="win.eventdata.image"
+         type="pcre2"&gt;(?i)\\powershell\.exe$&lt;/field&gt;
+  &lt;description&gt;…&lt;/description&gt;
+  &lt;mitre&gt;&lt;id&gt;T1059.001&lt;/id&gt;&lt;/mitre&gt;
+&lt;/rule&gt;</pre>
+      <p>Une règle enfant (<code>if_sid</code>) ne s'évalue que si son parent a correspondu. On étend le ruleset natif sans le modifier, dans <code>local_rules.xml</code>, avec un ID de 100000 à 120000.</p>
+    </li>
+    <li style="--c: var(--resp)">
+      <h2>Une mesure, c'est deux blocs</h2>
+      <p><code>&lt;command&gt;</code> déclare <em>quoi</em> exécuter (le nom du fichier dans <code>active-response\bin</code>). <code>&lt;active-response&gt;</code> dit <em>quand</em> (<code>rules_id</code>, <code>level</code> ou <code>rules_group</code>), <em>où</em> (<code>local</code>, <code>server</code>, <code>defined-agent</code>, <code>all</code>) et <em>combien de temps</em> (<code>timeout</code>).</p>
+    </li>
+    <li style="--c: var(--det)">
+      <h2>Pourquoi pas la commande netsh native</h2>
+      <p>Le script natif cherche l'IP dans <code>data.srcip</code>. Sur nos alertes 60204, ce champ est vide : l'IP est dans <code>data.win.eventdata.ipAddress</code> (vérifié sur le manager). D'où <code>block-ip-win.ps1</code>, qui lit le bon champ.</p>
+    </li>
+  </ul>
+  <footer>Sources : documentation Wazuh 4.14, « Active response » et « Rules syntax » ; règles natives lues dans <code>/var/ossec/ruleset/rules/0580-win-security_rules.xml</code> du lab. Writeup 07.</footer>
+</div>

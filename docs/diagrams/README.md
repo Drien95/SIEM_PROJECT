@@ -10,6 +10,7 @@
 | `scenario-modele.html` / `.png` | Modèle de planche « scénario d'attaque », piloté par l'objet `SCENARIO` du script ; pré-rempli avec le brute force. Voir `docs/scenarios/modele-scenario.md`. |
 | `flux-lab.html` / `.png` | Matrice des flux (moindre privilège) : flux autorisés, prévus et interdits entre l'hôte, pfSense, Wazuh, Windows 11 et Kali (VMnet11, règles ATTACK). Insérée dans `architecture.md` et le writeup 03. PNG rendue par Edge headless (`--screenshot`, 2x, thème clair). |
 | `simulateur-paquets.html` | Simulateur interactif façon Packet Tracer (mode Simulation) : 8 scénarios pas à pas avec les en-têtes des paquets. Enregistrements dans `videos/` (GIF + MP4). Voir l'[annexe du writeup](../writeup/annexe-simulateur-paquets.md). |
+| `reponse-active.html` / `.png` | Détection (Windows 4625 → décodeur → 60122 → corrélation 60204) puis réponse active (`<active-response>`, `wazuh-execd`, `block-ip-win`, pare-feu Windows, levée après 180 s). Inséré dans le writeup 07. |
 | `reseau-chemins.html` / `.png` | Cours réseau : même sous-réseau (ARP, switch) contre réseau routé (passerelle pfSense), et échange DHCP DORA. Inséré dans le writeup 04, § 1.2. |
 
 Pour régénérer la PNG après modification du HTML : ouvrir la page dans Chromium et faire une

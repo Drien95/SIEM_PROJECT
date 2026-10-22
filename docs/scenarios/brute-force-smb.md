@@ -190,29 +190,14 @@ colonne MITRE du dashboard sans la relire. Correction possible : une règle enfa
 | Réduire NTLM au profit de Kerberos (en domaine) | supprime la voie NTLM réseau | hors lab (pas de domaine) |
 | Réponse active Wazuh sur 60204 (`block-ip-win` sur l'agent, 180 s) | bloque l'IP source dès la corrélation | ✅ testée le 2026-10-22 (writeup 07, § 4) |
 
-### Règle locale proposée : succès après une rafale
+### Règle locale 100400 : succès après une rafale
 
-Wazuh ne relie pas d'office la 60204 et la 92652. Une règle enfant peut le faire et lever une
-alerte critique « mot de passe deviné ». Proposition, **non testée** (à valider avec
-`wazuh-logtest` puis en rejouant le scénario) :
-
-```xml
-<!-- Succès d'ouverture de session réseau depuis une IP qui vient de déclencher une rafale
-     d'échecs (60204) : le mot de passe a probablement été deviné.
-     MITRE ATT&CK : T1110.001 (Password Guessing) puis T1078 (Valid Accounts). -->
-<rule id="100400" level="12" timeframe="300">
-  <if_sid>92652</if_sid>
-  <if_matched_sid>60204</if_matched_sid>
-  <same_field>win.eventdata.ipAddress</same_field>
-  <field name="win.eventdata.targetUserName" negate="yes">^ANONYMOUS LOGON$</field>
-  <description>Ouverture de session réussie après une rafale d'échecs depuis $(win.eventdata.ipAddress) : mot de passe probablement deviné</description>
-  <mitre>
-    <id>T1110.001</id>
-    <id>T1078</id>
-  </mitre>
-  <group>authentication_success,brute_force_success,</group>
-</rule>
-```
+Wazuh ne relie pas d'office la 60204 et le succès qui la suit. La règle locale **100400**
+(niveau 12) le fait. Elle se déclenche sur une connexion réussie (groupe
+`authentication_success`) depuis une IP qui a déclenché une 60204 dans les 240 s. Elle est
+écrite dans [`configs/manager/local_rules.xml`](../../configs/manager/local_rules.xml), expliquée
+et accompagnée de sa procédure de test dans le
+[writeup 07, § 1.4](../writeup/07-regles-et-reponse-active.md). Elle n'a pas encore été testée (à valider).
 
 ## Suite : la réponse active coupe l'attaquant (2026-10-22, 17:04 heure locale)
 

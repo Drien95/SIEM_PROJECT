@@ -68,3 +68,31 @@
     <group>multiple_blocks,</group>
   </rule>
 </group>
+
+<group name="local,windows,">
+  <!-- Succès d'ouverture de session Windows peu après une rafale d'échecs (60204) depuis la
+       même IP : le brute force a probablement abouti, le compte est compromis.
+       Pourquoi une règle locale : la native 40112 (« Multiple authentication failures
+       followed by a success ») compare srcip (same_source_ip), or les événements Windows
+       portent l'IP dans win.eventdata.ipAddress, d'où notre same_field (déduction : 40112
+       n'a jamais été vue dans le lab).
+       - if_group authentication_success : tout succès Windows (60106 pour 4624 ; 92652 si
+         elle porte ce groupe, à vérifier), même mécanisme que 40112.
+       - if_matched_sid 60204 + same_field : une 60204 depuis la même IP dans les 240 s.
+         240 s couvre aussi la levée du blocage de la réponse active (180 s).
+       - ANONYMOUS LOGON exclu : sondage SMB sans compte, pas une compromission.
+       MITRE ATT&CK : T1110 (Brute Force) abouti, puis T1078 (Valid Accounts).
+       À VALIDER avec wazuh-logtest puis en rejouant le scénario (writeup 07, § 1.4). -->
+  <rule id="100400" level="12" timeframe="240">
+    <if_group>authentication_success</if_group>
+    <if_matched_sid>60204</if_matched_sid>
+    <same_field>win.eventdata.ipAddress</same_field>
+    <field name="win.eventdata.targetUserName" negate="yes">^ANONYMOUS LOGON$</field>
+    <description>Windows : connexion réussie de $(win.eventdata.targetUserName) depuis $(win.eventdata.ipAddress) juste après une rafale d'échecs (brute force abouti probable)</description>
+    <mitre>
+      <id>T1110</id>
+      <id>T1078</id>
+    </mitre>
+    <group>brute_force_success,pci_dss_10.2.4,pci_dss_10.2.5,</group>
+  </rule>
+</group>

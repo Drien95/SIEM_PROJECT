@@ -89,6 +89,65 @@ Exemple déjà en place dans le lab : la règle **100100** (writeup 04) est enfa
 *Exercice proposé (à faire, à valider)* : une règle enfant de 60122 qui monte au niveau 8 quand
 le compte visé est `Administrateur`, avec `<field name="win.eventdata.targetUserName">`.
 
+### 1.4 Règle complémentaire 100400 : le succès qui suit la rafale — à valider
+
+**Le besoin.** 60204 dit « quelqu'un essaie des mots de passe ». Ce qui compte pour l'analyste,
+c'est la suite : **une connexion réussie depuis la même IP juste après**. Cela veut dire que le
+brute force a abouti et que le compte est compromis. Wazuh n'a pas de règle Windows qui relie
+les deux.
+
+**Pourquoi la règle native ne suffit pas.** Le ruleset a déjà cette idée : la règle 40112
+(*Multiple authentication failures followed by a success*, niveau 12) dans `0280-attack_rules.xml`.
+Mais elle compare les IP avec `<same_source_ip />`, donc le champ `srcip`, et les événements
+Windows n'en ont pas : l'IP est dans `win.eventdata.ipAddress` (constat du § 2.3). Elle ne peut
+donc pas se déclencher pour Windows (déduction : jamais vue dans le lab).
+
+**La règle**, dans [`configs/manager/local_rules.xml`](../../configs/manager/local_rules.xml) :
+
+```xml
+<rule id="100400" level="12" timeframe="240">
+  <if_group>authentication_success</if_group>
+  <if_matched_sid>60204</if_matched_sid>
+  <same_field>win.eventdata.ipAddress</same_field>
+  <field name="win.eventdata.targetUserName" negate="yes">^ANONYMOUS LOGON$</field>
+  <description>Windows : connexion réussie de $(win.eventdata.targetUserName) depuis $(win.eventdata.ipAddress) juste après une rafale d'échecs (brute force abouti probable)</description>
+  <mitre>
+    <id>T1110</id>
+    <id>T1078</id>
+  </mitre>
+  <group>brute_force_success,pci_dss_10.2.4,pci_dss_10.2.5,</group>
+</rule>
+```
+
+Ligne par ligne :
+
+- `if_group authentication_success` : la règle est examinée pour tout succès de connexion. C'est
+  le mécanisme de 40112. Sur Windows, 60106 (4624) porte ce groupe. Il reste à vérifier que
+  92652 le porte aussi.
+- `if_matched_sid 60204` et `timeframe 240` : une alerte 60204 a eu lieu dans les 240 dernières
+  secondes.
+- `same_field win.eventdata.ipAddress` : cette 60204 venait **de la même IP**. On ne compare pas
+  le compte, pour attraper aussi la pulvérisation de mots de passe (*password spraying* :
+  beaucoup de comptes, un succès sur l'un d'eux). Le compte touché figure dans la description.
+- `ANONYMOUS LOGON` exclu : c'est le sondage SMB anonyme de l'outil, pas une compromission.
+- 240 s, c'est plus que les 180 s du blocage : la règle voit aussi une connexion réussie juste
+  après la levée du blocage.
+
+**À valider, dans cet ordre :**
+
+1. `sudo /var/ossec/bin/wazuh-analysisd -t` après l'ajout : aucune erreur.
+2. `wazuh-logtest` : coller dans **une même session** 8 événements 4625 puis un 4624 depuis la
+   même IP. Attendu : 60204 puis 100400. Point de vigilance : les événements Windows sont
+   décodés selon leur origine (`EventChannel`), qu'on ne peut pas choisir dans l'outil en ligne
+   de commande. Ce test peut donc ne pas aboutir. L'API `/logtest` accepte un champ `location`
+   (à valider).
+3. **En live** (le vrai test) : rejouer le scénario avec `smbclient` en terminant par le bon mot
+   de passe, **réponse active désactivée** (sinon Kali est bloqué avant de réussir) ou après la
+   levée des 180 s. Attendu : 60122 ×8, 60204, puis **100400 niveau 12**.
+
+Si 100400 ne se déclenche pas sur 92652, regarder dans `alerts.json` quels groupes porte 92652
+et, au besoin, ajouter une variante `<if_sid>92652</if_sid>` avec les mêmes conditions.
+
 ## 2. Comprendre la réponse active
 
 ### 2.1 Deux blocs dans `ossec.conf`
@@ -141,7 +200,9 @@ D'où notre script [`block-ip-win.ps1`](../../configs/agent-windows/active-respo
 - il **refuse de bloquer** `10.10.10.0/24` (hôte, Wazuh, pfSense) et `127.0.0.0/8` : une
   erreur de détection ne doit pas couper l'administration du lab ;
 - `add` crée une règle entrante `Wazuh AR block <IP>` (action Block), `delete` la retire ;
-- chaque action est écrite dans `active-response\active-responses.log` de l'agent.
+- chaque action est écrite dans **`active-response\block-ip-win.log`**, notre propre journal,
+  en UTF-8. Une copie va aussi dans `active-responses.log` quand c'est possible (version
+  corrigée, § 4.4).
 
 ## 3. Mise en place
 
@@ -287,12 +348,24 @@ identifier, à valider).
 
 ### 4.4 Limites à corriger
 
-| Constat | Cause probable | Correction prévue |
+| Constat | Cause probable | Correction (dans le dépôt, à déployer puis valider) |
 |---|---|---|
-| Lancé par `execd` (SYSTEM), le script crée bien la règle mais **n'écrit pas** sa ligne dans `active-responses.log` ; lancé à la main, il l'écrit | à identifier : chemin relatif `..ctive-responses.log` résolu autrement sous SYSTEM, ou fichier tenu ouvert par l'agent au même moment (hypothèses à valider) | journaliser avec un chemin absolu et une écriture qui tolère le partage du fichier ; tracer l'erreur au lieu de la taire |
-| Accents cassés dans le journal (`bloquÃ©e`, `rÃ¨gle`) | Windows PowerShell 5.1 lit un `.ps1` sans BOM comme du Windows-1252 : les chaînes UTF-8 du script sont mal relues | réenregistrer `block-ip-win.ps1` en **UTF-8 avec BOM** |
+| Lancé par `execd` (SYSTEM), le script crée bien la règle mais **n'écrit pas** sa ligne dans `active-responses.log` ; lancé à la main, il l'écrit | à identifier : chemin relatif `..ctive-responses.log` résolu autrement sous SYSTEM, ou fichier tenu ouvert par l'agent au même moment (hypothèses à valider) | le script écrit dans **son propre fichier** `active-response\block-ip-win.log` via `[System.IO.File]::AppendAllText` (ouvert puis refermé à chaque ligne). Chaque écriture a son `try/catch` : un journal en échec ne peut plus empêcher le blocage. Une copie va dans `active-responses.log` si c'est possible. Une erreur note le compte d'exécution |
+| Accents cassés dans le journal (`bloquÃ©e`, `rÃ¨gle`) | Windows PowerShell 5.1 lit un `.ps1` sans BOM comme du Windows-1252 : les chaînes UTF-8 du script sont mal relues | `block-ip-win.ps1` réenregistré en **UTF-8 avec BOM** ; journal écrit en UTF-8 |
 
-Tant que le journal de l'agent est muet, la trace fiable de la réponse est la règle pare-feu
+**Déployer la correction** (PowerShell administrateur sur Windows 11, après avoir copié le
+nouveau `.ps1` sur le bureau) :
+
+```powershell
+Copy-Item "$env:USERPROFILE\Desktop\block-ip-win.ps1" "C:\Program Files (x86)\ossec-agent\active-response\bin\" -Force
+Get-Content "C:\Program Files (x86)\ossec-agent\active-response\block-ip-win.log" -Tail 5 -Encoding UTF8
+```
+
+La deuxième commande est à lancer après le prochain déclenchement réel. Attendu : les lignes
+`ajout` puis `retrait`, avec les accents lisibles. Le script n'a pas pu être exécuté dans
+l'environnement de rédaction, faute de PowerShell : sa syntaxe est à valider sur Windows 11.
+
+Avant le déploiement de la correction, la trace fiable de la réponse est la règle pare-feu
 elle-même et, côté Wazuh, l'alerte 60204 qui l'a déclenchée.
 
 ## 5. Résultats dans notre lab
@@ -306,7 +379,9 @@ elle-même et, côté Wazuh, l'alerte 60204 qui l'a déclenchée.
 | 60204 déclenche le blocage | règle `Wazuh AR block <IP>` sur Windows 11 | ✅ 60204 à 17:03:49, règle `Wazuh AR block 10.10.20.10` (capture 84) |
 | L'attaquant est coupé | plus de réponse SMB | ✅ `NT_STATUS_IO_TIMEOUT` (capture 85) |
 | Levée automatique après 180 s | règle retirée, ligne « retrait » au journal | ✅ règle retirée ; ⚠ aucune ligne au journal sous SYSTEM (§ 4.4) |
-| Accents du journal | lisibles | ❌ script à réenregistrer en UTF-8 avec BOM |
+| Accents du journal | lisibles | ❌ au 1er test ; corrigé dans le dépôt (UTF-8 avec BOM), à valider |
+| Journal sous SYSTEM (`block-ip-win.log`) | une ligne par ajout et retrait | corrigé dans le dépôt, à valider |
+| Règle 100400 (succès après rafale) | niveau 12 après 60204 et une connexion réussie | écrite (§ 1.4), à valider par `wazuh-logtest` et en live |
 
 ## 6. Sources
 

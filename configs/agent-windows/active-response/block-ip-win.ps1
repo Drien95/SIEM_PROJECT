@@ -1,5 +1,7 @@
-# Active Response Wazuh 4.14 pour Windows : bloque une IP source dans le pare-feu Windows.
+﻿# Active Response Wazuh 4.14 pour Windows : bloque une IP source dans le pare-feu Windows.
 # À copier dans C:\Program Files (x86)\ossec-agent\active-response\bin\ avec block-ip-win.cmd.
+# Fichier enregistré en UTF-8 AVEC BOM : sans BOM, Windows PowerShell 5.1 le lit en ANSI et
+# les accents des messages sont cassés.
 #
 # Pourquoi un script maison : la commande native netsh.exe lit l'IP dans data.srcip, or les
 # alertes d'échec de connexion Windows (60122, 60204) la portent dans
@@ -11,11 +13,24 @@
 # avec « delete » à l'expiration.
 
 $ErrorActionPreference = 'Stop'
-$logFile = Join-Path $PSScriptRoot '..\active-responses.log'
+
+# Journal : notre propre fichier, active-response\block-ip-win.log, source de vérité.
+# Lancé par wazuh-execd (compte SYSTEM), l'ancien Add-Content vers active-responses.log ne
+# laissait aucune ligne alors que la règle pare-feu était créée (writeup 07, § 4.4) : ce fichier
+# est aussi écrit par execd. Un fichier dédié évite cette concurrence.
+# On garde une copie de la ligne dans active-responses.log quand c'est possible.
+# Écriture par .NET en UTF-8 (accents lisibles), ouverte et refermée à chaque ligne.
+# Chaque écriture a son try/catch : un échec de journal ne doit jamais empêcher le blocage.
+$arDir = Split-Path -Parent $PSScriptRoot
+$logFile = Join-Path $arDir 'block-ip-win.log'
+$sharedLog = Join-Path $arDir 'active-responses.log'
+$utf8 = New-Object System.Text.UTF8Encoding($false)
 
 function Write-ArLog([string]$Message) {
 	$stamp = Get-Date -Format 'yyyy/MM/dd HH:mm:ss'
-	Add-Content -Path $logFile -Value "$stamp block-ip-win: $Message"
+	$line = "$stamp block-ip-win: $Message`r`n"
+	try { [System.IO.File]::AppendAllText($logFile, $line, $utf8) } catch { }
+	try { [System.IO.File]::AppendAllText($sharedLog, $line, $utf8) } catch { }
 }
 
 # Réseaux jamais bloqués : le LAN du lab (hôte, Wazuh, pfSense) et la boucle locale.
@@ -70,6 +85,6 @@ try {
 	}
 }
 catch {
-	Write-ArLog "erreur : $($_.Exception.Message)"
+	Write-ArLog "erreur ($([Environment]::UserName)) : $($_.Exception.Message)"
 	exit 1
 }

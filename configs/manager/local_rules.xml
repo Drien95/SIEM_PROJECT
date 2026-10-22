@@ -19,11 +19,28 @@
 </group>
 
 <group name="local,suricata,">
-  <!-- Suricata (parent natif 86601, niveau 3) : alertes de sévérité 1 (la plus haute). -->
+  <!-- Suricata sur pfSense : les lignes EVE arrivent par syslog et sont décodées par notre
+       décodeur « json » restreint (local_decoder.xml), puis par les natives 86600/86601. -->
+
+  <!-- Suricata (parent natif 86601, niveau 3) : alertes de sévérité 1 (la plus haute).
+       Ne couvre QUE la sévérité 1 : les signatures ET SCAN du scénario 4 (sévérité 2) n'y
+       passent pas, d'où 100210. Pas de MITRE : dépend de la signature. Pas encore vue en action. -->
   <rule id="100200" level="10">
     <if_sid>86601</if_sid>
     <field name="alert.severity">^1$</field>
     <description>Suricata (sévérité 1) : $(alert.signature)</description>
+  </rule>
+
+  <!-- Suricata : scan réseau détecté par signature ET SCAN (reconnaissance active). MITRE T1046.
+       Validée en live le 2026-10-22 (scénario 4, docs/scenarios/suricata-nids.md). -->
+  <rule id="100210" level="10">
+    <if_sid>86601</if_sid>
+    <field name="alert.signature" type="pcre2">(?i)ET SCAN</field>
+    <description>Suricata : scan réseau détecté - $(alert.signature)</description>
+    <mitre>
+      <id>T1046</id>
+    </mitre>
+    <group>recon,</group>
   </rule>
 </group>
 

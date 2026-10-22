@@ -32,3 +32,27 @@
   <regex type="pcre2">filterlog \d+ - - (?:[^,]*,){8}4,(?:[^,]*,){7}(?:tcp|udp),[^,]*,[^,]*,[^,]*,(\d+),(\d+),</regex>
   <order>srcport,dstport</order>
 </decoder>
+
+<!--
+  Suricata sur pfSense 2.9 (scénario 4, validé en live le 2026-10-22, Wazuh 4.14.9).
+
+  pfSense envoie chaque ligne EVE JSON dans un en-tête syslog RFC 5424, avec deux tirets
+  (MSGID vide, données structurées vides) :
+    <141>1 <horodatage> pfSense.siem.lab suricata <pid> - - {"timestamp":...,"event_type":"alert",...}
+  Le décodeur natif « json » (0006-json_decoders.xml) exige une ligne qui commence par « { »
+  (<prematch>^{\s*"</prematch>) : il ignore ces lignes.
+
+  Ce décodeur saute l'en-tête et confie le reste au plugin JSON_Decoder (motif de la
+  documentation officielle : un seul décodeur, prematch + offset="after_prematch", sans
+  parent, sans regex ni order). Il porte le nom « json » pour que les règles natives Suricata
+  (86600-86604, <decoded_as>json</decoded_as>) s'appliquent sans être réécrites ; son prematch
+  ne correspond qu'aux lignes Suricata relayées par syslog.
+
+  Prematch construit à partir d'une ligne capturée en live :
+    sudo tcpdump -i any -A -n udp port 514 | grep event_type
+  Rappels : OS_Regex, pas PCRE (« \{ » donne l'erreur 1452) ; voir docs/writeup/10-scenario-suricata-nids.md.
+-->
+<decoder name="json">
+  <prematch>suricata \d+ - - </prematch>
+  <plugin_decoder offset="after_prematch">JSON_Decoder</plugin_decoder>
+</decoder>

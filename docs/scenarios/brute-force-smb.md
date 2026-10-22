@@ -197,7 +197,7 @@ Wazuh ne relie pas d'office la 60204 et le succès qui la suit. La règle locale
 `authentication_success`) depuis une IP qui a déclenché une 60204 dans les 240 s. Elle est
 écrite dans [`configs/manager/local_rules.xml`](../../configs/manager/local_rules.xml), expliquée
 et accompagnée de sa procédure de test dans le
-[writeup 07, § 1.4](../writeup/07-regles-et-reponse-active.md). Elle n'a pas encore été testée (à valider).
+[writeup 07, § 1.4](../writeup/07-regles-et-reponse-active.md). **Validée en live le 2026-10-22** : 1 alerte niveau 12 pour un succès du compte jetable `labtest` depuis `10.10.20.10`, juste après la levée du blocage de la réponse active (capture 88).
 
 ## Suite : la réponse active coupe l'attaquant (2026-10-22, 17:04 heure locale)
 
@@ -233,3 +233,4 @@ de passe, ni la liste utilisée) :
 |---|---|---|---|---|
 | 2026-10-22 | SIEM-Win11 (001), compte `analyste`, SMB/NTLM depuis Kali 10.10.20.10 | 60122 ×10 (niv. 5), 60204 ×1 (niv. 10), 92652 ×1 (niv. 6, 02:15:46) | non mesuré (alertes visibles pendant l'exercice) | pièges : pare-feu Windows limité au sous-réseau local ; console `nxc` en timeout sur les échecs. MITRE natif de 60122 = T1531, inexact |
 | 2026-10-22 17:04 | idem, rejoué avec `smbclient`, réponse active en place | 60122 ×8, 60204 (17:03:49) → règle `Wazuh AR block 10.10.20.10` | blocage en quelques secondes après 60204 (non mesuré) | Kali coupé (`NT_STATUS_IO_TIMEOUT`), levée après 180 s, compte verrouillé (4740) ; captures 84-86 |
+| 2026-10-22 20:48 | idem + compte jetable `labtest` | 60204 → blocage 180 s → succès `labtest` → **100400** niv. 12 | dans la fenêtre 180-240 s | règle locale 100400 validée : elle voit la compromission, pas seulement la tentative |

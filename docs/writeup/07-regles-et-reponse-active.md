@@ -89,7 +89,7 @@ Exemple déjà en place dans le lab : la règle **100100** (writeup 04) est enfa
 *Exercice proposé (à faire, à valider)* : une règle enfant de 60122 qui monte au niveau 8 quand
 le compte visé est `Administrateur`, avec `<field name="win.eventdata.targetUserName">`.
 
-### 1.4 Règle complémentaire 100400 : le succès qui suit la rafale — à valider
+### 1.4 Règle complémentaire 100400 : le succès qui suit la rafale — validée en live le 2026-10-22
 
 **Le besoin.** 60204 dit « quelqu'un essaie des mots de passe ». Ce qui compte pour l'analyste,
 c'est la suite : **une connexion réussie depuis la même IP juste après**. Cela veut dire que le
@@ -133,7 +133,7 @@ Ligne par ligne :
 - 240 s, c'est plus que les 180 s du blocage : la règle voit aussi une connexion réussie juste
   après la levée du blocage.
 
-**À valider, dans cet ordre :**
+**Procédure de validation :**
 
 1. `sudo /var/ossec/bin/wazuh-analysisd -t` après l'ajout : aucune erreur.
 2. `wazuh-logtest` : coller dans **une même session** 8 événements 4625 puis un 4624 depuis la
@@ -147,6 +147,54 @@ Ligne par ligne :
 
 Si 100400 ne se déclenche pas sur 92652, regarder dans `alerts.json` quels groupes porte 92652
 et, au besoin, ajouter une variante `<if_sid>92652</if_sid>` avec les mêmes conditions.
+
+#### Résultat du test en live (2026-10-22, 20:48 heure locale)
+
+**Ce qu'on a fait.**
+
+1. Kali (`10.10.20.10`) lance une rafale de `smbclient` avec de faux mots de passe sur le compte
+   `analyste`. Wazuh lève des 60122, puis la **60204** (niveau 10). La réponse active bloque
+   alors `10.10.20.10` pendant 180 s.
+2. 100400 corrèle sur l'**IP source**, pas sur le compte. On a donc créé un compte Windows
+   jetable, **`labtest`**, dont on connaît le mot de passe. Il fournit le « succès » sans révéler
+   celui d'`analyste`.
+3. Dès la levée du blocage, un `smbclient -L //10.10.10.101 -U 'labtest%<mot de passe>'` réussit.
+
+**Résultat :** un seul déclenchement de **100400, niveau 12**, sur l'agent SIEM-Win11, à 20:48:02.
+La description est « *Windows : connexion réussie de labtest depuis 10.10.20.10 juste après
+une rafale d'échecs (brute force abouti probable)* ». Le groupe `authentication_success` a
+suffi : la variante `if_sid 92652` n'a pas été nécessaire.
+
+![Threat Hunting : une alerte 100400 de niveau 12](../homelab/screenshots/88-wazuh-100400-succes-apres-rafale.png)
+
+*Capture 88 : `rule.id:100400` dans Threat Hunting, 1 hit, niveau 12.*
+
+**Le timing : une fenêtre de tir entre 180 et 240 s.** Deux durées encadrent le test :
+
+- avant 180 s, la réponse active bloque encore Kali et le succès est impossible ;
+- après 240 s, la 60204 sort de la fenêtre de corrélation de 100400 (`timeframe`) et le succès
+  passe sans alerte.
+
+Il faut donc réussir la connexion **juste après la levée du blocage**. Le test vérifie au
+passage que les deux mécanismes s'emboîtent : le blocage temporaire ne masque pas la
+compromission qui le suit.
+
+**Lecture SOC.** Les deux alertes ne disent pas la même chose :
+
+- **60204 voit la tentative** : « quelqu'un essaie des mots de passe ». C'est souvent du bruit
+  d'Internet, et il se traite par lot.
+- **100400 voit la compromission** : un compte a été ouvert depuis l'IP qui attaquait.
+
+Le niveau 12 place 100400 au-dessus du bruit. Elle déclenche la réponse à incident :
+- désactiver le compte ou changer son mot de passe ;
+- regarder ce que la session a fait (Sysmon, accès aux partages) ;
+- rechercher la même IP sur les autres machines.
+
+Comme elle ne regarde pas le compte, elle attrape aussi la **pulvérisation** : les échecs
+portent sur `analyste`, le succès sur `labtest`.
+
+**Ménage.** Le compte `labtest` n'existe que pour ce test : le supprimer (ou le désactiver)
+une fois l'exercice terminé.
 
 ## 2. Comprendre la réponse active
 
@@ -365,6 +413,18 @@ La deuxième commande est à lancer après le prochain déclenchement réel. Att
 `ajout` puis `retrait`, avec les accents lisibles. Le script n'a pas pu être exécuté dans
 l'environnement de rédaction, faute de PowerShell : sa syntaxe est à valider sur Windows 11.
 
+**Validé en live le 2026-10-22 (vers 20:48 heure locale).** Lors d'un déclenchement réel par
+`execd` (SYSTEM), `block-ip-win.log` contient bien les deux lignes :
+- `ajout : 10.10.20.10 bloquée (règle 'Wazuh AR block 10.10.20.10')`
+- `retrait : 10.10.20.10 débloquée`
+
+Avant la correction, ce journal restait vide lors des déclenchements réels.
+
+Un détail d'affichage : un simple `Get-Content` montre encore les accents cassés. Ce n'est pas
+le fichier qui est en cause. Windows PowerShell 5.1 lit un fichier sans BOM en ANSI, alors que
+le journal est écrit en UTF-8 sans BOM. `Get-Content ... -Encoding UTF8` l'affiche
+correctement.
+
 Avant le déploiement de la correction, la trace fiable de la réponse est la règle pare-feu
 elle-même et, côté Wazuh, l'alerte 60204 qui l'a déclenchée.
 
@@ -379,9 +439,9 @@ elle-même et, côté Wazuh, l'alerte 60204 qui l'a déclenchée.
 | 60204 déclenche le blocage | règle `Wazuh AR block <IP>` sur Windows 11 | ✅ 60204 à 17:03:49, règle `Wazuh AR block 10.10.20.10` (capture 84) |
 | L'attaquant est coupé | plus de réponse SMB | ✅ `NT_STATUS_IO_TIMEOUT` (capture 85) |
 | Levée automatique après 180 s | règle retirée, ligne « retrait » au journal | ✅ règle retirée ; ⚠ aucune ligne au journal sous SYSTEM (§ 4.4) |
-| Accents du journal | lisibles | ❌ au 1er test ; corrigé dans le dépôt (UTF-8 avec BOM), à valider |
-| Journal sous SYSTEM (`block-ip-win.log`) | une ligne par ajout et retrait | corrigé dans le dépôt, à valider |
-| Règle 100400 (succès après rafale) | niveau 12 après 60204 et une connexion réussie | écrite (§ 1.4), à valider par `wazuh-logtest` et en live |
+| Accents du journal | lisibles | ✅ fichier en UTF-8 correct (lecture avec `Get-Content -Encoding UTF8`) |
+| Journal sous SYSTEM (`block-ip-win.log`) | une ligne par ajout et retrait | ✅ déclenchement réel, lignes `ajout` et `retrait` pour `10.10.20.10` (2026-10-22) |
+| Règle 100400 (succès après rafale) | niveau 12 après 60204 et une connexion réussie | ✅ en live, 1 hit niveau 12 à 20:48:02, succès de `labtest` depuis `10.10.20.10` (capture 88) ; `wazuh-logtest` non utilisé |
 
 ## 6. Sources
 

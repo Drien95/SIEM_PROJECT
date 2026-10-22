@@ -98,3 +98,4 @@ Captures volontairement **non versionnées** (mot de passe visible) : les sortie
 | 85 | [85-kali-smbclient-io-timeout.png](85-kali-smbclient-io-timeout.png) | Kali : boucle `smbclient`, `NT_STATUS_LOGON_FAILURE` puis **`NT_STATUS_IO_TIMEOUT`** une fois l'IP bloquée |
 | 86 | [86-win11-active-responses-log.png](86-win11-active-responses-log.png) | `active-responses.log` : lignes ajout/retrait du test manuel, accents cassés (script sans BOM) |
 | 87 | *à ajouter* `87-wazuh-60122-60204-ar.png` | Dashboard : 8 × 60122 puis **60204** niveau 10 à 17:03:49, agent SIEM-Win11 |
+| 88 | [88-wazuh-100400-succes-apres-rafale.png](88-wazuh-100400-succes-apres-rafale.png) | Threat Hunting `rule.id:100400` : **1 hit niveau 12**, SIEM-Win11, « connexion réussie de labtest depuis 10.10.20.10 juste après une rafale d'échecs » (20:48:02) |

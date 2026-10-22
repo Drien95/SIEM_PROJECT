@@ -79,6 +79,31 @@ Utilisées par le [writeup 07](writeup/07-regles-et-reponse-active.md) :
 - `wazuh-logtest` : https://documentation.wazuh.com/current/user-manual/reference/tools/wazuh-logtest.html
 - `New-NetFirewallRule` : https://learn.microsoft.com/powershell/module/netsecurity/new-netfirewallrule
 
+## Scénario Suricata sur pfSense
+
+Utilisées par la [fiche Suricata](scenarios/suricata-nids.md), le
+[writeup 10](writeup/10-scenario-suricata-nids.md) et l'[intégration](integrations/suricata.md) :
+
+- Règles natives Suricata 86600-86604 (vérifiées, ruleset v4.14.0) :
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0475-suricata_rules.xml
+- Décodeur natif `json` (`<prematch>^{\s*"</prematch>`, vérifié) :
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/decoders/0006-json_decoders.xml
+- Plugin `JSON_Decoder` et motif `offset="after_prematch"` :
+  https://documentation.wazuh.com/current/user-manual/ruleset/decoders/json-decoder.html
+- Syntaxe des décodeurs (OS_Regex, `parent`, `plugin_decoder`, offsets) :
+  https://documentation.wazuh.com/current/user-manual/ruleset/ruleset-xml-syntax/decoders.html,
+  https://documentation.wazuh.com/current/user-manual/ruleset/ruleset-xml-syntax/regex.html
+- Syntaxe des règles (`if_sid`, `field type="pcre2"`) :
+  https://documentation.wazuh.com/current/user-manual/ruleset/ruleset-xml-syntax/rules.html
+- Lecture d'un fichier JSON (`log_format json`, option B) :
+  https://documentation.wazuh.com/current/user-manual/reference/ossec-conf/localfile.html
+- Sortie EVE JSON de Suricata : https://docs.suricata.io/en/latest/output/eve/eve-json-output.html
+- Variables `HOME_NET` / `EXTERNAL_NET` : https://docs.suricata.io/en/latest/configuration/suricata-yaml.html
+- Paquet Suricata de pfSense : https://docs.netgate.com/pfsense/en/latest/packages/suricata/index.html
+- Ruleset ET Open (Proofpoint Emerging Threats) : https://rules.emergingthreats.net/
+- Syslog RFC 5424 (en-tête, MSGID et données structurées « - ») : https://www.rfc-editor.org/rfc/rfc5424
+- rsyslog (option B, à valider) : https://www.rsyslog.com/doc/configuration/index.html
+
 ## À explorer
 
 - Guide de preuve de concept Wazuh, pour des scénarios officiels reproductibles.

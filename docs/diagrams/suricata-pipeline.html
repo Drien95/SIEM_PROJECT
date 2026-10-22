@@ -1,0 +1,204 @@
+<title>Chaîne Suricata vers Wazuh</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Même famille que detection-brute-force-smb.html : le chemin du paquet, l'anatomie de la ligne syslog, puis les deux pannes rencontrées. */
+:root {
+  --bg: #f3f5f8;
+  --canvas: #ffffff;
+  --fg: #1c2633;
+  --muted: #5a6778;
+  --line: #d5dbe3;
+  --row: #f6f8fa;
+  --kali: #3b6fd0;
+  --kali-bg: #edf2fc;
+  --fw: #c77d0a;
+  --fw-bg: #fdf3e2;
+  --wz: #0f7f86;
+  --wz-bg: #e6f4f5;
+  --hdr: #7d8591;
+  --pre: #7445c9;
+  --pre-bg: #f1ebfb;
+  --json: #1f8a4c;
+  --json-bg: #e8f5ed;
+  --alert: #d23c3c;
+  --alert-bg: #fbeaea;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+    --kali: #7fa6f0; --kali-bg: #19213a; --fw: #f0a73a; --fw-bg: #2a2119; --wz: #4fc9cf; --wz-bg: #14282a;
+    --hdr: #9aa3ae; --pre: #a98bf0; --pre-bg: #231c33; --json: #4fcf83; --json-bg: #16281d;
+    --alert: #ff6b6b; --alert-bg: #2c1a1c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+  --kali: #7fa6f0; --kali-bg: #19213a; --fw: #f0a73a; --fw-bg: #2a2119; --wz: #4fc9cf; --wz-bg: #14282a;
+  --hdr: #9aa3ae; --pre: #a98bf0; --pre-bg: #231c33; --json: #4fcf83; --json-bg: #16281d;
+  --alert: #ff6b6b; --alert-bg: #2c1a1c; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 72ch; color: var(--muted); }
+figure { margin: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 980px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 12px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .ztitle { font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+svg .sm { font-size: 12px; }
+footer { color: var(--muted); font-size: 13px; }
+code { font-family: var(--font-mono); font-size: .9em; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · pfSense 2.9.0 + Suricata · Wazuh 4.14.9 · scénario 4, joué le 2026-10-22</span>
+    <h1>Un scan vu par Suricata, jusqu'à l'alerte Wazuh</h1>
+    <p>Suricata écoute l'interface ATTACK de pfSense. Sa ligne EVE JSON part en syslog vers Wazuh, enveloppée dans un en-tête RFC 5424 que le décodeur natif ne lit pas : un décodeur local saute l'en-tête et confie le JSON au plugin. Les règles natives Suricata s'appliquent ensuite telles quelles, et la règle locale 100210 élève les scans au niveau 10.</p>
+  </header>
+
+  <figure id="suricata">
+    <svg viewBox="0 0 1400 660" role="img" aria-labelledby="svg-title">
+      <title id="svg-title">Chaîne Kali, Suricata sur pfSense, syslog RFC 5424, décodeur json local, règles 86600, 86601 et 100210, dashboard ; anatomie de la ligne syslog ; deux pannes</title>
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--muted)"/></marker>
+      </defs>
+      <g id="g"></g>
+    </svg>
+  </figure>
+
+  <footer>Ligne syslog abrégée, PID illustratif. Décodeur et règle : <code>configs/manager/local_decoder.xml</code>, <code>configs/manager/local_rules.xml</code>. Récit : <code>docs/writeup/10-scenario-suricata-nids.md</code>.</footer>
+</div>
+
+<script>
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const T = (x, y, s, cls = "", extra = "") => `<text x="${x}" y="${y}"${cls ? ` class="${cls}"` : ""} ${extra}>${esc(s)}</text>`;
+const R = (x, y, w, h, c, bg, extra = "") => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" style="fill: var(${bg}); stroke: var(${c})" stroke-width="2" ${extra}/>`;
+const A = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke: var(--muted)" stroke-width="2" marker-end="url(#ah)"/>`;
+
+(function () {
+  const o = [];
+  // 1. Chemin
+  o.push(T(30, 34, "1 · LE CHEMIN DE L'ALERTE", "ztitle muted"));
+  const y = 52, h = 176;
+  // Kali
+  o.push(R(30, y, 170, h, "--kali", "--kali-bg"));
+  o.push(T(46, y + 28, "Kali", "b"));
+  o.push(T(46, y + 48, "10.10.20.10", "mono"));
+  o.push(T(46, y + 76, "nmap -sS -Pn", "mono"));
+  o.push(T(46, y + 94, "10.10.10.101", "mono"));
+  o.push(T(46, y + 124, "réseau ATTACK", "sm muted"));
+  o.push(T(46, y + 142, "VMnet11, isolé", "sm muted"));
+  o.push(A(202, y + 88, 238, y + 88));
+  // pfSense
+  o.push(R(240, y, 290, h, "--fw", "--fw-bg"));
+  o.push(T(256, y + 28, "pfSense · Suricata sur em0", "b"));
+  o.push(T(256, y + 50, "ET Open · IDS, alerte seule", "sm"));
+  o.push(T(256, y + 72, "HOME_NET = HOMENET_LAB", "mono"));
+  o.push(T(256, y + 90, "(10.10.10.0/24, LAN seul)", "sm muted"));
+  o.push(T(256, y + 118, "signature « ET SCAN Suspicious", "sm"));
+  o.push(T(256, y + 136, "inbound to mySQL port 3306 »", "sm"));
+  o.push(T(256, y + 160, "→ ligne EVE JSON event_type: alert", "sm muted"));
+  o.push(A(532, y + 88, 598, y + 88));
+  o.push(T(538, y + 76, "syslog", "sm muted"));
+  o.push(T(538, y + 110, "514/udp", "mono muted"));
+  // Wazuh
+  o.push(R(600, y, 560, h, "--wz", "--wz-bg"));
+  o.push(T(616, y + 28, "Wazuh 10.10.10.100 · wazuh-remoted → wazuh-analysisd", "b"));
+  const chain = [
+    ["décodeur", "json (local)", "--pre", "--pre-bg"],
+    ["86600", "niveau 0", "--hdr", "--row"],
+    ["86601", "niveau 3", "--json", "--json-bg"],
+    ["100210", "niveau 10", "--alert", "--alert-bg"]
+  ];
+  chain.forEach((c, i) => {
+    const cx = 616 + i * 134;
+    o.push(R(cx, y + 48, 116, 66, c[2], c[3]));
+    o.push(T(cx + 10, y + 74, c[0], "mono b", `style="font-size: 13px"`));
+    o.push(T(cx + 10, y + 96, c[1], "sm"));
+    if (i < chain.length - 1) o.push(A(cx + 118, y + 81, cx + 132, y + 81));
+  });
+  o.push(T(616, y + 138, "86600 : decoded_as json + timestamp + event_type (natif)", "sm muted"));
+  o.push(T(616, y + 156, "86601 : event_type = alert · 100210 : if_sid 86601 + « ET SCAN », T1046", "sm muted"));
+  o.push(A(1162, y + 88, 1198, y + 88));
+  // Dashboard
+  o.push(R(1200, y, 170, h, "--wz", "--canvas"));
+  o.push(T(1216, y + 28, "Dashboard", "b"));
+  o.push(T(1216, y + 50, "rule.groups:suricata", "mono", `style="font-size: 11px"`));
+  o.push(T(1216, y + 80, "100210 · niv. 10", "sm b", `style="fill: var(--alert)"`));
+  o.push(T(1216, y + 98, "« scan réseau détecté »", "sm"));
+  o.push(T(1216, y + 124, "agent.name :", "sm muted"));
+  o.push(T(1216, y + 142, "wazuh-server", "mono muted"));
+  o.push(T(1216, y + 160, "(source : location)", "sm muted"));
+
+  // 2. Anatomie de la ligne
+  const ay = 270;
+  o.push(T(30, ay, "2 · LA LIGNE QUI ARRIVE SUR LE PORT 514 (capturée avec tcpdump)", "ztitle muted"));
+  const cw = 7.8, lx = 30, ly = ay + 46;
+  const segs = [
+    ["<141>1 2026-10-22T23:47:38Z pfSense.siem.lab ", "--hdr", "--row"],
+    ["suricata 12345 - - ", "--pre", "--pre-bg"],
+    ['{"event_type":"alert","src_ip":"10.10.20.10","alert":{"signature":"ET SCAN …","severity":2}}', "--json", "--json-bg"]
+  ];
+  let x = lx;
+  const pos = [];
+  segs.forEach(s => {
+    const w = s[0].length * cw + 12;
+    o.push(`<rect x="${x}" y="${ly - 20}" width="${w}" height="30" rx="4" style="fill: var(${s[2]}); stroke: var(${s[1]})" stroke-width="1.6"/>`);
+    o.push(T(x + 6, ly, s[0], "mono", `style="font-size: 13px; white-space: pre" xml:space="preserve"`));
+    pos.push([x, w]); x += w + 4;
+  });
+  const lab = [
+    ["en-tête RFC 5424", "le json natif exige ^{ : ligne ignorée", "--hdr"],
+    ["<prematch> du décodeur local", "« suricata \\d+ - - » : deux tirets", "--pre"],
+    ["JSON_Decoder, offset=\"after_prematch\"", "extrait event_type, alert.signature, src_ip…", "--json"]
+  ];
+  lab.forEach((l, i) => {
+    const [px, pw] = pos[i];
+    o.push(`<path d="M${px + 2},${ly + 18} v8 h${pw - 4} v-8" fill="none" style="stroke: var(${l[2]})" stroke-width="1.6"/>`);
+    const tx = px + 2 + (i === 2 ? 260 : 0);
+    o.push(T(tx, ly + 46, l[0], "sm b", `style="fill: var(${l[2]})"`));
+    o.push(T(tx, ly + 64, l[1], "sm muted"));
+  });
+  // décodeur final
+  const dy = ay + 136;
+  o.push(`<rect x="30" y="${dy}" width="1340" height="62" rx="6" style="fill: var(--row); stroke: var(--line)"/>`);
+  o.push(T(48, dy + 25, '<decoder name="json">  <prematch>suricata \\d+ - - </prematch>  <plugin_decoder offset="after_prematch">JSON_Decoder</plugin_decoder>  </decoder>', "mono", `style="font-size: 12.5px" xml:space="preserve"`));
+  o.push(T(48, dy + 47, "Un seul décodeur, sans parent ni regex. Nommé json pour que les règles natives (decoded_as json) s'appliquent ; son prematch ne touche que les lignes Suricata relayées par syslog.", "sm muted"));
+
+  // 3. Pannes
+  const py = 500;
+  o.push(T(30, py, "3 · DEUX PANNES AVANT LA PREMIÈRE ALERTE", "ztitle muted"));
+  const cards = [
+    ["Panne 1 · aucune alerte ET SCAN sur pfSense", [
+      "HOME_NET par défaut = réseaux de toutes les interfaces, ATTACK compris.",
+      "Kali était « interne » : une signature EXTERNAL → HOME ne peut pas correspondre.",
+      "Correction : alias HOMENET_LAB, puis Custom Variables HOME_NET = HOMENET_LAB."]],
+    ["Panne 2 · alertes sur pfSense, rien dans Wazuh", [
+      "Le JSON arrive après un en-tête RFC 5424 : le décodeur natif json l'ignore.",
+      "En chemin : erreurs 1452, 2107, 2111, 2120 ; wazuh-logtest OK mais live KO",
+      "(ligne tapée à la main avec un seul tiret). Correction : décodeur ci-dessus."]]
+  ];
+  cards.forEach((c, i) => {
+    const cx = 30 + i * 680;
+    o.push(R(cx, py + 14, 660, 128, "--alert", "--canvas"));
+    o.push(T(cx + 16, py + 42, c[0], "b"));
+    c[1].forEach((l, j) => o.push(T(cx + 16, py + 68 + j * 22, l, "sm")));
+  });
+  document.getElementById("g").innerHTML = o.join("");
+})();
+</script>

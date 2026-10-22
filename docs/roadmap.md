@@ -29,7 +29,7 @@ Statuts : ✅ fait · 🔄 en cours · ⏳ à venir. Mis à jour le 2026-10-22.
 | 2 | Scan nmap à travers pfSense : journaux du pare-feu, corrélation 100303 | T1046 | détecter la reconnaissance, connaître les angles morts d'une règle | ✅ | [fiche](scenarios/scan-nmap.md), [writeup 08](writeup/08-scenario-scan-nmap.md) |
 | 3 | **FIM + VirusTotal** : dépôt du fichier de test EICAR, alerte FIM 554 puis VirusTotal 87105 (niveau 12, 66 moteurs) en ~6 s | T1203 (étiquette native), T1105 et T1204.002 (déduits) | traiter une alerte malware, enrichir avec une réputation externe | ✅ | [fiche](scenarios/malware-fim-virustotal.md), [writeup 09](writeup/09-scenario-fim-virustotal.md) |
 | 3 bis | Réponse active de **suppression du fichier** sur 87105 (Windows, modèle `block-ip-win`) | — | remédiation automatique d'un malware | ⏳ | [fiche, § 8](scenarios/malware-fim-virustotal.md) |
-| 4 | **Suricata** (IDS) : signatures réseau sur le trafic que pfSense autorise | T1046, T1071 (déduits) | lire une alerte IDS, couvrir l'angle mort du scénario 2 | ⏳ | [intégration Suricata](integrations/suricata.md) |
+| 4 | **Suricata** (IDS) sur l'interface ATTACK de pfSense, ET Open : scan vers Windows 11 (destination autorisée), 86601 → règle locale **100210** (niveau 10) ; corrections `HOME_NET` et décodeur `json` pour l'en-tête RFC 5424 | T1046 | lire une alerte IDS, couvrir l'angle mort du scénario 2, déboguer une ingestion | ✅ | [fiche](scenarios/suricata-nids.md), [writeup 10](writeup/10-scenario-suricata-nids.md), [intégration](integrations/suricata.md) |
 | 5 | **Sysmon, accès aux identifiants et persistance** : lecture de LSASS, clé Run, tâche planifiée | T1003.001, T1547.001, T1053.005 | détecter sur la télémétrie d'un endpoint, écrire des règles enfants Sysmon | ⏳ | [Windows et Sysmon](integrations/windows-logs-sysmon.md) |
 | 6 | **SCA** (Security Configuration Assessment), référentiel CIS de Windows 11 | (posture, pas une technique) | mesurer et suivre une conformité | ⏳ | à écrire |
 | 7 | **Vulnerability Detection** : CVE des paquets installés | (posture, pas une technique) | prioriser des vulnérabilités | ⏳ | à écrire |
@@ -41,7 +41,7 @@ vue par Sysmon, T1059.001), validée sur de l'activité normale ([writeup 04](wr
 
 | Étape | Ce qu'on fait | Compétence SOC visée | Statut |
 |---|---|---|---|
-| Detection engineering | règles enfants (`if_sid`), corrélations (`if_matched_sid`, `same_field`), tests `wazuh-logtest` puis en live ; corriger les étiquettes MITRE fausses (60122 porte T1531) | écrire, tester et maintenir des détections | 🔄 (100100, 100300-100303, 100400 faites) |
+| Detection engineering | règles enfants (`if_sid`), corrélations (`if_matched_sid`, `same_field`), tests `wazuh-logtest` puis en live ; corriger les étiquettes MITRE fausses (60122 porte T1531) | écrire, tester et maintenir des détections | 🔄 (100100, 100210, 100300-100303, 100400 faites ; décodeur `json` restreint pour Suricata) |
 | Réduction des faux positifs | mesurer le bruit (ANONYMOUS LOGON, 60106, Sysmon de bas niveau), ajuster niveaux et exceptions sans perdre les vraies attaques | régler un SIEM, justifier chaque exception | ⏳ |
 | Cartographie MITRE ATT&CK | tenir la [couverture](mitre.md) à jour, repérer les trous par tactique | raisonner en techniques, pas en outils | 🔄 |
 | Triage et réponse à incident de bout en bout | dérouler un incident complet : alerte, qualification, périmètre, confinement, éradication, rapport | suivre un playbook, écrire un compte rendu d'incident | ⏳ |
@@ -57,4 +57,6 @@ vue par Sysmon, T1059.001), validée sur de l'activité normale ([writeup 04](wr
 
 ## Prochaine étape
 
-Scénario 3 bis (suppression automatique du fichier EICAR sur 87105), puis scénario 4 : **Suricata**.
+Scénario 5 : **Sysmon** (accès à LSASS, persistance), puis SCA et Vulnerability Detection. Reste
+ouvert : le scénario 3 bis (suppression automatique du fichier EICAR sur 87105) et, en option,
+l'ingestion Suricata « production » par rsyslog ([option B](integrations/suricata.md#option-b--rsyslog-et-fichier-json-à-valider)).

@@ -48,7 +48,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 
 | Document | Sujet |
 |---|---|
-| [docs/architecture.md](docs/architecture.md) | Composants Wazuh, flux de données, ports, topologie de lab cible |
+| [docs/architecture.md](docs/architecture.md) | Composants Wazuh, `ossec.conf` et chaîne des démons (cours), flux de données, ports, matrice des flux du lab |
 | [docs/installation.md](docs/installation.md) | Prérequis, installation (OVA / all-in-one), agents, dépannage |
 | [docs/roadmap.md](docs/roadmap.md) | Roadmap en trois phases (largeur, profondeur, livrable), compétence SOC visée et statut de chaque étape |
 | [docs/mitre.md](docs/mitre.md) | Couverture MITRE ATT&CK : techniques détectées, prévues, étiquettes natives à corriger |
@@ -56,7 +56,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [docs/sources.md](docs/sources.md) | Sources utilisées, ce qu'on en retient, limites |
 | [docs/homelab/plan.md](docs/homelab/plan.md) | Plan du homelab VMware : réseau, VM, ordre de montage, images |
 | [docs/homelab/screenshots/](docs/homelab/screenshots/README.md) | Captures d'écran du montage, numérotées |
-| [docs/diagrams/](docs/diagrams/README.md) | Schémas : réseau du lab façon Packet Tracer, règles pare-feu ATTACK, flux de détection du brute force SMB, couverture MITRE, matrice des flux, pipeline Wazuh annoté, règle et réponse active, modèle de scénario (sources HTML et PNG) |
+| [docs/diagrams/](docs/diagrams/README.md) | Schémas : réseau du lab façon Packet Tracer, règles pare-feu ATTACK, flux de détection du brute force SMB, couverture MITRE, chaîne des démons Wazuh, matrice des flux, pipeline Wazuh annoté, règle et réponse active, modèle de scénario (sources HTML et PNG) |
 | [docs/integrations/](docs/integrations/) | Un guide par intégration : Windows/Sysmon, FIM, VirusTotal, Suricata, pfSense |
 | [docs/scenarios/](docs/scenarios/README.md) | Index des scénarios : joués (brute force SMB, scan nmap), prévus, modèle de fiche |
 | [configs/](configs/) | Configurations du lab : règles et décodeur locaux, syslog, réponse active (`block-ip-win`), agent Windows, pfSense, VirusTotal, Suricata |

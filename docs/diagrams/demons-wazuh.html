@@ -1,0 +1,201 @@
+<title>Démons Wazuh</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Même famille visuelle que regles-attack.html : qui fait quoi dans Wazuh, de l'agent au dashboard, avec les branches intégration, réponse active et vulnérabilités. */
+:root {
+  --bg: #f3f5f8;
+  --canvas: #ffffff;
+  --fg: #1c2633;
+  --muted: #5a6778;
+  --line: #d5dbe3;
+  --row: #f6f8fa;
+  --agent: #c2569f;
+  --agent-bg: #fbf0f7;
+  --mgr: #3b6fd0;
+  --mgr-bg: #edf2fc;
+  --store: #0f7f86;
+  --store-bg: #e7f5f6;
+  --vt: #c77d0a;
+  --ar: #d23c3c;
+  --syslog: #2c8a4b;
+  --conf: #7445c9;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+    --agent: #e07bbf; --agent-bg: #2a1a26; --mgr: #7fa6f0; --mgr-bg: #19213a; --store: #4fc9cf; --store-bg: #15282a;
+    --vt: #f0a73a; --ar: #ff6b6b; --syslog: #5cc27d; --conf: #a98bf0; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+  --agent: #e07bbf; --agent-bg: #2a1a26; --mgr: #7fa6f0; --mgr-bg: #19213a; --store: #4fc9cf; --store-bg: #15282a;
+  --vt: #f0a73a; --ar: #ff6b6b; --syslog: #5cc27d; --conf: #a98bf0; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 72ch; color: var(--muted); }
+figure { margin: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 980px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 11.5px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .ztitle { font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+svg .sm { font-size: 12px; }
+.arrow { fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.card { display: grid; gap: 6px; align-content: start; padding: 14px 16px; background: var(--canvas); border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 4px; min-width: 0; }
+.card h2 { margin: 0; font-size: 15px; }
+.card p { margin: 0; color: var(--muted); font-size: 14px; }
+code { font-family: var(--font-mono); font-size: .9em; color: var(--fg); }
+footer { color: var(--muted); font-size: 13px; }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14 · qui fait quoi</span>
+    <h1>Les démons de Wazuh, de l'agent au dashboard</h1>
+    <p><code>ossec.conf</code> dit quoi faire, les démons le font, l'indexer et le dashboard sont l'endroit où l'on regarde. Chaque boîte est un processus, chaque flèche un échange réel, avec les trois branches qui partent de l'analyse : intégrations (VirusTotal), réponse active, détection de vulnérabilités.</p>
+  </header>
+
+  <figure id="demons">
+    <svg viewBox="0 0 1400 790" role="img" aria-labelledby="svg-title">
+      <title id="svg-title">Chaîne des démons Wazuh : collecte sur l'agent, wazuh-remoted, wazuh-analysisd et ses trois passes, alerts.json, wazuh-integratord vers VirusTotal, réponse active vers wazuh-execd de l'agent, wazuh-modulesd, Filebeat, indexer et dashboard</title>
+      <defs id="defs"></defs>
+      <g id="g"></g>
+    </svg>
+  </figure>
+
+  <div class="cards">
+    <section class="card" style="--c: var(--conf)">
+      <h2>ossec.conf : le quoi</h2>
+      <p>Un fichier déclaratif par machine. Sur le manager : <code>&lt;remote&gt;</code> (écoute 1514, syslog 514), <code>&lt;integration&gt;</code>, <code>&lt;command&gt;</code> et <code>&lt;active-response&gt;</code>, <code>&lt;vulnerability-detection&gt;</code>. Sur l'agent : <code>&lt;localfile&gt;</code>, <code>&lt;syscheck&gt;</code>, <code>&lt;sca&gt;</code>, souvent poussés depuis le manager par <code>agent.conf</code>.</p>
+    </section>
+    <section class="card" style="--c: var(--mgr)">
+      <h2>wazuh-analysisd : le cerveau</h2>
+      <p>Trois passes sur chaque événement : pré-décodage (horodatage, hôte, programme), décodage (les champs : <code>srcip</code>, <code>win.eventdata.*</code>, hash…), règles (ruleset natif puis <code>local_rules.xml</code>, niveau, corrélation <code>frequency</code>/<code>timeframe</code>). <code>wazuh-analysisd -t</code> charge tout et s'arrête : à lancer avant chaque redémarrage.</p>
+    </section>
+    <section class="card" style="--c: var(--vt)">
+      <h2>La boucle VirusTotal</h2>
+      <p>Le FIM dit « ce fichier a bougé » et donne son hash. <code>wazuh-integratord</code> lit l'alerte, interroge VirusTotal, et sa réponse revient comme un <strong>nouvel événement</strong> dans analysisd : règle 87105 (niveau 12) si des moteurs détectent le fichier. Une réponse active peut alors le supprimer.</p>
+    </section>
+    <section class="card" style="--c: var(--ar)">
+      <h2>La réponse active fait l'aller-retour</h2>
+      <p>analysisd décide, mais n'agit pas. Avec <code>location</code> local, l'ordre repart par <code>wazuh-remoted</code> vers l'agent, dont <code>wazuh-execd</code> lance le script : c'est ainsi que <code>block-ip-win</code> a bloqué Kali (writeup 07).</p>
+    </section>
+  </div>
+
+  <footer>Sur Windows, les modules de l'agent (collecte, FIM, SCA, execd) tournent dans un seul service, <code>WazuhSvc</code> ; sur Linux, ce sont des démons séparés (<code>wazuh-logcollector</code>, <code>wazuh-syscheckd</code>, <code>wazuh-modulesd</code>, <code>wazuh-agentd</code>, <code>wazuh-execd</code>). Sources : documentation Wazuh, « Daemons » et « Architecture » (voir <code>docs/architecture.md</code>).</footer>
+</div>
+
+<script>
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const T = (x, y, s, cls = "", extra = "") => `<text x="${x}" y="${y}"${cls ? ` class="${cls}"` : ""} ${extra}>${esc(s)}</text>`;
+const COLORS = ["--agent", "--mgr", "--store", "--vt", "--ar", "--syslog", "--conf", "--muted"];
+document.getElementById("defs").innerHTML = COLORS.map(c =>
+  `<marker id="m${c}" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" style="fill: var(${c})"/></marker>`).join("");
+
+const o = [];
+const box = (x, y, w, h, c, bg, title, sub, mono) => {
+  o.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" style="fill: var(${bg}); stroke: var(${c})" stroke-width="1.8"/>`);
+  o.push(T(x + 12, y + 22, title, mono === false ? "b" : "b mono", `style="font-size: 13px; fill: var(${c})"`));
+  (Array.isArray(sub) ? sub : [sub]).forEach((s, i) => o.push(T(x + 12, y + 42 + i * 17, s, "sm")));
+};
+const arrow = (d, c, label, lx, ly, anchor = "start") => {
+  o.push(`<path class="arrow" d="${d}" style="stroke: var(${c})" marker-end="url(#m${c})"/>`);
+  if (label) [].concat(label).forEach((l, i) => o.push(T(lx, ly + i * 15, l, "sm b", `text-anchor="${anchor}" style="fill: var(${c})"`)));
+};
+const chip = (x, y, s) => {
+  const w = s.length * 6.9 + 18;
+  o.push(`<rect x="${x}" y="${y}" width="${w}" height="22" rx="11" style="fill: var(--canvas); stroke: var(--conf)" stroke-width="1.4"/>`);
+  o.push(T(x + 9, y + 15, s, "mono", `style="fill: var(--conf)"`));
+};
+
+// zones
+o.push(`<rect x="20" y="20" width="300" height="660" rx="10" style="fill: none; stroke: var(--agent)" stroke-width="1.6" stroke-dasharray="9 6"/>`);
+o.push(T(36, 44, "AGENT · SIEM-Win11", "ztitle", `style="fill: var(--agent)"`));
+o.push(`<rect x="350" y="20" width="660" height="660" rx="10" style="fill: none; stroke: var(--mgr)" stroke-width="1.6" stroke-dasharray="9 6"/>`);
+o.push(T(366, 44, "MANAGER · wazuh-server 10.10.10.100", "ztitle", `style="fill: var(--mgr)"`));
+o.push(T(1060, 44, "STOCKER, CONSULTER, ENRICHIR", "ztitle", `style="fill: var(--store)"`));
+
+// config chips
+chip(36, 56, "<localfile> <syscheck> <sca>");
+chip(366, 56, "<remote> <integration> <active-response>");
+
+// agent
+box(40, 96, 260, 64, "--agent", "--agent-bg", "logcollector", "Event Log, Sysmon, fichiers");
+box(40, 172, 260, 64, "--agent", "--agent-bg", "syscheck (FIM)", "baseline, hash, temps réel");
+box(40, 248, 260, 64, "--agent", "--agent-bg", "modulesd", "SCA, inventaire du système");
+box(40, 352, 260, 64, "--agent", "--agent-bg", "wazuh-agentd", "chiffre (AES), envoie sur 1514");
+box(40, 470, 260, 64, "--ar", "--agent-bg", "wazuh-execd", "lance le script de réponse");
+o.push(`<path class="arrow" d="M300 128 H312 V372 H306" style="stroke: var(--agent)" marker-end="url(#m--agent)"/>`);
+o.push(`<path d="M300 204 H312 M300 280 H312" style="stroke: var(--agent)" stroke-width="2.4"/>`);
+o.push(T(52, 556, "ex. block-ip-win : règle pare-feu", "sm muted"));
+o.push(T(52, 572, "Wazuh AR block <IP>, 180 s", "sm muted"));
+
+// pfSense
+box(40, 600, 260, 64, "--syslog", "--row", "pfSense (sans agent)", "filterlog en syslog 514/UDP", false);
+
+// manager
+box(370, 352, 190, 64, "--mgr", "--mgr-bg", "wazuh-remoted", "reçoit agents et syslog");
+arrow("M300 374 H364", "--agent", "", 0, 0);
+arrow("M300 632 H465 V422", "--syslog", "514/UDP", 362, 624);
+
+o.push(`<rect x="600" y="300" width="240" height="168" rx="6" style="fill: var(--mgr-bg); stroke: var(--mgr)" stroke-width="2.4"/>`);
+o.push(T(614, 324, "wazuh-analysisd", "b mono", `style="font-size: 14px; fill: var(--mgr)"`));
+[["1", "pré-décodage", "date, hôte, programme"], ["2", "décodage", "décodeurs : champs"], ["3", "règles", "natif + local_rules"]].forEach((p, i) => {
+  const y = 344 + i * 40;
+  o.push(`<circle cx="626" cy="${y + 6}" r="10" style="fill: var(--mgr)"/>`);
+  o.push(T(626, y + 10, p[0], "b sm", `text-anchor="middle" style="fill: #fff"`));
+  o.push(T(644, y + 5, p[1], "b sm"));
+  o.push(T(644, y + 21, p[2], "sm muted"));
+});
+arrow("M560 384 H594", "--mgr", "", 0, 0);
+
+box(880, 360, 112, 48, "--mgr", "--canvas", "alerts.json", "");
+arrow("M840 384 H874", "--mgr", "", 0, 0);
+
+// integratord + VirusTotal
+box(600, 120, 240, 64, "--vt", "--canvas", "wazuh-integratord", "intégrations : VirusTotal");
+arrow("M936 360 V152 H846", "--vt", ["lit les", "alertes"], 944, 236);
+box(1060, 120, 310, 64, "--vt", "--canvas", "API VirusTotal", "réputation du hash (Internet)", false);
+arrow("M840 140 H1054", "--vt", "hash du fichier", 862, 132);
+arrow("M1054 166 H860 V240 H720 V294", "--vt", ["réponse = nouvel événement", "→ règle 87105 (niv. 12)"], 732, 262);
+
+// active response
+arrow("M690 468 V520 H520 V422", "--ar", ["ordre de réponse active", "(location local)"], 530, 540);
+arrow("M420 416 V502 H306", "--ar", "", 0, 0);
+o.push(T(362, 522, "via remoted", "sm b", `style="fill: var(--ar)"`));
+
+// modulesd manager
+box(600, 590, 240, 64, "--mgr", "--mgr-bg", "wazuh-modulesd", "détection de vulnérabilités (CTI)");
+
+// filebeat → indexer → dashboard
+box(880, 470, 112, 48, "--store", "--canvas", "Filebeat", "");
+arrow("M936 408 V464", "--store", "", 0, 0);
+box(1060, 452, 310, 84, "--store", "--store-bg", "wazuh-indexer", ["OpenSearch, 9200/TCP", "alertes, événements, états"]);
+arrow("M992 494 H1054", "--store", "TLS", 1020, 486);
+arrow("M840 622 H1020 V510 H1054", "--store", ["état des", "vulnérabilités"], 856, 642);
+box(1060, 580, 310, 84, "--store", "--store-bg", "Dashboard 443", ["Threat Hunting, FIM, SCA,", "vulnérabilités : l'analyste"]);
+arrow("M1215 536 V574", "--store", "", 0, 0);
+
+// formule
+o.push(`<rect x="20" y="704" width="1360" height="66" rx="8" style="fill: var(--row); stroke: var(--line)"/>`);
+o.push(T(40, 730, "LA FORMULE", "ztitle muted"));
+o.push(`<text x="40" y="756" style="font-size: 16px"><tspan class="b" style="fill: var(--conf)">ossec.conf</tspan> = quoi faire  ·  <tspan class="b" style="fill: var(--mgr)">les démons</tspan> = qui le fait  ·  <tspan class="b" style="fill: var(--store)">indexer + dashboard</tspan> = où l'on regarde</text>`);
+
+document.getElementById("g").innerHTML = o.join("");
+</script>

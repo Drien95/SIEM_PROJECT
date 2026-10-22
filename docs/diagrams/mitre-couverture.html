@@ -54,7 +54,7 @@ code { font-family: var(--font-mono); font-size: .9em; }
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14.9 · état au 2026-10-22</span>
+    <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14.9 · état au 2026-10-22, 3 scénarios</span>
     <h1>Couverture MITRE ATT&amp;CK du lab</h1>
     <p>Une colonne par tactique, dans l'ordre d'une attaque. Vert : détection prouvée par un scénario joué. Bleu : règle en place et vue en action, pas encore dans un scénario d'attaque. Gris : prévu dans la roadmap.</p>
   </header>
@@ -79,7 +79,7 @@ const TACTICS = [
     { id: "T1078", n: "Valid Accounts", r: "100400 · 92652", sc: "scénario 1", s: "ok" } ] },
   { id: "TA0002", n: "Exécution", t: [
     { id: "T1059.001", n: "PowerShell", r: "100100 (Sysmon)", sc: "writeup 04", s: "rule" },
-    { id: "T1204.002", n: "Malicious File", r: "FIM + VirusTotal", sc: "scénario 3", s: "plan" } ] },
+    { id: "T1203", n: "Client Execution (natif)", r: "554 → 87105", sc: "scénario 3", s: "ok" } ] },
   { id: "TA0003", n: "Persistance", t: [
     { id: "T1547.001", n: "Run Keys", r: "Sysmon EID 13", sc: "scénario 5", s: "plan" },
     { id: "T1053.005", n: "Scheduled Task", r: "Sysmon, 4698", sc: "scénario 5", s: "plan" } ] },
@@ -90,7 +90,7 @@ const TACTICS = [
   { id: "TA0007", n: "Découverte", t: [
     { id: "T1046", n: "Network Service Discovery", r: "100302 → 100303", sc: "scénario 2", s: "ok" } ] },
   { id: "TA0011", n: "Commande et contrôle", t: [
-    { id: "T1105", n: "Ingress Tool Transfer", r: "FIM + VirusTotal", sc: "scénario 3", s: "plan" },
+    { id: "T1105", n: "Ingress Tool Transfer", r: "554 → 87105 (déduit)", sc: "scénario 3", s: "ok" },
     { id: "T1071", n: "Application Layer Protocol", r: "Suricata", sc: "scénario 4", s: "plan" } ] }
 ];
 const ST = { ok: ["--ok", "--ok-bg", "détecté (scénario joué)"], rule: ["--rule", "--rule-bg", "règle en place"], plan: ["--plan", "--canvas", "prévu"] };
@@ -124,7 +124,7 @@ const ST = { ok: ["--ok", "--ok-bg", "détecté (scénario joué)"], rule: ["--r
   o.push(`<rect x="30" y="${by}" width="1340" height="80" rx="6" style="fill: var(--row); stroke: var(--line)"/>`);
   o.push(T(48, by + 26, "LE SCÉNARIO 1 SUR LA MATRICE", "ztitle muted"));
   o.push(T(48, by + 52, "T1110.001 (60122 ×N) → T1110 (60204, blocage 180 s) → T1078 (100400 niveau 12 : le succès après la rafale = compte compromis)", "sm"));
-  o.push(T(48, by + 70, "Scénario 2, séparé : T1046 (100302 → 100303), vu par pfSense et non par un agent.", "sm muted"));
+  o.push(T(48, by + 70, "Scénario 2 : T1046 (100302 → 100303), vu par pfSense. Scénario 3 : 554 (FIM) → 87105 (VirusTotal), étiquette native T1203.", "sm muted"));
   document.getElementById("grid").innerHTML = o.join("");
 })();
 </script>

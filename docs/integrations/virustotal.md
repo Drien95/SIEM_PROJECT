@@ -58,3 +58,5 @@ Déposer le fichier de test **EICAR** dans le dossier surveillé. Attendu : aler
 désactiver temporairement la protection en temps réel, **sur la VM de lab uniquement**.
 
 Recherche : `rule.groups:virustotal`.
+
+**Joué le 2026-10-22** : 554 puis 87105 (niveau 12, 66 moteurs) en ~6 s. Fiche : [malware-fim-virustotal.md](../scenarios/malware-fim-virustotal.md).

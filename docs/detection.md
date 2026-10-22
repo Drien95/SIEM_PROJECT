@@ -43,7 +43,7 @@ consigner (alerte, `rule.id`, niveau, capture).
 | 1 | [Brute force SSH / RDP](scenarios/brute-force.md) | Hydra depuis Kali | Linux sshd : règles 5551, 5712 ; Windows RDP : 60122, 60204 (Event ID 4625) ; réponse active | T1110 (déduit) |
 | 1 bis | [Brute force SMB sur Windows 11](scenarios/brute-force-smb.md) — **joué le 2026-10-22** | `smbclient` depuis Kali (10.10.20.10) | Observé : 60122 par essai (niv. 5), 60204 (niv. 10), réponse active (blocage 180 s), 100400 au succès (niv. 12) | T1110, T1110.001, T1078 (déduits) |
 | 2 | Modification de fichiers surveillés | Manuel | Alertes FIM (niveaux 5 et 7 selon UsmanPrime) | T1565 (déduit) |
-| 3 | Fichier malveillant de test | EICAR | Alerte Defender et/ou VirusTotal | T1204 (déduit) |
+| 3 | [Fichier malveillant de test : FIM + VirusTotal](scenarios/malware-fim-virustotal.md) — **joué le 2026-10-22** | EICAR déposé sur Windows 11 | Observé : 554 (niv. 5) puis 87105 (niv. 12, 66 moteurs) en ~6 s | T1203 (natif), T1105 / T1204.002 (déduits) |
 | 4 | Exécution de processus | `powershell.exe` | Règle personnalisée Sysmon niveau 8 | T1059.001 |
 | 5 | [Scan de ports nmap](scenarios/scan-nmap.md) — **joué le 2026-10-22** | `nmap -sS -Pn` depuis Kali vers Wazuh | Observé : 100302 en rafale (niv. 5), 100303 ×1 (niv. 10) ; Suricata à venir | T1046 |
 

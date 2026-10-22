@@ -14,6 +14,8 @@ la preuve. Il est tenu à jour à chaque scénario (voir la [roadmap](roadmap.md
 | Accès aux identifiants (TA0006) | **T1110** Brute Force | 60204 (native), puis réponse active `block-ip-win` | 10 | journal Security de Windows, agent | [scénario 1](scenarios/brute-force-smb.md), [writeup 07](writeup/07-regles-et-reponse-active.md) |
 | Accès aux identifiants (TA0006) | **T1110.001** Password Guessing (déduit) | 60122 (native), une par essai | 5 | idem | [scénario 1](scenarios/brute-force-smb.md) |
 | Accès initial (TA0001) | **T1078** Valid Accounts (déduit) | **100400** (locale) « succès après rafale » ; 92652 (native) | 12 ; 6 | idem | [writeup 07, § 1.4](writeup/07-regles-et-reponse-active.md) |
+| Exécution (TA0002) | **T1203** Exploitation for Client Execution (étiquette native de 87105) | 554 (FIM) → **87105** (VirusTotal) | 5 → 12 | FIM de l'agent + API VirusTotal | [scénario 3](scenarios/malware-fim-virustotal.md) |
+| Commande et contrôle (TA0011) | **T1105** Ingress Tool Transfer (déduit : le dépôt du fichier) | idem | | idem | [scénario 3](scenarios/malware-fim-virustotal.md) |
 | Découverte (TA0007) | **T1046** Network Service Discovery | 100302 → **100303** (locales) | 5 → 10 | `filterlog` de pfSense, syslog | [scénario 2](scenarios/scan-nmap.md) |
 
 ## Règle en place, pas encore dans un scénario d'attaque
@@ -26,8 +28,7 @@ la preuve. Il est tenu à jour à chaque scénario (voir la [roadmap](roadmap.md
 
 | Tactique | Technique | Moyen de détection | Scénario |
 |---|---|---|---|
-| Exécution (TA0002) | T1204.002 Malicious File (déduit) | FIM + VirusTotal (EICAR) | 3 |
-| Commande et contrôle (TA0011) | T1105 Ingress Tool Transfer (déduit) | FIM + VirusTotal | 3 |
+| Exécution (TA0002) | T1204.002 Malicious File (déduit) | Sysmon EID 1 sur un fichier signalé par VirusTotal (exécution réelle) | 5 |
 | Commande et contrôle (TA0011) | T1071 Application Layer Protocol (déduit) | Suricata | 4 |
 | Accès aux identifiants (TA0006) | T1003.001 LSASS Memory | Sysmon EID 10 | 5 |
 | Persistance (TA0003) | T1547.001 Run Keys | Sysmon EID 13 | 5 |
@@ -39,6 +40,7 @@ la preuve. Il est tenu à jour à chaque scénario (voir la [roadmap](roadmap.md
 |---|---|---|---|
 | 60122 (native) | T1531 Account Access Removal (Impact) | un échec de connexion ne supprime aucun accès | T1110 / T1110.001 |
 | 87702 (native pfSense) | T1110 Brute Force | des blocages répétés signalent surtout un scan | T1046 (notre 100303) |
+| 87105 (native VirusTotal) | T1203 Exploitation for Client Execution | même étiquette pour tout fichier détecté, sans exploitation ni exécution | T1105 puis T1204.002 selon ce qu'on observe |
 
 Sources : https://attack.mitre.org/ (matrice Enterprise),
 https://github.com/wazuh/wazuh/tree/v4.14.0/ruleset/rules (étiquettes des règles natives).

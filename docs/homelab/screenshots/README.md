@@ -101,3 +101,6 @@ Captures volontairement **non versionnées** (mot de passe visible) : les sortie
 | 88 | [88-wazuh-100400-succes-apres-rafale.png](88-wazuh-100400-succes-apres-rafale.png) | Threat Hunting `rule.id:100400` : **1 hit niveau 12**, SIEM-Win11, « connexion réussie de labtest depuis 10.10.20.10 juste après une rafale d'échecs » (20:48:02) |
 | 89 | [89-wazuh-100302-rafale-scan.png](89-wazuh-100302-rafale-scan.png) | Scan nmap : rafale de **100302** `pfSense : paquet bloqué 10.10.20.10 -> 10.10.10.100 (tcp) sur em0`, niveau 5 (21:00:46) |
 | 90 | [90-wazuh-100303-scan-probable.png](90-wazuh-100303-scan-probable.png) | **100303** niveau 10 : « blocages répétés depuis 10.10.20.10 (scan probable) » (21:00:45) |
+| 91 | [91-win11-depot-eicar-68-octets.png](91-win11-depot-eicar-68-octets.png) | Windows 11 : dépôt du fichier de test EICAR avec `Set-Content -NoNewline -Encoding ascii`, **68 octets** dans `C:\Users\Public\vt-test` |
+| 92 | [92-wazuh-554-fichier-ajoute.png](92-wazuh-554-fichier-ajoute.png) | `rule.groups:syscheck` : **554** niveau 5 « File added to the system », SIEM-Win11 (21:34:13) |
+| 93 | [93-wazuh-87105-virustotal-66-moteurs.png](93-wazuh-87105-virustotal-66-moteurs.png) | `rule.groups:virustotal` : **87105** niveau 12 « c:\users\public\vt-test\eicar.com - 66 engines detected this file » (21:34:19) |

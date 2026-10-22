@@ -6,7 +6,7 @@ attaques pour vérifier ce que Wazuh détecte, comment il corrèle et comment il
 
 > **Statut au 2026-10-22** : le lab est monté et durci. Il comprend pfSense CE 2.9.0,
 > Wazuh 4.14.9 (OVA), un agent Windows 11 avec Sysmon, et Kali sur un réseau d'attaque séparé.
-> **Deux scénarios** ont été joués et validés en live, et une réponse active bloque
+> **Trois scénarios** ont été joués et validés en live, et une réponse active bloque
 > automatiquement l'attaquant. Suite : voir la [roadmap](docs/roadmap.md).
 > Toute affirmation non testée est marquée « à valider ».
 
@@ -27,6 +27,7 @@ attaques pour vérifier ce que Wazuh détecte, comment il corrèle et comment il
 |---|---|---|---|---|
 | 1 | Brute force SMB sur Windows 11 | T1110, T1110.001, T1078 | 60122 par essai → 60204 (niv. 10) → **réponse active** : IP bloquée 180 s → **100400** (niv. 12) si un compte est ensuite ouvert | [brute-force-smb.md](docs/scenarios/brute-force-smb.md) |
 | 2 | Scan de ports nmap à travers pfSense | T1046 | 100302 par paquet bloqué → **100303** (niv. 10, scan probable) | [scan-nmap.md](docs/scenarios/scan-nmap.md) |
+| 3 | Fichier malveillant déposé (EICAR) | T1203 (natif), T1105 | FIM **554** (niv. 5) → VirusTotal **87105** (niv. 12, 66 moteurs) en ~6 s | [malware-fim-virustotal.md](docs/scenarios/malware-fim-virustotal.md) |
 
 Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 
@@ -42,6 +43,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [06 · Scénario 1 : brute force SMB](docs/writeup/06-scenario-brute-force-smb.md) | Première détection : 4625, 60122, 60204, pièges de préparation |
 | [07 · Règles et réponse active](docs/writeup/07-regles-et-reponse-active.md) | Cours sur les règles, réponse active testée en live, règle locale 100400 |
 | [08 · Scénario 2 : scan nmap](docs/writeup/08-scenario-scan-nmap.md) | pfSense comme témoin, 100302 et 100303, angle mort d'une règle |
+| [09 · Scénario 3 : FIM + VirusTotal](docs/writeup/09-scenario-fim-virustotal.md) | EICAR détecté en ~6 s : 554 puis 87105, pièges Defender, `-NoNewline` et quota |
 | [Annexe · Simulateur de paquets](docs/writeup/annexe-simulateur-paquets.md) | Simulateur façon Packet Tracer (ARP, DHCP, NAT, syslog, agent, Kali), avec vidéos |
 
 ## Documents de référence

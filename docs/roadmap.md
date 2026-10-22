@@ -27,7 +27,8 @@ Statuts : ✅ fait · 🔄 en cours · ⏳ à venir. Mis à jour le 2026-10-22.
 |---|---|---|---|---|---|
 | 1 | Brute force SMB sur Windows 11 : journaux Windows, corrélation 60204, **réponse active** (blocage 180 s), règle locale **100400** « succès après rafale » | T1110, T1110.001, T1078 | lire un 4625, distinguer tentative et compromission, automatiser une réponse | ✅ | [fiche](scenarios/brute-force-smb.md), [writeup 06](writeup/06-scenario-brute-force-smb.md), [writeup 07](writeup/07-regles-et-reponse-active.md) |
 | 2 | Scan nmap à travers pfSense : journaux du pare-feu, corrélation 100303 | T1046 | détecter la reconnaissance, connaître les angles morts d'une règle | ✅ | [fiche](scenarios/scan-nmap.md), [writeup 08](writeup/08-scenario-scan-nmap.md) |
-| 3 | **FIM + VirusTotal** : dépôt du fichier de test EICAR, détection par l'intégrité des fichiers puis VirusTotal, **suppression automatique** (réponse active) | T1204.002, T1105 (déduits) | traiter une alerte malware, enrichir avec une réputation externe, remédiation automatique | 🔄 | [intégration VirusTotal](integrations/virustotal.md), [FIM](integrations/fim.md) |
+| 3 | **FIM + VirusTotal** : dépôt du fichier de test EICAR, alerte FIM 554 puis VirusTotal 87105 (niveau 12, 66 moteurs) en ~6 s | T1203 (étiquette native), T1105 et T1204.002 (déduits) | traiter une alerte malware, enrichir avec une réputation externe | ✅ | [fiche](scenarios/malware-fim-virustotal.md), [writeup 09](writeup/09-scenario-fim-virustotal.md) |
+| 3 bis | Réponse active de **suppression du fichier** sur 87105 (Windows, modèle `block-ip-win`) | — | remédiation automatique d'un malware | ⏳ | [fiche, § 8](scenarios/malware-fim-virustotal.md) |
 | 4 | **Suricata** (IDS) : signatures réseau sur le trafic que pfSense autorise | T1046, T1071 (déduits) | lire une alerte IDS, couvrir l'angle mort du scénario 2 | ⏳ | [intégration Suricata](integrations/suricata.md) |
 | 5 | **Sysmon, accès aux identifiants et persistance** : lecture de LSASS, clé Run, tâche planifiée | T1003.001, T1547.001, T1053.005 | détecter sur la télémétrie d'un endpoint, écrire des règles enfants Sysmon | ⏳ | [Windows et Sysmon](integrations/windows-logs-sysmon.md) |
 | 6 | **SCA** (Security Configuration Assessment), référentiel CIS de Windows 11 | (posture, pas une technique) | mesurer et suivre une conformité | ⏳ | à écrire |
@@ -56,4 +57,4 @@ vue par Sysmon, T1059.001), validée sur de l'activité normale ([writeup 04](wr
 
 ## Prochaine étape
 
-Scénario 3 : **FIM + VirusTotal** avec EICAR et suppression automatique du fichier.
+Scénario 3 bis (suppression automatique du fichier EICAR sur 87105), puis scénario 4 : **Suricata**.

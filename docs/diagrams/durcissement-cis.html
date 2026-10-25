@@ -1,0 +1,135 @@
+<title>Durcissement CIS automatisé</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Famille visuelle commune des planches du lab (voir detection-brute-force-smb.html). */
+:root {
+  --bg: #f3f5f8; --canvas: #ffffff; --fg: #1c2633; --muted: #5a6778; --line: #d5dbe3; --row: #f6f8fa;
+  --kali: #3b6fd0; --kali-bg: #edf2fc;
+  --ok: #1f8a4c; --ok-bg: #e8f5ed;
+  --bad: #d23c3c; --bad-bg: #fbeaea;
+  --warn: #c77d0a; --warn-bg: #fdf3e2;
+  --wz: #0f7f86; --wz-bg: #e6f4f5;
+  --sys: #7445c9; --sys-bg: #f1ebfb;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+    --kali: #7fa6f0; --kali-bg: #19213a; --ok: #4fcf83; --ok-bg: #16281d; --bad: #ff6b6b; --bad-bg: #2c1a1c;
+    --warn: #f0a73a; --warn-bg: #2a2119; --wz: #4fc9cf; --wz-bg: #14282a; --sys: #a98bf0; --sys-bg: #231c33; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+  --kali: #7fa6f0; --kali-bg: #19213a; --ok: #4fcf83; --ok-bg: #16281d; --bad: #ff6b6b; --bad-bg: #2c1a1c;
+  --warn: #f0a73a; --warn-bg: #2a2119; --wz: #4fc9cf; --wz-bg: #14282a; --sys: #a98bf0; --sys-bg: #231c33; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 72ch; color: var(--muted); }
+figure { margin: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 980px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 12px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .ztitle { font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+svg .sm { font-size: 12px; }
+footer { color: var(--muted); font-size: 13px; }
+code { font-family: var(--font-mono); font-size: .9em; }
+</style>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · scripts/hardening · CIS Windows 11 · validé sur la VM le 2026-10-25</span>
+    <h1>Durcir, vérifier, et douter du score</h1>
+    <p>Les scripts corrigent ce que le SCA mesure, famille par famille, avec sauvegarde et retour arrière. Sur un Windows en français, le SCA continue pourtant de marquer en échec des réglages d'audit bien appliqués : le check cherche un texte anglais, le script lit l'état réel par GUID.</p>
+  </header>
+  <figure id="hd">
+    <svg viewBox="0 0 1400 660" role="img" aria-labelledby="svg-title">
+      <title id="svg-title">Cycle des scripts de durcissement (dry-run, garde-fou, sauvegarde, application, vérification, rescan, rollback) et explication du faux échec SCA lié à la langue</title>
+      <g id="g"></g>
+    </svg>
+  </figure>
+  <footer>Scripts : <code>scripts/hardening/</code> (PR #1). Checks SCA 26139 à 26165 : <code>auditpol.exe /get /subcategory:"…" -> r:Success and Failure</code> dans <code>cis_win11_enterprise.yml</code> (v4.14.0, 27 checks). GUID : liste Microsoft MS-GPAC.</footer>
+</div>
+<script>
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const T = (x, y, s, cls = "", extra = "") => `<text x="${x}" y="${y}"${cls ? ` class="${cls}"` : ""} ${extra}>${esc(s)}</text>`;
+const R = (x, y, w, h, c, bg, extra = "") => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" style="fill: var(${bg}); stroke: var(${c})" stroke-width="2" ${extra}/>`;
+const A = (x1, y1, x2, y2, c = "--muted", dash = false) => (c = c.startsWith("--") ? c : "--" + c, `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke: var(${c})" stroke-width="2" marker-end="url(#ah${c.replace('--', '')})"${dash ? ' stroke-dasharray="5 4"' : ""}/>`);
+const MK = cs => "<defs>" + cs.map(c => `<marker id="ah${c}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--${c})"/></marker>`).join("") + "</defs>";
+(function () {
+  const o = [MK(["muted", "ok", "bad", "warn"])];
+  o.push(T(30, 34, "1 · LE CYCLE D'UNE FAMILLE (Invoke-Hardening.ps1)", "ztitle muted"));
+  const st = [
+    ["Dry-run", "par défaut", "affiche PASS / DRYRUN, ne touche à rien", "--muted", "--row"],
+    ["Garde-fou", "famille 02", "-AcceptLockoutRisk, 2 admins, « OUI »", "--warn", "--warn-bg"],
+    ["Sauvegarde", "avant tout", "secedit, auditpol, registre", "--sys", "--sys-bg"],
+    ["Appliquer", "-Apply", "seulement ce qui n'est pas conforme", "--sys", "--sys-bg"],
+    ["Vérifier", "relecture", "état réel relu : PASS ou FAIL", "--ok", "--ok-bg"],
+    ["Re-mesurer", "-Rescan", "WazuhSvc redémarre, scan SCA", "--wz", "--wz-bg"]
+  ];
+  const bw = 210, gap = 13;
+  st.forEach((s, i) => {
+    const x = 30 + i * (bw + gap);
+    o.push(R(x, 50, bw, 104, s[3], s[4]));
+    o.push(T(x + 14, 76, `${i + 1}. ${s[0]}`, "b"));
+    o.push(T(x + 14, 98, s[1], "mono", `style="font-size: 12px"`));
+    const w = s[2].split(" "); let line = "", y = 120;
+    w.forEach(t => { if ((line + " " + t).length > 30) { o.push(T(x + 14, y, line.trim(), "sm muted")); y += 17; line = ""; } line += " " + t; });
+    o.push(T(x + 14, y, line.trim(), "sm muted"));
+    if (i < st.length - 1) o.push(A(x + bw + 1, 102, x + bw + gap - 1, 102));
+  });
+  // rollback
+  o.push(`<path d="M${30 + 5 * (bw + gap) + bw / 2},156 v26 H${30 + 2 * (bw + gap) + bw / 2} v-24" fill="none" style="stroke: var(--bad)" stroke-width="1.8" stroke-dasharray="6 4" marker-end="url(#ahbad)"/>`);
+  o.push(T(560, 200, "-Rollback : restaure la sauvegarde de la famille ou d'une exécution (-FromRun)", "sm b", `style="fill: var(--bad)"`));
+  // résultats
+  o.push(T(30, 244, "2 · RÉSULTATS SUR LA VM (WINDOWS 11 PROFESSIONNEL, BUILD 26300, EN FRANÇAIS)", "ztitle muted"));
+  const res = [
+    ["01 · mots de passe (CIS 1.1)", "déjà conforme : PASS", "--ok"],
+    ["02 · verrouillage (CIS 1.2)", "seuil 10→5, durée 10→15, reset 10→15 : PASS=3, SCA suit", "--ok"],
+    ["03 · audit (CIS 17 + 3 clés)", "30 réglages PASS ; SCA : +3 seulement", "--warn"]
+  ];
+  res.forEach((r, i) => {
+    const x = 30 + i * 450;
+    o.push(R(x, 256, 430, 62, r[2], "--canvas"));
+    o.push(T(x + 14, 280, r[0], "b"));
+    o.push(T(x + 14, 302, r[1], "sm"));
+  });
+  // faux échec
+  const fy = 356;
+  o.push(T(30, fy, "3 · POURQUOI LE SCA DIT « FAILED » ALORS QUE L'AUDIT EST APPLIQUÉ", "ztitle muted"));
+  // colonne SCA
+  o.push(R(30, fy + 14, 650, 230, "--bad", "--bad-bg"));
+  o.push(T(46, fy + 42, "Check SCA 26139 (CIS 17.1.1), écrit en anglais", "b", `style="fill: var(--bad)"`));
+  o.push(T(46, fy + 70, 'auditpol.exe /get /subcategory:"Credential Validation"', "mono", `style="font-size: 12.5px"`));
+  o.push(T(46, fy + 92, "-> r:Success and Failure", "mono", `style="font-size: 12.5px"`));
+  o.push(T(46, fy + 126, "Windows en français : la sous-catégorie et le résultat sont", "sm"));
+  o.push(T(46, fy + 146, "libellés en français (« Succès et échec »).", "sm"));
+  o.push(T(46, fy + 176, "Le texte anglais n'est jamais trouvé → Failed, même conforme.", "sm b"));
+  o.push(T(46, fy + 204, "Les 27 checks d'audit (26139-26165) passent par auditpol ; seuls les 3", "sm muted"));
+  o.push(T(46, fy + 222, "checks lus dans le Registre (26013, 26222, 26376) ont progressé.", "sm muted"));
+  // colonne script
+  o.push(R(720, fy + 14, 650, 230, "--ok", "--ok-bg"));
+  o.push(T(736, fy + 42, "Script 03-audit-policy.ps1, indépendant de la langue", "b", `style="fill: var(--ok)"`));
+  o.push(T(736, fy + 70, "sous-catégorie désignée par GUID :", "sm"));
+  o.push(T(736, fy + 92, "{0CCE923F-69AE-11D9-BED3-505054503030}", "mono", `style="font-size: 12.5px"`));
+  o.push(T(736, fy + 126, "valeur lue : 3 = succès et échec, comparée à l'attendu", "sm"));
+  o.push(T(736, fy + 146, "→ PASS, prouvé par relecture de l'état réel.", "sm"));
+  o.push(T(736, fy + 176, "Leçon : un « Failed » peut être un faux échec.", "sm b"));
+  o.push(T(736, fy + 204, "Vérifier la réalité technique avant de croire un score ;", "sm muted"));
+  o.push(T(736, fy + 222, "piste : politique SCA maison fondée sur les GUID.", "sm muted"));
+  document.getElementById("g").innerHTML = o.join("");
+})();
+</script>

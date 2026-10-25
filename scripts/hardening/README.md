@@ -5,11 +5,10 @@ du lab (`SIEM-Win11`, Wazuh 4.14.9). Ils corrigent ce que le module SCA mesure (
 [l'intégration SCA](../../docs/integrations/sca.md) et le [writeup 12](../../docs/writeup/12-sca-cis-windows11.md)),
 puis relancent un scan pour **prouver** la correction : mesurer, corriger, re-mesurer.
 
-> **Statut : à valider sur la VM.** Écrits hors VM le 2026-10-25. Contrôlés uniquement en
-> syntaxe et en logique, sous PowerShell 7 Linux, avec `secedit`, `auditpol` et le registre
-> **simulés** (dry-run, application, idempotence, garde-fou, rollback). Seul le réglage CIS 1.1.4
-> a déjà été corrigé à la main sur la VM (check 26003 passé à Passed). Consigner chaque essai
-> réel dans « Résultats dans notre lab » ci-dessous.
+> **Statut : validés sur la VM le 2026-10-25** (Windows 11 Professionnel build 26300, en
+> français) : dry-run, puis application des familles 01, 03 et 02 avec sauvegarde, vérification
+> par relecture et garde-fou. Récit et constats : [writeup 13](../../docs/writeup/13-durcissement-cis-automatise.md).
+> Le rollback est disponible pour chaque exécution mais n'a pas encore été rejoué sur la VM.
 
 ## Contenu
 
@@ -178,7 +177,7 @@ La famille 02 verrouille un compte après **5 échecs** pendant **15 minutes**.
   la charge du manager après la famille 03 (à valider). Le journal Security passe à 192 Mo
   minimum pour ne rien perdre.
 - La ligne de commande dans l'événement 4688 peut contenir un mot de passe tapé en clair.
-- **Faux positif SCA probable lié à la langue** (déduction, à valider) : les checks 26139 à 26165
+- **Faux « Failed » SCA lié à la langue** (**confirmé** sur la VM le 2026-10-25, voir le writeup 13) : les checks 26139 à 26165
   appellent `auditpol /get /subcategory:"Logon"` avec le nom **anglais** et cherchent le texte
   `Success and Failure`. Sur notre Windows **français**, le nom attendu est traduit et la sortie
   aussi : ces checks risquent de rester Failed même une fois l'audit conforme. Le rapport du
@@ -191,9 +190,10 @@ La famille 02 verrouille un compte après **5 échecs** pendant **15 minutes**.
 | Date | Famille | Mode | Résultat du script | Score SCA avant → après | Remarques |
 |---|---|---|---|---|---|
 | 2026-10-25 | 1.1.4 seul (à la main) | `net accounts /minpwlen:14` | - | check 26003 Failed → Passed | validé, voir writeup 12 |
-| à venir | 01 | `-Apply -Rescan` | à valider | 24 % → ? | |
-| à venir | 03 | `-Apply -Rescan` | à valider | ? | vérifier le faux positif de langue |
-| à venir | 02 | `-Apply -AcceptLockoutRisk -Rescan` | à valider | ? | rejouer le scénario 1 : 4740 attendu |
+| 2026-10-25 | toutes | dry-run | bilan PASS / DRYRUN | — | rien de modifié |
+| 2026-10-25 | 01 | `-Apply -Rescan` | déjà conforme : PASS | inchangé | 1.1.4 corrigé auparavant à la main |
+| 2026-10-25 | 03 | `-Apply -Rescan` | 30 réglages PASS | +3 checks (26013, 26222, 26376) | checks 17.x restés Failed : faux échec dû à la langue (confirmé) |
+| 2026-10-25 | 02 | `-Apply -Rescan -AcceptLockoutRisk` | PASS=3 (seuil 10→5, durée 10→15, reset 10→15) | 26005-26007 suivent (valeur exacte du score non relevée) | compte de secours `admin-secours` ; `OUI` exigé ; rejouer le scénario 1 : 4740 attendu |
 
 ## Ajouter une famille
 

@@ -107,7 +107,8 @@ score gagne un check. Le cycle complet tient en quelques minutes :
 - **Lien avec la détection** : plusieurs échecs CIS correspondent aux faiblesses exploitées dans
   nos scénarios (politique de mots de passe et brute force du scénario 1). Croiser posture et
   alertes est une bonne piste pour la phase 2.
-- **Limites** : politique écrite pour un système en anglais (notre Windows est en français),
+- **Limites** : politique écrite pour un système en anglais (notre Windows est en français ;
+  effet confirmé sur les checks d'audit dans le [writeup 13](13-durcissement-cis-automatise.md)),
   benchmark *Enterprise* sur un poste hors domaine (voir [integrations/sca.md](../integrations/sca.md#6-limites)).
 
 ## 6. Résultats dans notre lab

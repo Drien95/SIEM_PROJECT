@@ -156,7 +156,9 @@ Utilisées par l'[intégration SCA](integrations/sca.md) et le [writeup 12](writ
 
 ## Scripts de durcissement CIS
 
-Utilisées par [scripts/hardening/](../scripts/hardening/README.md) :
+Utilisées par [scripts/hardening/](../scripts/hardening/README.md) et le [writeup 13](writeup/13-durcissement-cis-automatise.md)
+(checks d'audit 26139-26165 par `auditpol` et noms anglais : vérifiés dans
+https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/sca/windows/cis_win11_enterprise.yml) :
 
 - Ids, cibles et opérateurs des checks repris tels quels de la politique Wazuh (vérifiée,
   ruleset v4.14.0) : https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/sca/windows/cis_win11_enterprise.yml

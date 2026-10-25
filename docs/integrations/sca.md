@@ -9,7 +9,7 @@ https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/sca/windows/cis_win11_enterp
 https://www.cisecurity.org/cis-benchmarks/.
 
 Joué dans le lab le 2026-10-25 : [writeup 12](../writeup/12-sca-cis-windows11.md).
-Remédiation par scripts (familles CIS, à valider sur la VM) : [scripts/hardening/](../../scripts/hardening/README.md).
+Remédiation par scripts (familles CIS, validés sur la VM le 2026-10-25) : [scripts/hardening/](../../scripts/hardening/README.md), [writeup 13](../writeup/13-durcissement-cis-automatise.md).
 
 ![Anatomie d'un check SCA, référentiels, score et boucle de durcissement](../diagrams/sca-check-cis.png)
 
@@ -106,8 +106,10 @@ remédiation, conformité).
 ## 6. Limites
 
 - Politique écrite pour un système **en anglais** : la politique elle-même prévient que
-  certains checks sont moins précis sur un système dans une autre langue (notre Windows 11 est
-  en français : à garder en tête pour les résultats « Failed » surprenants, à valider).
+  certains checks sont moins précis sur un système dans une autre langue. **Confirmé dans le lab**
+  (2026-10-25) : les 27 checks d'audit 26139-26165 interrogent `auditpol` avec les noms anglais et
+  cherchent `Success and Failure` ; sur notre Windows en français, ils restent « Failed » même
+  une fois l'audit appliqué et vérifié par GUID. Détail : [writeup 13, § 4](../writeup/13-durcissement-cis-automatise.md#4-le-finding--un-faux-failed-dû-à-la-langue).
 - Benchmark **Enterprise** (poste en domaine) appliqué à un poste isolé : certaines
   recommandations (GPO de domaine) n'ont pas d'objet dans le lab.
 - Les checks par commande (`c:`) des politiques **personnalisées** poussées depuis le manager

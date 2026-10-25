@@ -9,6 +9,7 @@ https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/sca/windows/cis_win11_enterp
 https://www.cisecurity.org/cis-benchmarks/.
 
 Joué dans le lab le 2026-10-25 : [writeup 12](../writeup/12-sca-cis-windows11.md).
+Remédiation par scripts (familles CIS, à valider sur la VM) : [scripts/hardening/](../../scripts/hardening/README.md).
 
 ![Anatomie d'un check SCA, référentiels, score et boucle de durcissement](../diagrams/sca-check-cis.png)
 

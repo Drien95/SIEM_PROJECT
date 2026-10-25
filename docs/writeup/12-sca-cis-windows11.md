@@ -44,6 +44,15 @@ Rien n'a été configuré : le module est actif par défaut et a choisi la polit
 | Non applicables | 9 |
 | Score | **24 %** (réussis / (réussis + échoués)) |
 
+*Relevé du scan terminé à 18:26:36 (capture 95), où le check 26003 est déjà corrigé (§ 4).
+Avant la correction, le décompte était donc vraisemblablement de 114 réussis et 359 échoués,
+score toujours 24 % (déduit, relevé initial non capturé).*
+
+![Configuration Assessment de SIEM-Win11 : 115 réussis, 358 échoués, 9 non applicables, score 24 %, 26003 Passed](../homelab/screenshots/95-wazuh-sca-cis-win11-26003-passed.png)
+
+*Capture 95 : tableau de bord SCA de l'agent SIEM-Win11 ; la colonne Target montre la commande
+de chaque check, 26003 est Passed.*
+
 Un score bas n'est pas une anomalie : un Windows installé par défaut privilégie la
 compatibilité, et le benchmark vise un poste d'entreprise durci. Le score sert de **ligne de
 base** : ce qui compte, c'est sa progression.
@@ -106,9 +115,9 @@ score gagne un check. Le cycle complet tient en quelques minutes :
 | Test | Attendu | Obtenu |
 |---|---|---|
 | Module SCA actif sans configuration | oui | ✅ politique CIS Windows 11 v3.0.0 appliquée |
-| Score initial d'un Windows 11 par défaut | bas | ✅ 24 % : 115 réussis, 358 échoués, 9 non applicables, 482 checks |
+| Score initial d'un Windows 11 par défaut | bas | ✅ 24 % sur 482 checks (capture 95, après correction : 115 réussis, 358 échoués, 9 non applicables) |
 | Lecture d'un check (26003) | cible, condition, remédiation, conformité | ✅ sept référentiels rattachés |
-| Correction `net accounts /minpwlen:14` puis redémarrage de l'agent | 26003 Failed → Passed | ✅ score +1 check |
+| Correction `net accounts /minpwlen:14` puis redémarrage de l'agent | 26003 Failed → Passed | ✅ 26003 Passed (capture 95) |
 | Correction à grande échelle (GPO) | — | hors périmètre (poste hors domaine) |
 
 Sources : voir [integrations/sca.md](../integrations/sca.md) et [docs/sources.md](../sources.md).

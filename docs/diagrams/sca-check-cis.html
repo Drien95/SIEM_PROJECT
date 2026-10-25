@@ -61,7 +61,7 @@ code { font-family: var(--font-mono); font-size: .9em; }
       <g id="g"></g>
     </svg>
   </figure>
-  <footer>Check 26003 tel qu'écrit dans <code>ruleset/sca/windows/cis_win11_enterprise.yml</code> (Wazuh v4.14.0, 482 checks). Score observé sur l'agent SIEM-Win11 le 2026-10-25.</footer>
+  <footer>Check 26003 tel qu'écrit dans <code>ruleset/sca/windows/cis_win11_enterprise.yml</code> (Wazuh v4.14.0, 482 checks). Score : scan de l'agent SIEM-Win11 du 2026-10-25 à 18:26 (capture 95).</footer>
 </div>
 <script>
 const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -97,7 +97,7 @@ const MK = cs => "<defs>" + cs.map(c => `<marker id="ah${c}" viewBox="0 0 10 10"
   });
   // score
   const sy = 340;
-  o.push(T(30, sy, "3 · SCORE DE L'AGENT SIEM-WIN11 (WINDOWS 11 PAR DÉFAUT)", "ztitle muted"));
+  o.push(T(30, sy, "3 · SCORE DE L'AGENT SIEM-WIN11 (SCAN DE 18:26, APRÈS CORRECTION DE 26003)", "ztitle muted"));
   const tot = 482, w = 860, parts = [[115, "réussis", "--ok", "--ok-bg"], [358, "échoués", "--bad", "--bad-bg"], [9, "non applicables", "--muted", "--row"]];
   let x = 30;
   parts.forEach(p => {
@@ -107,7 +107,7 @@ const MK = cs => "<defs>" + cs.map(c => `<marker id="ah${c}" viewBox="0 0 10 10"
     x += pw;
   });
   o.push(T(870, sy + 64, "9 non applicables", "sm muted", 'text-anchor="end"'));
-  o.push(T(30, sy + 72, "482 checks · score 24 % = réussis / (réussis + échoués) · point de départ normal pour un poste non durci", "sm"));
+  o.push(T(30, sy + 72, "482 checks · score 24 % = réussis / (réussis + échoués) · point de départ normal pour un Windows 11 non durci", "sm"));
   // loop
   const ly = 470;
   o.push(T(30, ly, "4 · LA BOUCLE DE DURCISSEMENT, JOUÉE SUR 26003", "ztitle muted"));

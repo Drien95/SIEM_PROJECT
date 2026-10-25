@@ -31,7 +31,7 @@ Statuts : ✅ fait · 🔄 en cours · ⏳ à venir. Mis à jour le 2026-10-25.
 | 3 bis | Réponse active de **suppression du fichier** sur 87105 (Windows, modèle `block-ip-win`) | — | remédiation automatique d'un malware | ⏳ | [fiche, § 8](scenarios/malware-fim-virustotal.md) |
 | 4 | **Suricata** (IDS) sur l'interface ATTACK de pfSense, ET Open : scan vers Windows 11 (destination autorisée), 86601 → règle locale **100210** (niveau 10) ; corrections `HOME_NET` et décodeur `json` pour l'en-tête RFC 5424 | T1046 | lire une alerte IDS, couvrir l'angle mort du scénario 2, déboguer une ingestion | ✅ | [fiche](scenarios/suricata-nids.md), [writeup 10](writeup/10-scenario-suricata-nids.md), [intégration](integrations/suricata.md) |
 | 5 | **Sysmon, accès aux identifiants et persistance** : accès à LSASS joué et validé en live le 2026-10-25 (Sysmon EID 10, règle locale **100220** niveau 12) ; persistance par **clé Run** jouée et validée le 2026-10-25 (native 92300 niveau 0, élevée par la règle locale **100230** niveau 12) ; tâche planifiée à venir | T1003.001, T1547.001, T1053.005 | détecter sur la télémétrie d'un endpoint, écrire des règles enfants Sysmon | 🔄 | [Windows et Sysmon](integrations/windows-logs-sysmon.md), [`sysmon-lab.xml`](../configs/agent-windows/sysmon-lab.xml), [`local_rules.xml`](../configs/manager/local_rules.xml), [fiche clé Run](scenarios/persistance-run-key.md), [writeup 11](writeup/11-scenario-persistance-run-key.md) |
-| 6 | **SCA** (Security Configuration Assessment), référentiel CIS de Windows 11 | (posture, pas une technique) | mesurer et suivre une conformité | ⏳ | à écrire |
+| 6 | **SCA** (Security Configuration Assessment), CIS Microsoft Windows 11 Enterprise v3.0.0 : score initial 24 % (115/358/9 sur 482), boucle de durcissement prouvée sur le check 26003 | (posture, pas une technique) | mesurer et suivre une conformité, relier un réglage à PCI DSS, ISO 27001, SOC 2 | ✅ | [writeup 12](writeup/12-sca-cis-windows11.md), [intégration SCA](integrations/sca.md) |
 | 7 | **Vulnerability Detection** : CVE des paquets installés | (posture, pas une technique) | prioriser des vulnérabilités | ⏳ | à écrire |
 
 Déjà en place hors scénario d'attaque : la règle locale **100100** (exécution de PowerShell
@@ -57,6 +57,6 @@ vue par Sysmon, T1059.001), validée sur de l'activité normale ([writeup 04](wr
 
 ## Prochaine étape
 
-Scénario 5 : **Sysmon**, tâche planifiée (T1053.005) et fiche de l'accès à LSASS, puis SCA et Vulnerability Detection. Reste
+Vulnerability Detection (étape 7), puis tâche planifiée (T1053.005) et fiche de l'accès à LSASS. Reste
 ouvert : le scénario 3 bis (suppression automatique du fichier EICAR sur 87105) et, en option,
 l'ingestion Suricata « production » par rsyslog ([option B](integrations/suricata.md#option-b--rsyslog-et-fichier-json-à-valider)).

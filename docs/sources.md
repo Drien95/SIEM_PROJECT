@@ -140,6 +140,20 @@ Utilisées par la [fiche clé Run](scenarios/persistance-run-key.md) et le
 - Archivage de tous les événements (`logall_json`) :
   https://documentation.wazuh.com/current/user-manual/reference/ossec-conf/global.html
 
+## SCA et CIS
+
+Utilisées par l'[intégration SCA](integrations/sca.md) et le [writeup 12](writeup/12-sca-cis-windows11.md) :
+
+- SCA, présentation et fonctionnement :
+  https://documentation.wazuh.com/current/user-manual/capabilities/sec-config-assessment/index.html,
+  https://documentation.wazuh.com/current/user-manual/capabilities/sec-config-assessment/how-it-works.html
+- Conditions `all` / `any` / `none`, résultat « Not applicable » :
+  https://documentation.wazuh.com/current/user-manual/capabilities/sec-config-assessment/creating-custom-policies.html
+- Bloc `<sca>` et valeurs par défaut : https://documentation.wazuh.com/current/user-manual/reference/ossec-conf/sca.html
+- Politique CIS Windows 11 Enterprise v3.0.0, check 26003 (vérifiée, 482 checks, ruleset v4.14.0) :
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/sca/windows/cis_win11_enterprise.yml
+- Benchmarks CIS : https://www.cisecurity.org/cis-benchmarks/
+
 ## À explorer
 
 - Guide de preuve de concept Wazuh, pour des scénarios officiels reproductibles.

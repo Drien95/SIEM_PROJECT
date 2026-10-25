@@ -31,6 +31,8 @@ attaques pour vérifier ce que Wazuh détecte, comment il corrèle et comment il
 | 4 | Scan vu par l'IDS Suricata sur pfSense | T1046 | signature ET SCAN → 86601 (niv. 3) → **100210** (niv. 10), via syslog et un décodeur local | [suricata-nids.md](docs/scenarios/suricata-nids.md) |
 | 5b | Persistance par clé Run (Sysmon) | T1547.001 | Sysmon EID 13 → native 92300 (niv. 0) → **100230** (niv. 12) | [persistance-run-key.md](docs/scenarios/persistance-run-key.md) |
 
+Posture : le module SCA mesure Windows 11 contre le benchmark CIS (score initial 24 %, remédiation prouvée sur un check) : [writeup 12](docs/writeup/12-sca-cis-windows11.md).
+
 Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 
 ## Lire le projet dans l'ordre
@@ -48,6 +50,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [09 · Scénario 3 : FIM + VirusTotal](docs/writeup/09-scenario-fim-virustotal.md) | EICAR détecté en ~6 s : 554 puis 87105, pièges Defender, `-NoNewline` et quota |
 | [10 · Scénario 4 : Suricata NIDS](docs/writeup/10-scenario-suricata-nids.md) | IDS sur pfSense, piège `HOME_NET`, en-tête RFC 5424 et décodeur `json`, règle 100210 |
 | [11 · Scénario 5b : persistance par clé Run](docs/writeup/11-scenario-persistance-run-key.md) | Règle native 92300 muette (niveau 0), règle sœur jamais évaluée, diagnostic par `logall_json`, règle 100230 |
+| [12 · SCA et CIS Windows 11](docs/writeup/12-sca-cis-windows11.md) | Posture : score CIS de 24 %, anatomie d'un check, mapping PCI DSS / ISO 27001 / SOC 2, boucle mesurer, corriger, re-mesurer |
 | [Annexe · Simulateur de paquets](docs/writeup/annexe-simulateur-paquets.md) | Simulateur façon Packet Tracer (ARP, DHCP, NAT, syslog, agent, Kali), avec vidéos |
 
 ## Documents de référence
@@ -62,8 +65,8 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [docs/sources.md](docs/sources.md) | Sources utilisées, ce qu'on en retient, limites |
 | [docs/homelab/plan.md](docs/homelab/plan.md) | Plan du homelab VMware : réseau, VM, ordre de montage, images |
 | [docs/homelab/screenshots/](docs/homelab/screenshots/README.md) | Captures d'écran du montage, numérotées |
-| [docs/diagrams/](docs/diagrams/README.md) | Schémas : réseau du lab façon Packet Tracer, règles pare-feu ATTACK, flux de détection du brute force SMB, couverture MITRE, chaîne des démons et carte complète de Wazuh, matrice des flux, chaîne Suricata vers Wazuh, arbre des règles de la clé Run, pipeline Wazuh annoté, règle et réponse active, modèle de scénario (sources HTML et PNG) |
-| [docs/integrations/](docs/integrations/) | Un guide par intégration : Windows/Sysmon, FIM, VirusTotal, Suricata, pfSense |
+| [docs/diagrams/](docs/diagrams/README.md) | Schémas : réseau du lab façon Packet Tracer, règles pare-feu ATTACK, flux de détection du brute force SMB, couverture MITRE, chaîne des démons et carte complète de Wazuh, matrice des flux, chaîne Suricata vers Wazuh, arbre des règles de la clé Run, anatomie d'un check SCA, pipeline Wazuh annoté, règle et réponse active, modèle de scénario (sources HTML et PNG) |
+| [docs/integrations/](docs/integrations/) | Un guide par intégration : Windows/Sysmon, FIM, VirusTotal, Suricata, pfSense, SCA (CIS) |
 | [docs/scenarios/](docs/scenarios/README.md) | Index des scénarios : joués (brute force SMB, scan nmap, FIM + VirusTotal, Suricata, clé Run), prévus, modèle de fiche |
 | [configs/](configs/) | Configurations du lab : règles et décodeur locaux, syslog, réponse active (`block-ip-win`), agent Windows (dont la configuration Sysmon `sysmon-lab.xml`), pfSense, VirusTotal, Suricata |
 | [docs/lab-marxgoo.md](docs/lab-marxgoo.md) | Notes de lecture des PDF du lab marxgoo, avec les erreurs corrigées |

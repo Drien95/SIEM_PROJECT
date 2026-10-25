@@ -24,6 +24,7 @@ Un guide par intégration, avec les erreurs des sources corrigées :
 | File Integrity Monitoring | [integrations/fim.md](integrations/fim.md) | groupe `syscheck` |
 | VirusTotal | [integrations/virustotal.md](integrations/virustotal.md) | 87100-87106 (87105 = détecté, niveau 12) |
 | Suricata (sur pfSense) | [integrations/suricata.md](integrations/suricata.md) | 86600-86604 (86601 = alerte, niveau 3) ; décodeur local `json` restreint pour l'en-tête syslog de pfSense ; locales 100200 et 100210 |
+| SCA (CIS) | [integrations/sca.md](integrations/sca.md) | politique `cis_win11_enterprise` (checks 26000+), alerte à chaque changement d'état d'un check |
 | pfSense | [integrations/pfsense.md](integrations/pfsense.md) | 87700-87702 (87702 = blocages répétés, niveau 10) |
 | Windows Defender | à écrire (source : UsmanPrime, test EICAR) | `0600-win-wdefender_rules.xml` |
 

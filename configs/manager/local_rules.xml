@@ -125,3 +125,18 @@
     <mitre><id>T1003.001</id></mitre>
   </rule>
 </group>
+
+<group name="sysmon,windows,persistence,">
+  <!-- Persistance par clé Run (Sysmon EID 13). MITRE T1547.001.
+       La native 92300 (0860-sysmon_id_13.xml) reconnaît toute écriture dans
+       …\CurrentVersion\Run mais reste au niveau 0 ; ses enfants 92301-92303 ne couvrent que
+       .lnk/.vbs/.vba, reg.exe et VNC. On s'accroche SOUS 92300 : une règle sœur de 92300
+       (if_sid 61615) n'est jamais évaluée, 92300 passant avant.
+       Validée en live le 2026-10-25 (scénario 5b, docs/scenarios/persistance-run-key.md).
+       Bruyant (installeurs légitimes) : liste blanche à prévoir en phase 2. -->
+  <rule id="100230" level="12">
+    <if_sid>92300</if_sid>
+    <description>Persistance Run-key (T1547.001): $(win.eventdata.image) a ecrit $(win.eventdata.details) dans $(win.eventdata.targetObject)</description>
+    <mitre><id>T1547.001</id></mitre>
+  </rule>
+</group>

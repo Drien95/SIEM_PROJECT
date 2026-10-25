@@ -160,6 +160,28 @@ Validation : `sudo /var/ossec/bin/wazuh-analysisd -t` puis `sudo systemctl resta
 Nouvelle écriture dans la clé Run : la règle **100230** se déclenche au **niveau 12**, vérifiée
 dans *Discover* et dans `/var/ossec/logs/alerts/alerts.json`.
 
+![Deux alertes 100230 : PowerShell écrit dans la clé Run, puis sihost.exe écrit dans RunNotification](../homelab/screenshots/96-wazuh-100230-run-key-vp-et-fp.png)
+
+*Capture 96 : deux alertes 100230 de niveau 12 sur SIEM-Win11, à dix secondes d'écart.*
+
+| Heure | Processus écrivain | Cible | Verdict |
+|---|---|---|---|
+| 19:12:10 | `C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe` | `…\CurrentVersion\Run\WazuhLabTest5` (notre test) | **vrai positif** |
+| 19:12:20 | `C:\WINDOWS\system32\sihost.exe` (écrit une valeur DWORD) | `…\CurrentVersion\RunNotification\…` | **faux positif** |
+
+### 5.1 Pourquoi `RunNotification` déclenche
+
+`sihost.exe` (Shell Infrastructure Host) est un processus normal de Windows. Il n'écrit pas
+dans la clé Run, mais dans une clé **voisine** dont le nom commence par les mêmes lettres :
+`RunNotification`. Deux filtres laissent passer ce nom, faute de borne après `Run` :
+
+- le filtre Sysmon `TargetObject condition="contains"` `\CurrentVersion\Run` ;
+- l'expression de la native 92300, qui se termine par `CURRENTVERSION\\\\(RUN|…)` sans `\\\\` ni
+  fin de chaîne derrière (vérifié dans `0860-sysmon_id_13.xml`).
+
+Le premier faux positif du scénario vient donc d'une expression régulière **trop ouverte**, pas
+d'un comportement suspect. C'est un cas d'école de réglage.
+
 ## 6. Lecture de l'analyste SOC
 
 1. **Qui a écrit ?** `win.eventdata.image` : un installeur signé dans `Program Files` n'a pas le
@@ -177,6 +199,11 @@ dans *Discover* et dans `/var/ossec/logs/alerts/alerts.json`.
 des installeurs légitimes. En production, ce serait bruyant. Pistes pour la phase 2
 ([roadmap](../roadmap.md)) :
 
+- borner le nom de la clé : ajouter à 100230 un champ
+  `<field name="win.eventdata.targetObject" type="pcre2">(?i)\\\\CURRENTVERSION\\\\RUN(ONCE)?\\\\</field>`
+  (même échappement que 92300 : les valeurs Windows arrivent avec des `\\` doublés),
+  qui exclut `RunNotification` (premier faux positif observé, capture 96 ; à valider avec
+  `wazuh-logtest`, non appliqué) ;
 - règle enfant de niveau 0 pour les processus ou chemins de confiance (liste blanche) ;
 - ou, à l'inverse, ne garder au niveau 12 que les `details` suspects (dossiers utilisateur,
   `%TEMP%`, interpréteurs de scripts) et laisser le reste au niveau 3 pour l'historique.
@@ -191,7 +218,8 @@ Chaque exception devra être justifiée et testée, pour ne pas ouvrir d'angle m
 | Règle native 92300 | reconnaît l'écriture Run | ✅ mais niveau 0 : aucune alerte |
 | Sœurs natives 92301-92303 | ne correspondent pas (notepad via PowerShell) | ✅ aucune |
 | 1re règle locale, enfant de 61615 | alerte | ❌ jamais évaluée (92300 passe avant) |
-| Règle 100230, enfant de 92300 | niveau 12, T1547.001 | ✅ en live (Discover + `alerts.json`) |
+| Règle 100230, enfant de 92300 | niveau 12, T1547.001 | ✅ 19:12:10, PowerShell → `Run\WazuhLabTest5` (capture 96) |
+| Faux positif | aucun pour un processus système | ❌ 19:12:20, `sihost.exe` → `RunNotification` (nom de clé non borné) |
 | Bruit sur installeurs légitimes | à mesurer | ⏳ phase 2 |
 
 Sources : voir la [fiche du scénario](../scenarios/persistance-run-key.md).

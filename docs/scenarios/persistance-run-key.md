@@ -63,7 +63,13 @@ Remove-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" 
 | Écriture Run reconnue | **92300** (native, T1547.001) | 0 | reconnue | ✅ mais aucune alerte |
 | Variantes suspectes | 92301 (`.lnk`/`.vbs`/`.vba`), 92302 (`reg.exe`), 92303 (VNC) | 12 / 6 / 12 | pas de correspondance | ✅ aucune |
 | 1re règle locale, enfant de 61615 | — | 12 | alerte | ❌ jamais évaluée |
-| Règle locale **100230**, enfant de 92300 | **100230** « Persistance Run-key (T1547.001) : … » | 12 | alerte | ✅ en live |
+| Règle locale **100230**, enfant de 92300 | **100230** « Persistance Run-key (T1547.001) : … » | 12 | alerte | ✅ 19:12:10, PowerShell → `Run\WazuhLabTest5` |
+| Bruit | 100230 sur `sihost.exe` → `RunNotification` | 12 | aucune alerte | ❌ 19:12:20, faux positif (capture 96) |
+
+![Deux alertes 100230 : vrai positif PowerShell, faux positif sihost.exe](../homelab/screenshots/96-wazuh-100230-run-key-vp-et-fp.png)
+
+*Capture 96. Le faux positif vient du nom de clé non borné : `\CurrentVersion\Run` correspond
+aussi à `RunNotification`, dans le filtre Sysmon (`contains`) comme dans l'expression de 92300.*
 
 ## 6. Pourquoi la première règle ne marchait pas
 
@@ -98,6 +104,7 @@ Méthode de diagnostic, utile pour toute règle « muette » :
 | Mesure | Effet | Statut |
 |---|---|---|
 | Supprimer la valeur et le programme visé après qualification | retire la persistance | manuel |
+| Borner le nom de clé dans 100230 : `(?i)\\\\CURRENTVERSION\\\\RUN(ONCE)?\\\\` (échappement de 92300) | supprime le faux positif `RunNotification` | ⏳ à valider avec `wazuh-logtest` |
 | Liste blanche (règle enfant de 100230 au niveau 0) pour les installeurs de confiance | réduit le bruit | ⏳ phase 2 |
 | Niveau 12 réservé aux `details` suspects, niveau 3 pour le reste | priorise sans perdre l'historique | ⏳ phase 2, à valider |
 | Étendre à `RunOnce`, aux clés `Winlogon` et au dossier Démarrage | couvre les variantes de T1547.001 | ⏳ à étudier (filtre Sysmon à élargir) |
@@ -107,4 +114,4 @@ Méthode de diagnostic, utile pour toute règle « muette » :
 | Date | Cible | Règles observées | Délai de détection | Remarques |
 |---|---|---|---|---|
 | 2026-10-25 (1er essai) | SIEM-Win11, `HKCU\…\Run` | aucune alerte (92300 niveau 0) | — | 1re règle locale enfant de 61615, jamais évaluée ; réception prouvée par `archives.json` |
-| 2026-10-25 (2e essai) | idem, valeur vers `notepad.exe` écrite par PowerShell | **100230** niveau 12 | non mesuré | règle locale enfant de 92300 ; alerterait aussi sur les installeurs légitimes (bruit à régler) |
+| 2026-10-25 19:12 | idem, valeur `WazuhLabTest5` écrite par PowerShell | **100230** niveau 12 (19:12:10) ; faux positif 100230 sur `sihost.exe` → `RunNotification` (19:12:20) | non mesuré | règle locale enfant de 92300 ; nom de clé à borner, liste blanche à prévoir (capture 96) |

@@ -1,0 +1,18 @@
+<!--
+  Configuration Sysmon du lab (scénario 5, 2026-10-25) : C:\sysmon-lab.xml sur SIEM-Win11.
+  Appliquée avec : Sysmon64.exe -c C:\sysmon-lab.xml
+  Attention : -c remplace toute la configuration en place (ici, celle de SwiftOnSecurity du
+  writeup 04), il n'y a pas de fusion.
+  Sources : https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon
+-->
+<Sysmon schemaversion="4.50">
+  <EventFiltering>
+    <ProcessAccess onmatch="include">
+      <TargetImage condition="image">lsass.exe</TargetImage>
+    </ProcessAccess>
+    <ProcessCreate onmatch="exclude" />
+    <RegistryEvent onmatch="include">
+      <TargetObject condition="contains">\CurrentVersion\Run</TargetObject>
+    </RegistryEvent>
+  </EventFiltering>
+</Sysmon>

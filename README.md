@@ -63,7 +63,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [docs/diagrams/](docs/diagrams/README.md) | Schémas : réseau du lab façon Packet Tracer, règles pare-feu ATTACK, flux de détection du brute force SMB, couverture MITRE, chaîne des démons et carte complète de Wazuh, matrice des flux, chaîne Suricata vers Wazuh, pipeline Wazuh annoté, règle et réponse active, modèle de scénario (sources HTML et PNG) |
 | [docs/integrations/](docs/integrations/) | Un guide par intégration : Windows/Sysmon, FIM, VirusTotal, Suricata, pfSense |
 | [docs/scenarios/](docs/scenarios/README.md) | Index des scénarios : joués (brute force SMB, scan nmap, FIM + VirusTotal, Suricata), prévus, modèle de fiche |
-| [configs/](configs/) | Configurations du lab : règles et décodeur locaux, syslog, réponse active (`block-ip-win`), agent Windows, pfSense, VirusTotal, Suricata |
+| [configs/](configs/) | Configurations du lab : règles et décodeur locaux, syslog, réponse active (`block-ip-win`), agent Windows (dont la configuration Sysmon `sysmon-lab.xml`), pfSense, VirusTotal, Suricata |
 | [docs/lab-marxgoo.md](docs/lab-marxgoo.md) | Notes de lecture des PDF du lab marxgoo, avec les erreurs corrigées |
 | [CLAUDE.md](CLAUDE.md) | Objectif, conventions et règles de contribution (humains et Claude) |
 

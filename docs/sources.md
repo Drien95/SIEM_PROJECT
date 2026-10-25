@@ -104,6 +104,27 @@ Utilisées par la [fiche Suricata](scenarios/suricata-nids.md), le
 - Syslog RFC 5424 (en-tête, MSGID et données structurées « - ») : https://www.rfc-editor.org/rfc/rfc5424
 - rsyslog (option B, à valider) : https://www.rsyslog.com/doc/configuration/index.html
 
+## Scénario 5 : Sysmon et LSASS
+
+Références pour la configuration [`sysmon-lab.xml`](../configs/agent-windows/sysmon-lab.xml) et la
+règle locale 100220 (fiche à venir) :
+
+- Sysmon (événement 10, conditions de filtre, option `-c`) :
+  https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon
+- Règle native Sysmon EID 10 **61612** (niveau 0, vérifiée, ruleset v4.14.0) :
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0595-win-sysmon_rules.xml
+- Règle native **92900** (niveau 12, T1003.001 ; masques `0x1010` et `0x40`, exclut
+  `C:\Program Files` et `wmiprvse.exe` ; vérifiée, ruleset v4.14.0) :
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0945-sysmon_id_10.xml
+- Protection LSA (RunAsPPL, événement WinInit 12) :
+  https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection
+- Droits d'accès aux processus : https://learn.microsoft.com/en-us/windows/win32/procthread/process-security-and-access-rights
+- MITRE ATT&CK T1003.001 : https://attack.mitre.org/techniques/T1003/001/
+- CVE-2022-26925 (Windows LSA Spoofing, catalogue KEV de la CISA) : https://nvd.nist.gov/vuln/detail/CVE-2022-26925
+- CVE-2021-36934 (HiveNightmare) : https://www.malwarebytes.com/blog/news/2021/07/hivenightmare-zero-day-lets-anyone-be-system-on-windows-10-and-11
+- Fin de PPLdump (correctif de juillet 2022, sans CVE) : https://itm4n.github.io/the-end-of-ppldump/
+- PPLFault (non corrigé par Microsoft, sans CVE) : https://www.elastic.co/security-labs/forget-vulnerable-drivers-admin-is-all-you-need
+
 ## À explorer
 
 - Guide de preuve de concept Wazuh, pour des scénarios officiels reproductibles.

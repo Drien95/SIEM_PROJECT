@@ -1,0 +1,147 @@
+<title>Persistance clé Run</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+/* Famille visuelle commune des planches du lab (voir detection-brute-force-smb.html). */
+:root {
+  --bg: #f3f5f8; --canvas: #ffffff; --fg: #1c2633; --muted: #5a6778; --line: #d5dbe3; --row: #f6f8fa;
+  --kali: #3b6fd0; --kali-bg: #edf2fc;
+  --ok: #1f8a4c; --ok-bg: #e8f5ed;
+  --bad: #d23c3c; --bad-bg: #fbeaea;
+  --warn: #c77d0a; --warn-bg: #fdf3e2;
+  --wz: #0f7f86; --wz-bg: #e6f4f5;
+  --sys: #7445c9; --sys-bg: #f1ebfb;
+  --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+    --kali: #7fa6f0; --kali-bg: #19213a; --ok: #4fcf83; --ok-bg: #16281d; --bad: #ff6b6b; --bad-bg: #2c1a1c;
+    --warn: #f0a73a; --warn-bg: #2a2119; --wz: #4fc9cf; --wz-bg: #14282a; --sys: #a98bf0; --sys-bg: #231c33; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
+  --kali: #7fa6f0; --kali-bg: #19213a; --ok: #4fcf83; --ok-bg: #16281d; --bad: #ff6b6b; --bad-bg: #2c1a1c;
+  --warn: #f0a73a; --warn-bg: #2a2119; --wz: #4fc9cf; --wz-bg: #14282a; --sys: #a98bf0; --sys-bg: #231c33; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1280px; margin: 0 auto; display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-size: clamp(24px, 3.2vw, 34px); line-height: 1.15; text-wrap: balance; }
+header p { margin: 0; max-width: 72ch; color: var(--muted); }
+figure { margin: 0; background: var(--canvas); border: 1px solid var(--line); border-radius: 6px; overflow-x: auto; }
+figure svg { display: block; width: 100%; min-width: 980px; height: auto; }
+svg text { font-family: var(--font-sans); fill: var(--fg); font-size: 13px; }
+svg .mono { font-family: var(--font-mono); font-size: 12px; }
+svg .b { font-weight: 700; }
+svg .muted { fill: var(--muted); }
+svg .ztitle { font-size: 12px; font-weight: 700; letter-spacing: .06em; }
+svg .sm { font-size: 12px; }
+footer { color: var(--muted); font-size: 13px; }
+code { font-family: var(--font-mono); font-size: .9em; }
+</style>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">SIEM_PROJECT · Sysmon EID 13 · Wazuh 4.14.9 · scénario 5b, joué le 2026-10-25</span>
+    <h1>Persistance par clé Run : l'arbre des règles</h1>
+    <p>Une écriture dans une clé Run descend l'arbre des règles Wazuh. La règle native 92300 la reconnaît, mais au niveau 0 : aucune alerte. Une première règle locale accrochée à 61615 n'était jamais évaluée, car 92300 passait avant. La bonne place est sous 92300, avec if_sid.</p>
+  </header>
+  <figure id="arbre">
+    <svg viewBox="0 0 1400 700" role="img" aria-labelledby="svg-title">
+      <title id="svg-title">Arbre des règles Wazuh pour un événement Sysmon 13 : 60004, 61600, 61615, 92300 et ses enfants 92301, 92302, 92303 et la règle locale 100230</title>
+      <g id="g"></g>
+    </svg>
+  </figure>
+  <footer>Règles vérifiées dans le ruleset v4.14.0 : <code>0575-win-base_rules.xml</code> (60004), <code>0595-win-sysmon_rules.xml</code> (61600, 61615), <code>0860-sysmon_id_13.xml</code> (92300-92303). Règle locale : <code>configs/manager/local_rules.xml</code>.</footer>
+</div>
+<script>
+const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const T = (x, y, s, cls = "", extra = "") => `<text x="${x}" y="${y}"${cls ? ` class="${cls}"` : ""} ${extra}>${esc(s)}</text>`;
+const R = (x, y, w, h, c, bg, extra = "") => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" style="fill: var(${bg}); stroke: var(${c})" stroke-width="2" ${extra}/>`;
+const A = (x1, y1, x2, y2, c = "--muted", dash = false) => (c = c.startsWith("--") ? c : "--" + c, `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke: var(${c})" stroke-width="2" marker-end="url(#ah${c.replace('--', '')})"${dash ? ' stroke-dasharray="5 4"' : ""}/>`);
+const MK = cs => "<defs>" + cs.map(c => `<marker id="ah${c}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--${c})"/></marker>`).join("") + "</defs>";
+(function () {
+  const o = [MK(["muted", "bad", "ok"])];
+  o.push(T(30, 34, "1 · LE CHEMIN DE L'ÉVÉNEMENT DANS WAZUH-ANALYSISD", "ztitle muted"));
+  // colonne de base
+  const base = [
+    ["Windows 11", "Sysmon EID 13", "SetValue sur …\\CurrentVersion\\Run", "--sys", "--sys-bg"],
+    ["60004", "niveau 0", "canal Microsoft-Windows-Sysmon/Operational", "--muted", "--row"],
+    ["61600", "niveau 0", "événement Sysmon informatif", "--muted", "--row"],
+    ["61615", "niveau 0", "Event 13, groupe sysmon_event_13", "--muted", "--row"]
+  ];
+  base.forEach((b, i) => {
+    const y = 52 + i * 92;
+    o.push(R(30, y, 300, 72, b[3], b[4]));
+    o.push(T(46, y + 26, b[0], "mono b", `style="font-size: 14px"`));
+    o.push(T(46 + b[0].length * 9 + 12, y + 26, b[1], "sm muted"));
+    o.push(T(46, y + 52, b[2], "sm"));
+    if (i < base.length - 1) o.push(A(180, y + 74, 180, y + 90));
+  });
+  // enfants de 61615
+  const y61615 = 52 + 3 * 92 + 36;
+  // 92300 gagne
+  o.push(A(332, y61615, 448, 190, "ok"));
+  o.push(R(450, 150, 330, 92, "--ok", "--ok-bg"));
+  o.push(T(466, 176, "92300", "mono b", `style="font-size: 14px"`));
+  o.push(T(530, 176, "niveau 0 · natif · T1547.001", "sm"));
+  o.push(T(466, 198, "targetObject contient …\\CurrentVersion\\Run", "sm"));
+  o.push(T(466, 220, "première sœur qui correspond : elle gagne", "sm b", `style="fill: var(--ok)"`));
+  // tentative 1
+  o.push(A(332, y61615 + 10, 448, 400, "bad", true));
+  o.push(R(450, 360, 330, 92, "--bad", "--canvas", 'stroke-dasharray="6 4"'));
+  o.push(T(466, 386, "1re tentative : if_sid 61615", "b", `style="fill: var(--bad)"`));
+  o.push(T(466, 408, "sœur de 92300, chargée après elle", "sm"));
+  o.push(T(466, 430, "jamais évaluée → aucune alerte", "sm b", `style="fill: var(--bad)"`));
+  // enfants de 92300
+  const kids = [
+    ["92301", "niveau 12", "details : .lnk, .vbs, .vba", "--muted", "--row", false],
+    ["92302", "niveau 6", "écrit par reg.exe", "--muted", "--row", false],
+    ["92303", "niveau 12", "details : VNC, tvnserver.exe", "--muted", "--row", false],
+    ["100230", "niveau 12 · local", "toute écriture Run restante", "--bad", "--bad-bg", true]
+  ];
+  kids.forEach((k, i) => {
+    const y = 52 + i * 92;
+    o.push(A(782, 196, 918, y + 36, k[5] ? "bad" : "muted"));
+    o.push(R(920, y, 330, 72, k[3], k[4]));
+    o.push(T(936, y + 26, k[0], "mono b", `style="font-size: 14px"`));
+    o.push(T(936 + k[0].length * 9 + 12, y + 26, k[1], "sm" + (k[5] ? " b" : " muted"), k[5] ? `style="fill: var(--bad)"` : ""));
+    o.push(T(936, y + 52, k[2], "sm"));
+  });
+  o.push(T(1262, 78, "notepad.exe", "mono muted"));
+  o.push(T(1262, 96, "via PowerShell :", "sm muted"));
+  o.push(T(1262, 114, "aucune ne", "sm muted"));
+  o.push(T(1262, 132, "correspond", "sm muted"));
+  o.push(T(1262, 334, "← alerte", "sm b", `style="fill: var(--bad)"`));
+  o.push(T(1262, 352, "T1547.001", "mono", `style="fill: var(--bad)"`));
+  // bande diagnostic
+  const by = 500;
+  o.push(T(30, by, "2 · COMMENT ON A TROUVÉ LE CONFLIT", "ztitle muted"));
+  const steps = [
+    ["Rien dans Discover", "60004, 61600, 61615 et 92300 sont de niveau 0 : rien n'est indexé comme alerte."],
+    ["Preuve de réception", "<logall_json> activé brièvement : l'événement est bien dans archives/archives.json."],
+    ["Qui intercepte ?", "grep des enfants de 61615 / sysmon_event_13 dans le ruleset : 92300 passe avant."],
+    ["Correctif", "100230 en if_sid 92300 : on élève la détection native au lieu de la doubler."]
+  ];
+  steps.forEach((s, i) => {
+    const x = 30 + i * 340;
+    o.push(R(x, by + 16, 320, 120, i === 3 ? "--ok" : "--line", i === 3 ? "--ok-bg" : "--row"));
+    o.push(T(x + 16, by + 44, `${i + 1}. ${s[0]}`, "b"));
+    const words = s[1].split(" "); let line = "", ly = by + 70;
+    words.forEach(w => { if ((line + " " + w).length > 40) { o.push(T(x + 16, ly, line.trim(), "sm")); ly += 19; line = ""; } line += " " + w; });
+    o.push(T(x + 16, ly, line.trim(), "sm"));
+    if (i < 3) o.push(A(x + 322, by + 76, x + 338, by + 76));
+  });
+  o.push(T(30, by + 172, "Limite : 100230 alerte sur toute écriture Run restante, installeurs légitimes compris. Réglage du bruit prévu en phase 2 (liste blanche de processus ou de chemins).", "sm muted"));
+  document.getElementById("g").innerHTML = o.join("");
+})();
+</script>

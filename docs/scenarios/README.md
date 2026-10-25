@@ -13,6 +13,7 @@ prérequis, attaque, détection attendue contre observée, lecture SOC, remédia
 | 2 | [Scan de ports nmap](scan-nmap.md) | T1046 | pfSense (`filterlog`, syslog) | 100302, 100303 | [08](../writeup/08-scenario-scan-nmap.md) |
 | 3 | [Fichier malveillant : FIM + VirusTotal](malware-fim-virustotal.md) | T1203 (natif), T1105 | agent Windows (FIM) + API VirusTotal | 554, 87105 | [09](../writeup/09-scenario-fim-virustotal.md) |
 | 4 | [Scan vu par un IDS : Suricata sur pfSense](suricata-nids.md) | T1046 | Suricata (EVE JSON en syslog) | 86601, 100210 | [10](../writeup/10-scenario-suricata-nids.md) |
+| 5b | [Persistance par clé Run](persistance-run-key.md) | T1547.001 | agent Windows (Sysmon EID 13) | 92300 (niv. 0), 100230 | [11](../writeup/11-scenario-persistance-run-key.md) |
 
 ## Préparés, pas encore joués
 
@@ -20,5 +21,5 @@ prérequis, attaque, détection attendue contre observée, lecture SOC, remédia
 |---|---|---|
 | [Brute force SSH / RDP](brute-force.md) | T1110 | 5710-5712 et 5551 (Linux), 60122 et 60204 (Windows) |
 
-Les scénarios suivants (suppression automatique, Sysmon, SCA, vulnérabilités) sont planifiés dans la
+Les scénarios suivants (suppression automatique, tâche planifiée, SCA, vulnérabilités) sont planifiés dans la
 [roadmap](../roadmap.md) ; la couverture par technique est dans [mitre.md](../mitre.md).

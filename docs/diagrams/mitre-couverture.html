@@ -54,7 +54,7 @@ code { font-family: var(--font-mono); font-size: .9em; }
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14.9 · état au 2026-10-22, 4 scénarios</span>
+    <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14.9 · état au 2026-10-25</span>
     <h1>Couverture MITRE ATT&amp;CK du lab</h1>
     <p>Une colonne par tactique, dans l'ordre d'une attaque. Vert : détection prouvée par un scénario joué. Bleu : règle en place et vue en action, pas encore dans un scénario d'attaque. Gris : prévu dans la roadmap.</p>
   </header>
@@ -81,7 +81,7 @@ const TACTICS = [
     { id: "T1059.001", n: "PowerShell", r: "100100 (Sysmon)", sc: "writeup 04", s: "rule" },
     { id: "T1203", n: "Client Execution (natif)", r: "554 → 87105", sc: "scénario 3", s: "ok" } ] },
   { id: "TA0003", n: "Persistance", t: [
-    { id: "T1547.001", n: "Run Keys", r: "Sysmon EID 13", sc: "scénario 5", s: "plan" },
+    { id: "T1547.001", n: "Run Keys", r: "92300 → 100230", sc: "scénario 5b", s: "ok" },
     { id: "T1053.005", n: "Scheduled Task", r: "Sysmon, 4698", sc: "scénario 5", s: "plan" } ] },
   { id: "TA0006", n: "Accès aux identifiants", t: [
     { id: "T1110", n: "Brute Force", r: "60204 · réponse active", sc: "scénario 1", s: "ok" },

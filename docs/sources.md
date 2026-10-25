@@ -125,6 +125,21 @@ règle locale 100220 (fiche à venir) :
 - Fin de PPLdump (correctif de juillet 2022, sans CVE) : https://itm4n.github.io/the-end-of-ppldump/
 - PPLFault (non corrigé par Microsoft, sans CVE) : https://www.elastic.co/security-labs/forget-vulnerable-drivers-admin-is-all-you-need
 
+## Scénario 5b : persistance par clé Run
+
+Utilisées par la [fiche clé Run](scenarios/persistance-run-key.md) et le
+[writeup 11](writeup/11-scenario-persistance-run-key.md) :
+
+- MITRE ATT&CK T1547.001 : https://attack.mitre.org/techniques/T1547/001/
+- Clés Run et RunOnce : https://learn.microsoft.com/en-us/windows/win32/setupapi/run-and-runonce-registry-keys
+- Règles natives 92300-92303 (vérifiées, ruleset v4.14.0) :
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0860-sysmon_id_13.xml
+- Règles 60004, 61600, 61615 (vérifiées) :
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0575-win-base_rules.xml,
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0595-win-sysmon_rules.xml
+- Archivage de tous les événements (`logall_json`) :
+  https://documentation.wazuh.com/current/user-manual/reference/ossec-conf/global.html
+
 ## À explorer
 
 - Guide de preuve de concept Wazuh, pour des scénarios officiels reproductibles.

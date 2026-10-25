@@ -8,6 +8,11 @@
 > Versions : Wazuh 4.14.9 (manager et agent Windows), Windows 11. Date : 2026-10-22, 21:34
 > heure locale.
 
+![Chaîne des démons : FIM sur l'agent, integratord, VirusTotal, retour dans analysisd](../diagrams/demons-wazuh.png)
+
+*Source : [`demons-wazuh.html`](../diagrams/demons-wazuh.html). La branche integratord → VirusTotal →
+nouvel événement 87105 est exactement ce scénario.*
+
 ## 1. Comprendre
 
 ### 1.1 Deux questions, deux outils

@@ -128,6 +128,7 @@ MA.forEach((m, i) => {
   o.push(`<rect x="52" y="${y}" width="376" height="27" rx="4" style="fill: var(--canvas); stroke: var(--line)"/>`);
   o.push(T(62, y + 18, m[0], "mono b", `style="font-size: 11.5px"`));
   o.push(T(418, y + 18, m[1], "sm muted", `text-anchor="end"`));
+  if (m[0] === "sca") check(120, y + 13); // SCA exercé : writeup 12
 });
 
 // ===== manager =====
@@ -187,13 +188,13 @@ const cy = 760;
 o.push(`<rect x="20" y="${cy}" width="1360" height="290" rx="10" style="fill: var(--row); stroke: var(--line)"/>`);
 o.push(T(40, cy + 28, "LES CAPACITÉS, ET QUI LES PORTE", "ztitle muted"));
 const C = [
-  ["Analyse de journaux, décodage, règles", "logcollector → analysisd", "scénarios 1 à 3", 1],
-  ["Corrélation, détection de scan", "analysisd", "scénarios 1 et 2", 1],
+  ["Analyse de journaux, décodage, règles", "logcollector → analysisd", "scénarios 1 à 5b", 1],
+  ["Corrélation, détection de scan", "analysisd", "scénarios 1, 2 et 4", 1],
   ["FIM, intégrité des fichiers", "syscheckd", "scénario 3", 1],
   ["Threat intel : VirusTotal", "integratord", "scénario 3", 1],
   ["Réponse active", "execd (agent)", "scénario 1", 1],
   ["Conformité : PCI DSS, GDPR, HIPAA, NIST", "étiquettes des règles", "étiquettes vues", 0],
-  ["SCA, audit CIS", "modulesd · sca", "à venir", 0],
+  ["SCA, audit CIS", "modulesd · sca", "writeup 12", 1],
   ["Détection de vulnérabilités", "modulesd · vulnerability-scanner", "à venir", 0],
   ["Inventaire matériel et logiciel", "modulesd · syscollector", "à venir", 0],
   ["Rootkits et anomalies", "syscheckd · rootcheck", "à venir", 0],

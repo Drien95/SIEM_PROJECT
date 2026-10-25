@@ -47,8 +47,8 @@ consigner (alerte, `rule.id`, niveau, capture).
 | 3 | [Fichier malveillant de test : FIM + VirusTotal](scenarios/malware-fim-virustotal.md) — **joué le 2026-10-22** | EICAR déposé sur Windows 11 | Observé : 554 (niv. 5) puis 87105 (niv. 12, 66 moteurs) en ~6 s | T1203 (natif), T1105 / T1204.002 (déduits) |
 | 4 | Exécution de processus | `powershell.exe` | Règle personnalisée Sysmon niveau 8 | T1059.001 |
 | 5 | [Scan de ports nmap](scenarios/scan-nmap.md) — **joué le 2026-10-22** | `nmap -sS -Pn` depuis Kali vers Wazuh | Observé : 100302 en rafale (niv. 5), 100303 ×1 (niv. 10) | T1046 |
-| 7 | [Persistance par clé Run](scenarios/persistance-run-key.md) — **joué le 2026-10-25** | valeur ajoutée dans `HKCU\…\Run` | Observé : 92300 native (niv. 0) puis **100230** (niv. 12) | T1547.001 |
 | 6 | [Scan vu par Suricata sur pfSense](scenarios/suricata-nids.md) — **joué le 2026-10-22** | `nmap -sS -Pn` depuis Kali vers Windows 11 (destination autorisée) | Observé : 86601 (niv. 3) puis **100210** (niv. 10, ET SCAN) | T1046 |
+| 7 | [Persistance par clé Run](scenarios/persistance-run-key.md) — **joué le 2026-10-25** | valeur ajoutée dans `HKCU\…\Run` | Observé : 92300 native (niv. 0) puis **100230** (niv. 12) | T1547.001 |
 
 « Déduit » : correspondance MITRE établie par nous, absente des sources. Vue d'ensemble : [mitre.md](mitre.md) ; ordre de passage : [roadmap.md](roadmap.md).
 

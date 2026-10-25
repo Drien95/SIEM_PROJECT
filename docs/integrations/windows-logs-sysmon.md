@@ -85,3 +85,32 @@ Pour faire remonter une exécution précise, on écrit une règle locale enfant 
 [configs/manager/local_rules.xml](../../configs/manager/local_rules.xml).
 
 Vérification dans *Threat Hunting* : `data.win.system.channel:"Microsoft-Windows-Sysmon/Operational"`.
+
+## Configuration Sysmon du lab (depuis le 2026-10-25)
+
+La configuration SwiftOnSecurity du writeup 04 a été **remplacée** par une configuration ciblée,
+[`configs/agent-windows/sysmon-lab.xml`](../../configs/agent-windows/sysmon-lab.xml), appliquée
+avec `Sysmon64.exe -c C:\sysmon-lab.xml`. `-c` remplace toute la configuration en place : il n'y
+a pas de fusion.
+
+| Bloc | Effet |
+|---|---|
+| `ProcessAccess onmatch="include"` sur `lsass.exe` | événement 10 limité aux accès à LSASS |
+| `ProcessCreate onmatch="exclude"` vide | événement 1 pour **tous** les processus (rien n'est exclu) : la règle 100100 continue de fonctionner (déduit de la sémantique `exclude`) |
+| `RegistryEvent onmatch="include"` sur `\CurrentVersion\Run` | événements 12 à 14 limités aux clés Run ([scénario 5b](../scenarios/persistance-run-key.md)) |
+
+Conséquence : les autres événements que journalisait SwiftOnSecurity (réseau, fichiers, DNS…)
+ne sont plus produits. À réévaluer avant les prochains scénarios.
+
+## Règles natives et locales par événement Sysmon (ruleset v4.14.0, vérifié)
+
+| Événement | Règle de base | Détections natives | Règles locales du lab |
+|---|---|---|---|
+| 1 (création de processus) | 61603 (niveau 0) | `0800-sysmon_id_1.xml` (92000+) | 100100 (PowerShell, niveau 8) |
+| 10 (accès à un processus) | 61612 (niveau 0) | `0945-sysmon_id_10.xml` : 92900 (niveau 12), 92910, 92920 | 100220 (niveau 12) |
+| 13 (valeur de registre écrite) | 61615 (niveau 0) | `0860-sysmon_id_13.xml` : **92300** (clé Run, niveau 0), 92301-92303 | 100230 (niveau 12, enfant de 92300) |
+
+Leçon du scénario 5b : une règle native de niveau 0 peut intercepter un événement en silence.
+Avant d'écrire une règle locale, chercher les natives qui partagent le même parent ou le même
+groupe, et s'accrocher **sous** elles (`if_sid`).
+

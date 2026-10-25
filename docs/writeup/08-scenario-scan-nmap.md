@@ -8,6 +8,11 @@
 > Versions : Wazuh 4.14.9, pfSense CE 2.9.0, Kali Linux (nmap). Date : 2026-10-22, 21:00
 > heure locale.
 
+![Règles ATTACK de pfSense : ce qui est bloqué et journalisé devient une alerte](../diagrams/regles-attack.png)
+
+*Source : [`regles-attack.html`](../diagrams/regles-attack.html). La règle 3 (blocage vers le LAN,
+journalisé) est celle qui nourrit 100302 puis 100303.*
+
 ## 1. Comprendre
 
 ### 1.1 Le pare-feu comme source de journaux

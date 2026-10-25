@@ -8,7 +8,7 @@ puis relancent un scan pour **prouver** la correction : mesurer, corriger, re-me
 > **Statut : validés sur la VM le 2026-10-25** (Windows 11 Professionnel build 26300, en
 > français) : dry-run, puis application des familles 01, 03 et 02 avec sauvegarde, vérification
 > par relecture et garde-fou. Récit et constats : [writeup 13](../../docs/writeup/13-durcissement-cis-automatise.md).
-> Le rollback est disponible pour chaque exécution mais n'a pas encore été rejoué sur la VM.
+> Le rollback a été rejoué sur la VM pour la famille 02 (état actuel : 01 et 03 appliquées, 02 annulée).
 
 ## Contenu
 
@@ -192,8 +192,8 @@ La famille 02 verrouille un compte après **5 échecs** pendant **15 minutes**.
 | 2026-10-25 | 1.1.4 seul (à la main) | `net accounts /minpwlen:14` | - | check 26003 Failed → Passed | validé, voir writeup 12 |
 | 2026-10-25 | toutes | dry-run | bilan PASS / DRYRUN | — | rien de modifié |
 | 2026-10-25 | 01 | `-Apply -Rescan` | déjà conforme : PASS | inchangé | 1.1.4 corrigé auparavant à la main |
-| 2026-10-25 | 03 | `-Apply -Rescan` | 30 réglages PASS | +3 checks (26013, 26222, 26376) | checks 17.x restés Failed : faux échec dû à la langue (confirmé) |
-| 2026-10-25 | 02 | `-Apply -Rescan -AcceptLockoutRisk` | PASS=3 (seuil 10→5, durée 10→15, reset 10→15) | 26005-26007 suivent (valeur exacte du score non relevée) | compte de secours `admin-secours` ; `OUI` exigé ; rejouer le scénario 1 : 4740 attendu |
+| 2026-10-25 | 03 | `-Apply -Rescan` | 30 réglages PASS | cumul 01 + 03 : 122 / 351, 25 % ; dont 26013, 26222, 26376 | checks 17.x restés Failed : faux échec dû à la langue (confirmé) |
+| 2026-10-25 | 02 | `-Apply -Rescan -AcceptLockoutRisk` | PASS=3 (seuil 10→5, durée 10→15, reset 10→15) | non mesuré isolément | compte de secours `admin-secours` ; `OUI` exigé ; puis **rollback** avant rescan dédié |
 
 ## Ajouter une famille
 

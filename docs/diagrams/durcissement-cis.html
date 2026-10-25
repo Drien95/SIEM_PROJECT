@@ -98,8 +98,8 @@ const MK = cs => "<defs>" + cs.map(c => `<marker id="ah${c}" viewBox="0 0 10 10"
   o.push(T(30, 244, "2 · RÉSULTATS SUR LA VM (WINDOWS 11 PROFESSIONNEL, BUILD 26300, EN FRANÇAIS)", "ztitle muted"));
   const res = [
     ["01 · mots de passe (CIS 1.1)", "déjà conforme : PASS", "--ok"],
-    ["02 · verrouillage (CIS 1.2)", "seuil 10→5, durée 10→15, reset 10→15 : PASS=3, SCA suit", "--ok"],
-    ["03 · audit (CIS 17 + 3 clés)", "30 réglages PASS ; SCA : +3 seulement", "--warn"]
+    ["02 · verrouillage (CIS 1.2)", "PASS=3 (seuil 5, durée 15, reset 15), puis rollback validé", "--ok"],
+    ["03 · audit (CIS 17 + 3 clés)", "30 réglages PASS ; SCA 01+03 : 122/351, 25 %", "--warn"]
   ];
   res.forEach((r, i) => {
     const x = 30 + i * 450;

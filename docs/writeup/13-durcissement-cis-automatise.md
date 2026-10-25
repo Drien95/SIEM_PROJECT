@@ -84,17 +84,22 @@ Tapez OUI (en majuscules) pour appliquer le verrouillage de comptes: OUI
 | 1.2.4 | 26007 | réinitialisation du compteur (minutes) | 10 | 15 | PASS |
 | 1.2.1 | 26005 | durée de verrouillage (minutes) | 10 | 15 | PASS |
 
-> **Conséquence pour le scénario 1** (brute force SMB) : le compte visé sera désormais verrouillé
-> au 5e échec. C'est l'effet recherché en production, et l'événement 4740 devient une détection
-> de plus. Pour rejouer le scénario 1 tel quel : `-Rollback -Families 02`.
+La famille 02 a ensuite été **annulée** avec `-Rollback` : le verrouillage est revenu à l'état
+d'avant (seuil 10), ce qui valide aussi le retour arrière sur la VM. Si on la réapplique, le
+compte visé par le scénario 1 (brute force SMB) sera verrouillé au 5e échec : c'est l'effet
+recherché en production, et l'événement 4740 deviendrait une détection de plus.
 
 ## 4. Le finding : un faux « Failed » dû à la langue
 
 ### 4.1 Le constat
 
-Famille 03 appliquée : **30 réglages**, tous vérifiés `PASS` par le script. Dans le SCA, le score
-ne gagne que **3 checks** : ceux que la politique lit dans le **Registre** (26013 pour 2.3.2.1,
-26222 pour 18.9.3.1, 26376 pour 18.10.25.2.2). Les checks d'audit 17.x restent « Failed ».
+Famille 03 appliquée : **30 réglages**, tous vérifiés `PASS` par le script. Dans le SCA, seuls
+progressent les checks que la politique lit dans le **Registre** (26013 pour 2.3.2.1, 26222 pour
+18.9.3.1, 26376 pour 18.10.25.2.2). Les checks d'audit 17.x restent « Failed ».
+
+Score relevé après les familles 01 et 03 : **122 réussis, 351 échoués, 25 %** (contre 115 / 358,
+24 % au writeup 12). Le détail des 7 checks gagnés n'a pas été relevé : les 3 checks Registre
+ci-dessus en font partie, les 4 autres sont à identifier dans le dashboard.
 
 ### 4.2 L'explication
 
@@ -116,8 +121,10 @@ Le script, lui, désigne chaque sous-catégorie par son **GUID** (par exemple
 les langues, et lit la valeur numérique (3 = succès et échec). C'est pourquoi il voit `PASS`
 là où le SCA voit `Failed`.
 
-Contre-épreuve : la famille 02 est contrôlée par le SCA via `secedit` et des valeurs numériques
-(`LockoutBadCount`…), sans texte traduit : là, le score a bien suivi.
+Contre-exemple attendu : les checks de la famille 02 (26005 à 26007) lisent `secedit` et
+comparent des **nombres** (`LockoutBadCount`, `LockoutDuration`, `ResetLockoutCount`, vérifié
+dans la politique), sans texte traduit : ils ne devraient pas souffrir de la langue. Non mesuré
+isolément dans le lab : la famille 02 a été annulée (rollback) avant un scan SCA dédié.
 
 ### 4.3 Comment l'appeler
 
@@ -158,9 +165,9 @@ de volume vers le manager, et une ligne de commande peut contenir un secret tap�
 |---|---|---|---|---|
 | Toutes | dry-run | bilan `PASS` / `DRYRUN` | — | rien de modifié |
 | 01 mots de passe | `-Apply -Rescan` | déjà conforme : PASS | inchangé | 1.1.4 corrigé auparavant à la main (writeup 12) |
-| 03 audit | `-Apply -Rescan` | 30 réglages PASS | **+3 checks** seulement (26013, 26222, 26376) | checks 17.x restés Failed : faux échec dû à la langue |
-| 02 verrouillage | `-Apply -Rescan -AcceptLockoutRisk` | PASS=3 (seuil 5, durée 15, reset 15) | 26005-26007 suivent (score en hausse, valeur exacte non relevée) | compte de secours `admin-secours` ; procédure de déverrouillage affichée ; `OUI` exigé |
-| Rollback | — | disponible pour chaque exécution | — | non nécessaire ce jour |
+| 03 audit | `-Apply -Rescan` | 30 réglages PASS | cumul 01 + 03 : 122 réussis / 351 échoués, **25 %** ; dont les 3 checks Registre (26013, 26222, 26376) | checks 17.x restés Failed : faux échec dû à la langue |
+| 02 verrouillage | `-Apply -Rescan -AcceptLockoutRisk` | PASS=3 (seuil 5, durée 15, reset 15) | non mesuré isolément | compte de secours `admin-secours` ; procédure de déverrouillage affichée ; `OUI` exigé |
+| Rollback famille 02 | `-Rollback` | verrouillage revenu à l'état d'avant (seuil 10) | — | retour arrière validé sur la VM ; état actuel : familles 01 et 03 appliquées, 02 annulée |
 
 Sources : [`scripts/hardening/README.md`](../../scripts/hardening/README.md),
 [integrations/sca.md](../integrations/sca.md), [docs/sources.md](../sources.md).

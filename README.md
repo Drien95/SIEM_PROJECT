@@ -6,7 +6,7 @@ attaques pour vérifier ce que Wazuh détecte, comment il corrèle et comment il
 
 > **Statut au 2026-10-22** : le lab est monté et durci. Il comprend pfSense CE 2.9.0,
 > Wazuh 4.14.9 (OVA), un agent Windows 11 avec Sysmon, et Kali sur un réseau d'attaque séparé.
-> **Cinq scénarios** ont été joués et validés en live, et une réponse active bloque
+> **Six scénarios d'attaque** et un volet de conformité (SCA) ont été joués et validés en live, et une réponse active bloque
 > automatiquement l'attaquant. Suite : voir la [roadmap](docs/roadmap.md).
 > Toute affirmation non testée est marquée « à valider ».
 
@@ -23,15 +23,20 @@ attaques pour vérifier ce que Wazuh détecte, comment il corrèle et comment il
 
 ## Résultats
 
-| # | Scénario | MITRE ATT&CK | Détection et réponse observées | Fiche |
-|---|---|---|---|---|
-| 1 | Brute force SMB sur Windows 11 | T1110, T1110.001, T1078 | 60122 par essai → 60204 (niv. 10) → **réponse active** : IP bloquée 180 s → **100400** (niv. 12) si un compte est ensuite ouvert | [brute-force-smb.md](docs/scenarios/brute-force-smb.md) |
-| 2 | Scan de ports nmap à travers pfSense | T1046 | 100302 par paquet bloqué → **100303** (niv. 10, scan probable) | [scan-nmap.md](docs/scenarios/scan-nmap.md) |
-| 3 | Fichier malveillant déposé (EICAR) | T1203 (natif), T1105 | FIM **554** (niv. 5) → VirusTotal **87105** (niv. 12, 66 moteurs) en ~6 s | [malware-fim-virustotal.md](docs/scenarios/malware-fim-virustotal.md) |
-| 4 | Scan vu par l'IDS Suricata sur pfSense | T1046 | signature ET SCAN → 86601 (niv. 3) → **100210** (niv. 10), via syslog et un décodeur local | [suricata-nids.md](docs/scenarios/suricata-nids.md) |
-| 5b | Persistance par clé Run (Sysmon) | T1547.001 | Sysmon EID 13 → native 92300 (niv. 0) → **100230** (niv. 12) | [persistance-run-key.md](docs/scenarios/persistance-run-key.md) |
+Vue d'ensemble : chaque ligne relie une technique MITRE ATT&CK à la règle Wazuh qui la détecte,
+avec la date de validation en live et le document qui la prouve.
 
-Posture : le module SCA mesure Windows 11 contre le benchmark CIS (score initial 24 %, remédiation prouvée sur un check) : [writeup 12](docs/writeup/12-sca-cis-windows11.md).
+![Couverture MITRE ATT&CK : technique, règle Wazuh, scénario et writeup](docs/diagrams/mitre-couverture.png)
+
+| # | Scénario | MITRE ATT&CK | Chaîne de règles (niveau) | Validé en live | Writeup | Fiche |
+|---|---|---|---|---|---|---|
+| 1 | Brute force SMB sur Windows 11 | T1110, T1110.001, T1078 | 60122 (5) par essai → 60204 (10) → **réponse active**, IP bloquée 180 s → **100400** (12) si un compte est ensuite ouvert ; 92652 (6) | 2026-10-22 | [06](docs/writeup/06-scenario-brute-force-smb.md), [07](docs/writeup/07-regles-et-reponse-active.md) | [brute-force-smb.md](docs/scenarios/brute-force-smb.md) |
+| 2 | Scan de ports nmap à travers pfSense | T1046 | 100302 (5) par paquet bloqué → **100303** (10) | 2026-10-22 | [08](docs/writeup/08-scenario-scan-nmap.md) | [scan-nmap.md](docs/scenarios/scan-nmap.md) |
+| 3 | Fichier malveillant déposé (EICAR) | T1203 (natif), T1105 | FIM 554 (5) → VirusTotal **87105** (12, 66 moteurs) en ~6 s | 2026-10-22 | [09](docs/writeup/09-scenario-fim-virustotal.md) | [malware-fim-virustotal.md](docs/scenarios/malware-fim-virustotal.md) |
+| 4 | Scan vu par l'IDS Suricata sur pfSense | T1046 | ET SCAN → 86601 (3) → **100210** (10), via syslog et un décodeur local | 2026-10-22 | [10](docs/writeup/10-scenario-suricata-nids.md) | [suricata-nids.md](docs/scenarios/suricata-nids.md) |
+| 5 | Accès à LSASS (Sysmon EID 10) | T1003.001 | 61612 (0) → **100220** (12) | 2026-10-25 | à écrire | à écrire (configuration et règle dans [`configs/`](configs/)) |
+| 5b | Persistance par clé Run (Sysmon EID 13) | T1547.001 | 92300 native (0) → **100230** (12) | 2026-10-25 | [11](docs/writeup/11-scenario-persistance-run-key.md) | [persistance-run-key.md](docs/scenarios/persistance-run-key.md) |
+| — | Conformité : SCA, benchmark CIS Windows 11 | (posture) | 482 checks, score 24 %, check 26003 corrigé Failed → Passed | 2026-10-25 | [12](docs/writeup/12-sca-cis-windows11.md) | [integrations/sca.md](docs/integrations/sca.md) |
 
 Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 

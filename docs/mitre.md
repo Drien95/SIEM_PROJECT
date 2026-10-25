@@ -17,6 +17,7 @@ la preuve. Il est tenu à jour à chaque scénario (voir la [roadmap](roadmap.md
 | Exécution (TA0002) | **T1203** Exploitation for Client Execution (étiquette native de 87105) | 554 (FIM) → **87105** (VirusTotal) | 5 → 12 | FIM de l'agent + API VirusTotal | [scénario 3](scenarios/malware-fim-virustotal.md) |
 | Commande et contrôle (TA0011) | **T1105** Ingress Tool Transfer (déduit : le dépôt du fichier) | idem | | idem | [scénario 3](scenarios/malware-fim-virustotal.md) |
 | Découverte (TA0007) | **T1046** Network Service Discovery | 100302 → **100303** (locales) | 5 → 10 | `filterlog` de pfSense, syslog | [scénario 2](scenarios/scan-nmap.md) |
+| Accès aux identifiants (TA0006) | **T1003.001** LSASS Memory | 61612 (native, niveau 0) → **100220** (locale) | 0 → 12 | Sysmon EID 10, agent Windows | validé en live le 2026-10-25 ; [`sysmon-lab.xml`](../configs/agent-windows/sysmon-lab.xml) et [`local_rules.xml`](../configs/manager/local_rules.xml), fiche à écrire |
 | Persistance (TA0003) | **T1547.001** Registry Run Keys | 92300 (native, niveau 0) → **100230** (locale) | 0 → 12 | Sysmon EID 13, agent Windows | [scénario 5b](scenarios/persistance-run-key.md), [writeup 11](writeup/11-scenario-persistance-run-key.md) |
 | Découverte (TA0007) | **T1046** Network Service Discovery | 86601 (native) → **100210** (locale, signatures ET SCAN) | 3 → 10 | Suricata sur pfSense, EVE JSON en syslog | [scénario 4](scenarios/suricata-nids.md) |
 
@@ -32,7 +33,6 @@ la preuve. Il est tenu à jour à chaque scénario (voir la [roadmap](roadmap.md
 |---|---|---|---|
 | Exécution (TA0002) | T1204.002 Malicious File (déduit) | Sysmon EID 1 sur un fichier signalé par VirusTotal (exécution réelle) | 5 |
 | Commande et contrôle (TA0011) | T1071 Application Layer Protocol (déduit) | Suricata (capteur en place depuis le scénario 4), signatures de trafic C2 | à définir |
-| Accès aux identifiants (TA0006) | T1003.001 LSASS Memory | Sysmon EID 10 | 5 |
 | Persistance (TA0003) | T1053.005 Scheduled Task | Sysmon, événement 4698 | 5 |
 
 ## Étiquettes MITRE à ne pas reprendre telles quelles

@@ -38,6 +38,8 @@ avec la date de validation en live et le document qui la prouve.
 | 5b | Persistance par clé Run (Sysmon EID 13) | T1547.001 | 92300 native (0) → **100230** (12) | 2026-10-25 | [11](docs/writeup/11-scenario-persistance-run-key.md) | [persistance-run-key.md](docs/scenarios/persistance-run-key.md) |
 | — | Conformité : SCA, benchmark CIS Windows 11 | (posture) | 482 checks, score 24 %, check 26003 corrigé Failed → Passed | 2026-10-25 | [12](docs/writeup/12-sca-cis-windows11.md) | [integrations/sca.md](docs/integrations/sca.md) |
 
+Remédiation CIS outillée par familles (dry-run, sauvegarde, garde-fou anti-verrouillage, rollback, rescan SCA ; à valider sur la VM) : [scripts/hardening/](scripts/hardening/README.md).
+
 Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 
 ## Lire le projet dans l'ordre
@@ -74,6 +76,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [docs/integrations/](docs/integrations/) | Un guide par intégration : Windows/Sysmon, FIM, VirusTotal, Suricata, pfSense, SCA (CIS) |
 | [docs/scenarios/](docs/scenarios/README.md) | Index des scénarios : joués (brute force SMB, scan nmap, FIM + VirusTotal, Suricata, clé Run), prévus, modèle de fiche |
 | [configs/](configs/) | Configurations du lab : règles et décodeur locaux, syslog, réponse active (`block-ip-win`), agent Windows (dont la configuration Sysmon `sysmon-lab.xml`), pfSense, VirusTotal, Suricata |
+| [scripts/hardening/](scripts/hardening/README.md) | Scripts PowerShell de durcissement CIS Windows 11 par famille (mots de passe, verrouillage, audit), orchestrateur avec rapport et rescan SCA (à valider) |
 | [docs/lab-marxgoo.md](docs/lab-marxgoo.md) | Notes de lecture des PDF du lab marxgoo, avec les erreurs corrigées |
 | [CLAUDE.md](CLAUDE.md) | Objectif, conventions et règles de contribution (humains et Claude) |
 

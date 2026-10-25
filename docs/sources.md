@@ -154,6 +154,21 @@ Utilisées par l'[intégration SCA](integrations/sca.md) et le [writeup 12](writ
   https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/sca/windows/cis_win11_enterprise.yml
 - Benchmarks CIS : https://www.cisecurity.org/cis-benchmarks/
 
+## Scripts de durcissement CIS
+
+Utilisées par [scripts/hardening/](../scripts/hardening/README.md) :
+
+- Ids, cibles et opérateurs des checks repris tels quels de la politique Wazuh (vérifiée,
+  ruleset v4.14.0) : https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/sca/windows/cis_win11_enterprise.yml
+- `secedit` : https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/secedit
+- `auditpol /set` et `/backup` :
+  https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol-set,
+  https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol-backup
+- GUID des sous-catégories d'audit, MS-GPAC (vérifiés le 2026-10-25 pour les 27 GUID de la
+  famille 03) : https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gpac/77878370-0712-47cd-997d-b07053429f6d
+- Politique de verrouillage de comptes :
+  https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/security-policy-settings/account-lockout-policy
+
 ## À explorer
 
 - Guide de preuve de concept Wazuh, pour des scénarios officiels reproductibles.

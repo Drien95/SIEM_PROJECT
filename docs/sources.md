@@ -106,6 +106,8 @@ Utilisées par la [fiche Suricata](scenarios/suricata-nids.md), le
 
 ## Scénario 5 : Sysmon et LSASS
 
+Utilisées par le [writeup 15](writeup/15-detection-acces-identifiants-lsass.md) (en cours, à rédiger par l'auteur).
+
 Références pour la configuration [`sysmon-lab.xml`](../configs/agent-windows/sysmon-lab.xml) et la
 règle locale 100220 (fiche à venir) :
 

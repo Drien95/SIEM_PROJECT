@@ -34,7 +34,7 @@ avec la date de validation en live et le document qui la prouve.
 | 2 | Scan de ports nmap à travers pfSense | T1046 | 100302 (5) par paquet bloqué → **100303** (10) | 2026-10-22 | [08](docs/writeup/08-scenario-scan-nmap.md) | [scan-nmap.md](docs/scenarios/scan-nmap.md) |
 | 3 | Fichier malveillant déposé (EICAR) | T1203 (natif), T1105 | FIM 554 (5) → VirusTotal **87105** (12, 66 moteurs) en ~6 s | 2026-10-22 | [09](docs/writeup/09-scenario-fim-virustotal.md) | [malware-fim-virustotal.md](docs/scenarios/malware-fim-virustotal.md) |
 | 4 | Scan vu par l'IDS Suricata sur pfSense | T1046 | ET SCAN → 86601 (3) → **100210** (10), via syslog et un décodeur local | 2026-10-22 | [10](docs/writeup/10-scenario-suricata-nids.md) | [suricata-nids.md](docs/scenarios/suricata-nids.md) |
-| 5 | Accès à LSASS (Sysmon EID 10) | T1003.001 | 61612 (0) → **100220** (12) | 2026-10-25 | à écrire | à écrire (configuration et règle dans [`configs/`](configs/)) |
+| 5 | Accès à LSASS (Sysmon EID 10) | T1003.001 | 61612 (0) → **100220** (12) | 2026-10-25 | [15](docs/writeup/15-detection-acces-identifiants-lsass.md) (EN COURS) | à écrire (configuration et règle dans [`configs/`](configs/)) |
 | 5b | Persistance par clé Run (Sysmon EID 13) | T1547.001 | 92300 native (0) → **100230** (12) | 2026-10-25 | [11](docs/writeup/11-scenario-persistance-run-key.md) | [persistance-run-key.md](docs/scenarios/persistance-run-key.md) |
 | — | Conformité : SCA, benchmark CIS Windows 11 | (posture) | 482 checks, score 24 %, check 26003 corrigé Failed → Passed | 2026-10-25 | [12](docs/writeup/12-sca-cis-windows11.md) | [integrations/sca.md](docs/integrations/sca.md) |
 
@@ -60,6 +60,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [12 · SCA et CIS Windows 11](docs/writeup/12-sca-cis-windows11.md) | Posture : score CIS de 24 %, anatomie d'un check, mapping PCI DSS / ISO 27001 / SOC 2, boucle mesurer, corriger, re-mesurer |
 | [13 · Durcissement CIS automatisé](docs/writeup/13-durcissement-cis-automatise.md) | Scripts par familles (dry-run, garde-fou, sauvegarde, vérification, rollback) ; faux « Failed » du SCA sur un Windows en français |
 | [14 · Vulnerability Detection](docs/writeup/14-vulnerability-detection.md) (EN COURS) | Base de CVE qui ne se charge pas en 4.14 : diagnostic, contournement par instantané hors ligne (`offline-url`) ; résultats à venir |
+| [15 · Détection d'un accès aux identifiants (LSASS)](docs/writeup/15-detection-acces-identifiants-lsass.md) (EN COURS, à rédiger par l'auteur) | Squelette : télémétrie Sysmon, règle 100220, faux positif, protection LSA |
 | [Annexe · Simulateur de paquets](docs/writeup/annexe-simulateur-paquets.md) | Simulateur façon Packet Tracer (ARP, DHCP, NAT, syslog, agent, Kali), avec vidéos |
 
 ## Documents de référence

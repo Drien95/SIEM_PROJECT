@@ -38,7 +38,7 @@ avec la date de validation en live et le document qui la prouve.
 | 5b | Persistance par clé Run (Sysmon EID 13) | T1547.001 | 92300 native (0) → **100230** (12) | 2026-10-25 | [11](docs/writeup/11-scenario-persistance-run-key.md) | [persistance-run-key.md](docs/scenarios/persistance-run-key.md) |
 | — | Conformité : SCA, benchmark CIS Windows 11 | (posture) | 482 checks, score 24 %, check 26003 corrigé Failed → Passed | 2026-10-25 | [12](docs/writeup/12-sca-cis-windows11.md) | [integrations/sca.md](docs/integrations/sca.md) |
 
-Remédiation CIS outillée par familles (dry-run, sauvegarde, garde-fou anti-verrouillage, rollback, rescan SCA), validée sur la VM le 2026-10-25 : [scripts/hardening/](scripts/hardening/README.md), récit et faux échec SCA lié à la langue dans le [writeup 13](docs/writeup/13-durcissement-cis-automatise.md).
+Remédiation CIS outillée par familles (dry-run, sauvegarde, garde-fou anti-verrouillage, rollback, rescan SCA), validée sur la VM le 2026-10-25 (retour arrière validé le 2026-10-28) : [scripts/hardening/](scripts/hardening/README.md), récit et faux échec SCA lié à la langue dans le [writeup 13](docs/writeup/13-durcissement-cis-automatise.md).
 
 Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 
@@ -59,6 +59,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [11 · Scénario 5b : persistance par clé Run](docs/writeup/11-scenario-persistance-run-key.md) | Règle native 92300 muette (niveau 0), règle sœur jamais évaluée, diagnostic par `logall_json`, règle 100230 |
 | [12 · SCA et CIS Windows 11](docs/writeup/12-sca-cis-windows11.md) | Posture : score CIS de 24 %, anatomie d'un check, mapping PCI DSS / ISO 27001 / SOC 2, boucle mesurer, corriger, re-mesurer |
 | [13 · Durcissement CIS automatisé](docs/writeup/13-durcissement-cis-automatise.md) | Scripts par familles (dry-run, garde-fou, sauvegarde, vérification, rollback) ; faux « Failed » du SCA sur un Windows en français |
+| [14 · Vulnerability Detection](docs/writeup/14-vulnerability-detection.md) (EN COURS) | Base de CVE qui ne se charge pas en 4.14 : diagnostic, contournement par instantané hors ligne (`offline-url`) ; résultats à venir |
 | [Annexe · Simulateur de paquets](docs/writeup/annexe-simulateur-paquets.md) | Simulateur façon Packet Tracer (ARP, DHCP, NAT, syslog, agent, Kali), avec vidéos |
 
 ## Documents de référence

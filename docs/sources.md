@@ -168,8 +168,28 @@ https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/sca/windows/cis_win11_enterp
   https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/auditpol-backup
 - GUID des sous-catégories d'audit, MS-GPAC (vérifiés le 2026-10-25 pour les 27 GUID de la
   famille 03) : https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gpac/77878370-0712-47cd-997d-b07053429f6d
+- `ConvertFrom-Json` (paramètre `-NoEnumerate`, contexte du correctif de rollback PS 5.1) :
+  https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/convertfrom-json
+- Protection LSA (PPL) active par défaut sur une nouvelle installation de Windows 11 22H2+,
+  vérification par l'événement Wininit 12 :
+  https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection
 - Politique de verrouillage de comptes :
   https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/security-policy-settings/account-lockout-policy
+
+## Vulnerability Detection
+
+Utilisées par le [writeup 14](writeup/14-vulnerability-detection.md) (brouillon) :
+
+- Options `<vulnerability-detection>` (`enabled`, `index-status`, `feed-update-interval`,
+  `offline-url` en `file://` ou `http(s)://`) :
+  https://documentation.wazuh.com/current/user-manual/reference/ossec-conf/vuln-detector.html
+- Présentation du module :
+  https://documentation.wazuh.com/current/user-manual/capabilities/vulnerability-detection/index.html,
+  https://documentation.wazuh.com/current/user-manual/capabilities/vulnerability-detection/configuring-scans.html
+- Ticket rapproché de l'erreur `array index 14 is out of range` (rapprochement à valider) :
+  https://github.com/wazuh/wazuh/issues/38272
+- Catalogue CTI (`cti.wazuh.com`, `vd_1.0.0/consumers/vd_4.8.0`, `last_snapshot_link`) :
+  relevé dans le lab, procédure officielle hors ligne à retrouver (à valider).
 
 ## À explorer
 

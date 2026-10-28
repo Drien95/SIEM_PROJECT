@@ -161,3 +161,19 @@
     <mitre><id>T1021.002</id></mitre>
   </rule>
 </group>
+
+<group name="log_clearing,defense_evasion,windows,">
+  <!-- Effacement du journal Security (événement 1102, fournisseur Microsoft-Windows-Eventlog).
+       MITRE T1070.001 (Clear Windows Event Logs).
+       Chaîne native : 60001 (canal Security) → 60017 (fournisseur Eventlog) → 63108 → 63103
+       (0610-win-ms_logs_rules.xml, niveau 5, T1070 sans sous-technique). On élève au niveau 12 :
+       effacer un journal d'audit est presque toujours malveillant ou au minimum à expliquer.
+       Les champs du 1102 sont sous win.logFileCleared (et non win.eventdata).
+       Validée en live le 2026-10-28 21:27 (scénario 7, docs/scenarios/effacement-journaux.md).
+       Contenu reconstruit d'après la règle appliquée sur le manager et l'alerte observée. -->
+  <rule id="100250" level="12">
+    <if_sid>63103</if_sid>
+    <description>Evasion defenses : journal d audit Windows efface par $(win.logFileCleared.subjectUserName) sur $(win.system.computer)</description>
+    <mitre><id>T1070.001</id></mitre>
+  </rule>
+</group>

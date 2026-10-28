@@ -16,18 +16,20 @@
   --rule: #3b6fd0;
   --rule-bg: #edf2fc;
   --plan: #7d8591;
+  --gap: #b4442c;
+  --gap-bg: #fbeeea;
   --font-sans: "IBM Plex Sans", "Segoe UI", "DejaVu Sans", Arial, sans-serif;
   --font-mono: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
-    --ok: #4fcf83; --ok-bg: #16281d; --rule: #7fa6f0; --rule-bg: #19213a; --plan: #9aa3ae; color-scheme: dark;
+    --ok: #4fcf83; --ok-bg: #16281d; --rule: #7fa6f0; --rule-bg: #19213a; --plan: #9aa3ae; --gap: #f08a73; --gap-bg: #2d1a16; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #11161d; --canvas: #18202a; --fg: #e3e9f0; --muted: #9aa7b6; --line: #2c3744; --row: #1d2631;
-  --ok: #4fcf83; --ok-bg: #16281d; --rule: #7fa6f0; --rule-bg: #19213a; --plan: #9aa3ae; color-scheme: dark;
+  --ok: #4fcf83; --ok-bg: #16281d; --rule: #7fa6f0; --rule-bg: #19213a; --plan: #9aa3ae; --gap: #f08a73; --gap-bg: #2d1a16; color-scheme: dark;
 }
 body {
   background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55;
@@ -54,13 +56,13 @@ code { font-family: var(--font-mono); font-size: .9em; }
 
 <div class="wrap">
   <header>
-    <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14.9 · vue d'ensemble au 2026-10-25</span>
+    <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14.9 · vue d'ensemble au 2026-10-28</span>
     <h1>Couverture MITRE ATT&amp;CK du lab</h1>
-    <p>Une colonne par tactique, dans l'ordre d'une attaque. Chaque tuile relie la technique à la règle Wazuh qui la voit et au writeup qui le prouve. Vert : détection validée en live. Bleu : règle en place et vue en action, pas encore dans un scénario d'attaque. Gris : prévu dans la roadmap.</p>
+    <p>Une colonne par tactique, dans l'ordre d'une attaque. Chaque tuile relie la technique à la règle Wazuh qui la voit et au writeup qui le prouve. Vert : détection validée en live. Bleu : règle en place et vue en action, pas encore dans un scénario d'attaque. Gris : prévu dans la roadmap. En bas, les 14 tactiques de la matrice Enterprise : 5 couvertes, 1 partielle, 7 trous.</p>
   </header>
 
   <figure id="mitre">
-    <svg viewBox="0 0 1400 640" role="img" aria-labelledby="svg-title">
+    <svg viewBox="0 0 1400 800" role="img" aria-labelledby="svg-title">
       <title id="svg-title">Couverture MITRE ATT&amp;CK du lab Wazuh : techniques détectées, règles en place et techniques prévues, par tactique</title>
       <g id="grid"></g>
     </svg>
@@ -79,18 +81,18 @@ const TACTICS = [
     { id: "T1078", n: "Valid Accounts", r: "100400 (12) · 92652", sc: "sc. 1 · writeup 07", s: "ok" } ] },
   { id: "TA0002", n: "Exécution", t: [
     { id: "T1059.001", n: "PowerShell", r: "100100 (Sysmon)", sc: "writeup 04", s: "rule" },
-    { id: "T1203", n: "Client Execution (natif)", r: "554 → 87105 (12)", sc: "sc. 3 · writeup 09", s: "ok" } ] },
+    { id: "T1204.002", n: "Malicious File", r: "Sysmon EID 1 + VirusTotal", sc: "suite du scénario 3", s: "plan" } ] },
   { id: "TA0003", n: "Persistance", t: [
     { id: "T1547.001", n: "Run Keys", r: "92300 → 100230 (12)", sc: "sc. 5b · writeup 11", s: "ok" },
     { id: "T1053.005", n: "Scheduled Task", r: "Sysmon, 4698", sc: "scénario 5", s: "plan" } ] },
   { id: "TA0006", n: "Accès aux identifiants", t: [
     { id: "T1110", n: "Brute Force", r: "60204 (10) · réponse active", sc: "sc. 1 · writeups 06-07", s: "ok" },
     { id: "T1110.001", n: "Password Guessing", r: "60122 (5) ×N", sc: "sc. 1 · writeup 06", s: "ok" },
-    { id: "T1003.001", n: "LSASS Memory", r: "100220 (12) · Sysmon EID 10", sc: "sc. 5 · fiche à écrire", s: "ok" } ] },
+    { id: "T1003.001", n: "LSASS Memory", r: "100220 (12) · Sysmon EID 10", sc: "sc. 5 · writeup 15 (en cours)", s: "ok" } ] },
   { id: "TA0007", n: "Découverte", t: [
     { id: "T1046", n: "Network Service Discovery", r: "100303 (10) · 100210 (10)", sc: "sc. 2 et 4 · writeups 08, 10", s: "ok" } ] },
   { id: "TA0011", n: "Commande et contrôle", t: [
-    { id: "T1105", n: "Ingress Tool Transfer", r: "554 → 87105 (déduit)", sc: "sc. 3 · writeup 09", s: "ok" },
+    { id: "T1105", n: "Ingress Tool Transfer (simulé)", r: "554 → 87105 (12) · déduit", sc: "sc. 3 · writeup 09", s: "ok" },
     { id: "T1071", n: "Application Layer Protocol", r: "Suricata (capteur prêt)", sc: "à définir", s: "plan" } ] }
 ];
 const ST = { ok: ["--ok", "--ok-bg", "validé en live"], rule: ["--rule", "--rule-bg", "règle en place"], plan: ["--plan", "--canvas", "prévu"] };
@@ -119,8 +121,33 @@ const ST = { ok: ["--ok", "--ok-bg", "validé en live"], rule: ["--rule", "--rul
       o.push(T(x + 12, y + 94, t.sc, "sm muted"));
     });
   });
+  // bandeau : les 14 tactiques Enterprise, couvertes ou non
+  const sy = 530, cw = 90.1, cg = 6;
+  o.push(T(30, sy + 16, "LES 14 TACTIQUES ENTERPRISE : COUVERTES, PARTIELLES, TROUS", "ztitle muted"));
+  const CS = { ok: ["--ok", "--ok-bg", "couverte"], part: ["--rule", "--rule-bg", "partielle"], gap: ["--gap", "--gap-bg", "trou"], na: ["--plan", "--canvas", "hors portée"] };
+  let lx2 = 1370;
+  ["na", "gap", "part", "ok"].forEach(k => {
+    const w = CS[k][2].length * 6.6 + 34; lx2 -= w;
+    o.push(`<rect x="${lx2}" y="${sy + 3}" width="16" height="16" rx="3" style="fill: var(${CS[k][1]}); stroke: var(${CS[k][0]})" stroke-width="2"${k === "gap" || k === "na" ? ' stroke-dasharray="4 3"' : ""}/>`);
+    o.push(T(lx2 + 22, sy + 16, CS[k][2], "sm"));
+  });
+  const ALL = [
+    ["TA0043", ["Reconnais-", "sance"], "gap"], ["TA0042", ["Ressources"], "na"], ["TA0001", ["Accès initial"], "ok"],
+    ["TA0002", ["Exécution"], "part"], ["TA0003", ["Persistance"], "ok"], ["TA0004", ["Élévation de", "privilèges"], "gap"],
+    ["TA0005", ["Évasion des", "défenses"], "gap"], ["TA0006", ["Accès aux", "identifiants"], "ok"], ["TA0007", ["Découverte"], "ok"],
+    ["TA0008", ["Mouvement", "latéral"], "gap"], ["TA0009", ["Collecte"], "gap"], ["TA0011", ["Commande et", "contrôle"], "ok"],
+    ["TA0010", ["Exfiltration"], "gap"], ["TA0040", ["Impact"], "gap"]
+  ];
+  ALL.forEach(([id, lines, k], i) => {
+    const x = 30 + i * (cw + cg), y = sy + 32, [col, bg] = CS[k];
+    o.push(`<rect x="${x}" y="${y}" width="${cw}" height="74" rx="6" style="fill: var(${bg}); stroke: var(${col})" stroke-width="${k === "ok" || k === "part" ? 2 : 1.6}"${k === "gap" || k === "na" ? ' stroke-dasharray="6 4"' : ""}/>`);
+    o.push(T(x + 8, y + 20, id, "mono b", `style="font-size: 11.5px; fill: var(${col})"`));
+    lines.forEach((l, j) => o.push(T(x + 8, y + 42 + j * 16, l, "sm", `style="font-size: 11.5px"`)));
+  });
+  o.push(T(30, sy + 128, "Pistes pour les trous : mouvement latéral par partage SMB (T1021.002, suite du scénario 1) · effacement de journaux (T1070.001) · suppression des clichés instantanés (T1490).", "sm muted"));
+
   // bandeau bas : chaîne d'un incident joué
-  const by = 540;
+  const by = 680;
   o.push(`<rect x="30" y="${by}" width="1340" height="80" rx="6" style="fill: var(--row); stroke: var(--line)"/>`);
   o.push(T(48, by + 26, "POSTURE (HORS ATT&CK) ET CHAÎNE D'UN INCIDENT", "ztitle muted"));
   o.push(T(48, by + 52, "SCA : benchmark CIS Windows 11 Enterprise v3.0.0, 482 checks, score 24 %, remédiation prouvée sur le check 26003 (writeup 12).", "sm"));

@@ -32,7 +32,7 @@ avec la date de validation en live et le document qui la prouve.
 |---|---|---|---|---|---|---|
 | 1 | Brute force SMB sur Windows 11 | T1110, T1110.001, T1078 | 60122 (5) par essai → 60204 (10) → **réponse active**, IP bloquée 180 s → **100400** (12) si un compte est ensuite ouvert ; 92652 (6) | 2026-10-22 | [06](docs/writeup/06-scenario-brute-force-smb.md), [07](docs/writeup/07-regles-et-reponse-active.md) | [brute-force-smb.md](docs/scenarios/brute-force-smb.md) |
 | 2 | Scan de ports nmap à travers pfSense | T1046 | 100302 (5) par paquet bloqué → **100303** (10) | 2026-10-22 | [08](docs/writeup/08-scenario-scan-nmap.md) | [scan-nmap.md](docs/scenarios/scan-nmap.md) |
-| 3 | Fichier malveillant déposé (EICAR) | T1203 (natif), T1105 | FIM 554 (5) → VirusTotal **87105** (12, 66 moteurs) en ~6 s | 2026-10-22 | [09](docs/writeup/09-scenario-fim-virustotal.md) | [malware-fim-virustotal.md](docs/scenarios/malware-fim-virustotal.md) |
+| 3 | Fichier malveillant déposé (EICAR) | T1105 (déduit ; T1203 natif écarté) | FIM 554 (5) → VirusTotal **87105** (12, 66 moteurs) en ~6 s | 2026-10-22 | [09](docs/writeup/09-scenario-fim-virustotal.md) | [malware-fim-virustotal.md](docs/scenarios/malware-fim-virustotal.md) |
 | 4 | Scan vu par l'IDS Suricata sur pfSense | T1046 | ET SCAN → 86601 (3) → **100210** (10), via syslog et un décodeur local | 2026-10-22 | [10](docs/writeup/10-scenario-suricata-nids.md) | [suricata-nids.md](docs/scenarios/suricata-nids.md) |
 | 5 | Accès à LSASS (Sysmon EID 10) | T1003.001 | 61612 (0) → **100220** (12) | 2026-10-25 | [15](docs/writeup/15-detection-acces-identifiants-lsass.md) (EN COURS) | à écrire (configuration et règle dans [`configs/`](configs/)) |
 | 5b | Persistance par clé Run (Sysmon EID 13) | T1547.001 | 92300 native (0) → **100230** (12) | 2026-10-25 | [11](docs/writeup/11-scenario-persistance-run-key.md) | [persistance-run-key.md](docs/scenarios/persistance-run-key.md) |
@@ -70,7 +70,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [docs/architecture.md](docs/architecture.md) | Composants Wazuh, `ossec.conf` et chaîne des démons (cours), flux de données, ports, matrice des flux du lab |
 | [docs/installation.md](docs/installation.md) | Prérequis, installation (OVA / all-in-one), agents, dépannage |
 | [docs/roadmap.md](docs/roadmap.md) | Roadmap en trois phases (largeur, profondeur, livrable), compétence SOC visée et statut de chaque étape |
-| [docs/mitre.md](docs/mitre.md) | Couverture MITRE ATT&CK : techniques détectées, prévues, étiquettes natives à corriger |
+| [docs/mitre.md](docs/mitre.md) | Couverture MITRE ATT&CK : règle → technique → tactique, couverture des 14 tactiques et trous, pistes, étiquettes natives à corriger |
 | [docs/detection.md](docs/detection.md) | Capacités de détection, intégrations, règles personnalisées, scénarios de test |
 | [docs/sources.md](docs/sources.md) | Sources utilisées, ce qu'on en retient, limites |
 | [docs/homelab/plan.md](docs/homelab/plan.md) | Plan du homelab VMware : réseau, VM, ordre de montage, images |

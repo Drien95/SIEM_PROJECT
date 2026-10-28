@@ -109,7 +109,7 @@ remédiation, conformité).
   certains checks sont moins précis sur un système dans une autre langue. **Confirmé dans le lab**
   (2026-10-25) : les 27 checks d'audit 26139-26165 interrogent `auditpol` avec les noms anglais et
   cherchent `Success and Failure` ; sur notre Windows en français, ils restent « Failed » même
-  une fois l'audit appliqué et vérifié par GUID. Détail : [writeup 13, § 4](../writeup/13-durcissement-cis-automatise.md#4-le-finding--un-faux-failed-dû-à-la-langue).
+  une fois l'audit appliqué et vérifié par GUID. Détail : [writeup 13, § 4](../writeup/13-durcissement-cis-automatise.md).
 - Benchmark **Enterprise** (poste en domaine) appliqué à un poste isolé : certaines
   recommandations (GPO de domaine) n'ont pas d'objet dans le lab.
 - Les checks par commande (`c:`) des politiques **personnalisées** poussées depuis le manager

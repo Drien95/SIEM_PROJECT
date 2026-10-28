@@ -1,0 +1,141 @@
+site_name: SIEM_PROJECT · Lab SOC Wazuh
+site_description: Évaluation du SIEM/XDR Wazuh 4.14 en laboratoire isolé — déploiement, détection, scénarios MITRE ATT&CK, tuning et durcissement.
+site_author: Adrien
+repo_url: https://github.com/Drien95/SIEM_PROJECT
+repo_name: Drien95/SIEM_PROJECT
+edit_uri: edit/main/docs/
+docs_dir: docs
+
+theme:
+  name: material
+  language: fr
+  icon:
+    logo: material/shield-search
+    repo: fontawesome/brands/github
+  favicon: assets/favicon.svg
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Passer en mode sombre
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Passer en mode clair
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+
+plugins:
+  - search:
+      lang: fr
+
+# Liens vers des fichiers hors de docs/ (configs/, scripts/, README racine) : réécrits vers GitHub.
+hooks:
+  - hooks/repo_links.py
+
+extra_css:
+  - assets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      # Ancres au format GitHub (accents conservés), pour que les liens internes des writeups marchent aussi sur le site.
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+validation:
+  omitted_files: info
+  unrecognized_links: info
+
+# Pages hors navigation, toujours publiées et liées depuis les writeups.
+not_in_nav: |
+  /lab-marxgoo.md
+  /scenarios/modele-scenario.md
+  /scenarios/brute-force.md
+  /homelab/
+
+nav:
+  - Accueil: index.md
+  - Le lab:
+      - Feuille de route: roadmap.md
+      - Architecture: architecture.md
+      - Installation: installation.md
+      - Plan du homelab: homelab/plan.md
+      - Construction:
+          - 01 · Homelab: writeup/01-homelab.md
+          - 02 · Syslog pfSense: writeup/02-syslog-pfsense.md
+          - 03 · Durcissement SSH: writeup/03-durcissement-ssh.md
+          - 04 · Agent Windows et Sysmon: writeup/04-agent-windows-sysmon.md
+          - 05 · Réseau d'attaque: writeup/05-segment-attaque-kali.md
+          - Annexe · Simulateur de paquets: writeup/annexe-simulateur-paquets.md
+      - Diagrammes: diagrams/README.md
+  - Scénarios de détection:
+      - Vue d'ensemble: scenarios/README.md
+      - 1 · Brute force SMB:
+          - Writeup 06 · Le scénario: writeup/06-scenario-brute-force-smb.md
+          - Writeup 07 · Règles et réponse active: writeup/07-regles-et-reponse-active.md
+          - Fiche: scenarios/brute-force-smb.md
+      - 2 · Scan nmap:
+          - Writeup 08: writeup/08-scenario-scan-nmap.md
+          - Fiche: scenarios/scan-nmap.md
+      - 3 · Fichier malveillant (FIM + VirusTotal):
+          - Writeup 09: writeup/09-scenario-fim-virustotal.md
+          - Fiche: scenarios/malware-fim-virustotal.md
+      - 4 · IDS Suricata:
+          - Writeup 10: writeup/10-scenario-suricata-nids.md
+          - Fiche: scenarios/suricata-nids.md
+      - 5 · Accès aux identifiants (LSASS):
+          - Writeup 15 (en cours): writeup/15-detection-acces-identifiants-lsass.md
+      - 5b · Persistance clé Run:
+          - Writeup 11: writeup/11-scenario-persistance-run-key.md
+          - Fiche: scenarios/persistance-run-key.md
+      - 6 · Mouvement latéral SMB:
+          - Writeup 16: writeup/16-scenario-mouvement-lateral-smb.md
+          - Fiche: scenarios/mouvement-lateral-smb.md
+      - 7 · Effacement des journaux:
+          - Writeup 17 (en cours): writeup/17-scenario-effacement-journaux.md
+  - Posture et tuning:
+      - 12 · SCA et CIS Windows 11: writeup/12-sca-cis-windows11.md
+      - 13 · Durcissement CIS automatisé: writeup/13-durcissement-cis-automatise.md
+      - 14 · Vulnerability Detection: writeup/14-vulnerability-detection.md
+      - 18 · Tuning des faux positifs: writeup/18-tuning-faux-positifs.md
+      - Détection (règles et méthode): detection.md
+  - Intégrations:
+      - pfSense: integrations/pfsense.md
+      - Suricata: integrations/suricata.md
+      - Windows et Sysmon: integrations/windows-logs-sysmon.md
+      - FIM: integrations/fim.md
+      - VirusTotal: integrations/virustotal.md
+      - SCA: integrations/sca.md
+  - MITRE ATT&CK: mitre.md
+  - Bilan:
+      - Constats, limites et compétences: portfolio/README.md
+      - Sources: sources.md

@@ -23,3 +23,6 @@ Thumbs.db
 
 # Images déposées localement
 install_tools/
+
+# Site MkDocs généré
+site/

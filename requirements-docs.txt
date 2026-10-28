@@ -1,0 +1,2 @@
+# Site de documentation (MkDocs Material), voir mkdocs.yml
+mkdocs-material>=9.5,<10

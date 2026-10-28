@@ -75,6 +75,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [docs/architecture.md](docs/architecture.md) | Composants Wazuh, `ossec.conf` et chaîne des démons (cours), flux de données, ports, matrice des flux du lab |
 | [docs/installation.md](docs/installation.md) | Prérequis, installation (OVA / all-in-one), agents, dépannage |
 | [docs/roadmap.md](docs/roadmap.md) | Roadmap en trois phases (largeur, profondeur, livrable), compétence SOC visée et statut de chaque étape |
+| [docs/portfolio/README.md](docs/portfolio/README.md) | Squelette de portfolio : pitch, lab, scénarios, règles locales, constats, limites, compétences |
 | [docs/mitre.md](docs/mitre.md) | Couverture MITRE ATT&CK : règle → technique → tactique, couverture des 14 tactiques et trous, pistes, étiquettes natives à corriger |
 | [docs/detection.md](docs/detection.md) | Capacités de détection, intégrations, règles personnalisées, scénarios de test |
 | [docs/sources.md](docs/sources.md) | Sources utilisées, ce qu'on en retient, limites |

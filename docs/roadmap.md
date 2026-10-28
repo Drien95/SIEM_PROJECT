@@ -56,7 +56,7 @@ vue par Sysmon, T1059.001), validée sur de l'activité normale ([writeup 04](wr
 | Étape | Contenu | Statut |
 |---|---|---|
 | Rapport d'évaluation de Wazuh | ce que Wazuh détecte bien, mal ou pas du tout dans ce lab, coût de mise en œuvre, limites (FIPS de l'OVA, champs Windows sans `srcip`, règles natives à corriger), recommandation | ⏳ |
-| Présentation du projet | README soigné, schémas, writeups réutilisables pour un site portfolio | 🔄 |
+| Présentation du projet | README soigné, schémas, writeups réutilisables pour un site portfolio | 🔄 (squelette : [portfolio](portfolio/README.md)) |
 
 ## Prochaine étape
 

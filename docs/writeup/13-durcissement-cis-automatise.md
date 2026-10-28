@@ -2,7 +2,8 @@
 
 > Après la mesure (writeup 12), la correction. Une boîte à outils PowerShell applique le
 > benchmark CIS de Windows 11 par **familles**, avec dry-run, sauvegarde, garde-fou, vérification
-> et retour arrière, puis relance le scan SCA. Validée sur la VM le 2026-10-25. Résultat
+> et retour arrière, puis relance le scan SCA. Validée sur la VM le 2026-10-25, retour arrière
+> validé le 2026-10-28. Résultat
 > inattendu et instructif : des réglages d'audit **bien appliqués** restent « Failed » dans le
 > SCA, parce que le check cherche un texte anglais sur un Windows français.
 >
@@ -84,10 +85,31 @@ Tapez OUI (en majuscules) pour appliquer le verrouillage de comptes: OUI
 | 1.2.4 | 26007 | réinitialisation du compteur (minutes) | 10 | 15 | PASS |
 | 1.2.1 | 26005 | durée de verrouillage (minutes) | 10 | 15 | PASS |
 
-La famille 02 a ensuite été **annulée** avec `-Rollback` : le verrouillage est revenu à l'état
-d'avant (seuil 10), ce qui valide aussi le retour arrière sur la VM. Si on la réapplique, le
+La famille 02 a ensuite été **annulée** avec `-Rollback`. Le premier essai a échoué sur la
+restauration du Registre (« Exists introuvable ») : sous Windows PowerShell 5.1,
+`ConvertFrom-Json` renvoie un tableau JSON comme **un seul objet**, et `@(... | ConvertFrom-Json)`
+sur un fichier `[]` produisait un tableau contenant un tableau vide (comportement observé dans le
+lab). Correctif (PR #2) : désérialiser d'abord, forcer le tableau ensuite.
+
+```powershell
+$savedRegistry = Get-Content $regFile -Raw | ConvertFrom-Json
+foreach ($r in @($savedRegistry)) { ... }
+```
+
+Rejoué le **2026-10-28 à 19:09** : bilan `ROLLBACK=3`, aucune `ERROR`, verrouillage revenu à
+10 / 10 / 10. Le cycle complet **dry-run → apply → rollback** est donc validé sur la vraie VM.
+Leçon : un retour arrière se **teste** ; tant qu'il n'a pas tourné, ce n'est qu'une promesse. Si on la réapplique, le
 compte visé par le scénario 1 (brute force SMB) sera verrouillé au 5e échec : c'est l'effet
 recherché en production, et l'événement 4740 deviendrait une détection de plus.
+
+### 3.1 Au passage : la protection LSA était déjà là
+
+Constat de configuration, hors familles CIS actuelles : la protection LSA (LSASS en processus
+protégé, PPL) était **déjà active par défaut** sur ce Windows 11. Preuve : événement System 12 de
+Wininit, « LSASS.exe a démarré en tant que processus protégé avec le niveau : 4 », présent dès le
+2026-10-22. Cohérent avec la documentation Microsoft (activée par défaut sur une nouvelle
+installation de Windows 11 22H2 ou ultérieur) :
+https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection.
 
 ## 4. Le finding : un faux « Failed » dû à la langue
 
@@ -167,7 +189,8 @@ de volume vers le manager, et une ligne de commande peut contenir un secret tap�
 | 01 mots de passe | `-Apply -Rescan` | déjà conforme : PASS | inchangé | 1.1.4 corrigé auparavant à la main (writeup 12) |
 | 03 audit | `-Apply -Rescan` | 30 réglages PASS | cumul 01 + 03 : 122 réussis / 351 échoués, **25 %** ; dont les 3 checks Registre (26013, 26222, 26376) | checks 17.x restés Failed : faux échec dû à la langue |
 | 02 verrouillage | `-Apply -Rescan -AcceptLockoutRisk` | PASS=3 (seuil 5, durée 15, reset 15) | non mesuré isolément | compte de secours `admin-secours` ; procédure de déverrouillage affichée ; `OUI` exigé |
-| Rollback famille 02 | `-Rollback` | verrouillage revenu à l'état d'avant (seuil 10) | — | retour arrière validé sur la VM ; état actuel : familles 01 et 03 appliquées, 02 annulée |
+| Rollback famille 02, 1er essai | `-Rollback` | erreur « Exists introuvable » (PowerShell 5.1) | — | corrigé par la PR #2 |
+| Rollback famille 02, 2026-10-28 19:09 | `-Rollback` | `ROLLBACK=3`, aucune `ERROR` ; verrouillage revenu à 10 / 10 / 10 | — | cycle dry-run → apply → rollback validé ; état actuel : familles 01 et 03 appliquées, 02 annulée |
 
 Sources : [`scripts/hardening/README.md`](../../scripts/hardening/README.md),
 [integrations/sca.md](../integrations/sca.md), [docs/sources.md](../sources.md).

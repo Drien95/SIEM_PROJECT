@@ -8,7 +8,9 @@ puis relancent un scan pour **prouver** la correction : mesurer, corriger, re-me
 > **Statut : validés sur la VM le 2026-10-25** (Windows 11 Professionnel build 26300, en
 > français) : dry-run, puis application des familles 01, 03 et 02 avec sauvegarde, vérification
 > par relecture et garde-fou. Récit et constats : [writeup 13](../../docs/writeup/13-durcissement-cis-automatise.md).
-> Le rollback a été rejoué sur la VM pour la famille 02 (état actuel : 01 et 03 appliquées, 02 annulée).
+> Cycle complet dry-run → apply → **rollback** de la famille 02 validé sur la VM le 2026-10-28
+> à 19:09, après le correctif PowerShell 5.1 de la PR #2 (bilan `ROLLBACK=3`, aucune `ERROR`).
+> État actuel de la VM : familles 01 et 03 appliquées, 02 annulée (verrouillage 10 / 10 / 10).
 
 ## Contenu
 
@@ -185,6 +187,36 @@ La famille 02 verrouille un compte après **5 échecs** pendant **15 minutes**.
   `auditpol /get /subcategory:"Logon"` puis `auditpol /get /subcategory:"{0CCE9215-69AE-11D9-BED3-505054503030}"`.
   Si c'est confirmé, piste de la phase 2 : une politique SCA maison basée sur les GUID.
 
+### Rollback sous Windows PowerShell 5.1 (corrigé, PR #2)
+
+Premier rollback de la famille 02 : erreur « Exists introuvable » à la restauration du
+Registre. Cause : sous Windows PowerShell 5.1, `ConvertFrom-Json` émet un tableau JSON comme
+**un seul objet** au lieu d'énumérer ses éléments. `@(Get-Content … | ConvertFrom-Json)` sur un
+`registry.json` vide (`[]`) donnait donc un tableau contenant un tableau vide, et la boucle
+lisait la propriété `Exists` d'un objet qui n'en a pas. Correctif dans `HardeningLib.psm1` :
+désérialiser d'abord, puis forcer le tableau au moment de boucler.
+
+```powershell
+$savedRegistry = Get-Content $regFile -Raw | ConvertFrom-Json
+foreach ($r in @($savedRegistry)) { ... }
+```
+
+Rejoué le 2026-10-28 : `ROLLBACK=3`, aucune `ERROR`. Le comportement de 5.1 est **observé dans
+le lab** ; la documentation Microsoft décrit, pour les versions récentes, le paramètre
+`-NoEnumerate` qui envoie justement un tableau « comme un seul objet » (version d'introduction
+non précisée par la page, à valider) :
+https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/convertfrom-json.
+
+### Protection LSA (PPL) déjà active
+
+Constat sur la VM, hors périmètre des familles CIS actuelles : la protection LSA (LSASS en
+processus protégé, PPL) était **déjà active par défaut** sur ce Windows 11. Preuve : événement
+System 12, source Wininit, « LSASS.exe a démarré en tant que processus protégé avec le niveau : 4 »,
+présent dès le 2026-10-22, avant tout réglage manuel de `RunAsPPL`. C'est cohérent avec la
+documentation Microsoft : protection activée par défaut sur une **nouvelle installation** de
+Windows 11 22H2 ou ultérieur, et vérifiable par cet événement Wininit 12. Référence :
+https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection.
+
 ## Résultats dans notre lab
 
 | Date | Famille | Mode | Résultat du script | Score SCA avant → après | Remarques |
@@ -194,6 +226,7 @@ La famille 02 verrouille un compte après **5 échecs** pendant **15 minutes**.
 | 2026-10-25 | 01 | `-Apply -Rescan` | déjà conforme : PASS | inchangé | 1.1.4 corrigé auparavant à la main |
 | 2026-10-25 | 03 | `-Apply -Rescan` | 30 réglages PASS | cumul 01 + 03 : 122 / 351, 25 % ; dont 26013, 26222, 26376 | checks 17.x restés Failed : faux échec dû à la langue (confirmé) |
 | 2026-10-25 | 02 | `-Apply -Rescan -AcceptLockoutRisk` | PASS=3 (seuil 10→5, durée 10→15, reset 10→15) | non mesuré isolément | compte de secours `admin-secours` ; `OUI` exigé ; puis **rollback** avant rescan dédié |
+| 2026-10-28 | 02 | `-Rollback` | 1er essai : « Exists introuvable » ; après PR #2 : `ROLLBACK=3`, aucune `ERROR` (19:09) | — | verrouillage revenu à 10 / 10 / 10 ; état : 01 et 03 appliquées, 02 annulée |
 
 ## Ajouter une famille
 

@@ -480,8 +480,14 @@ function Restore-HardeningBackup {
 
     $regFile = Join-Path $BackupPath 'registry.json'
     if (Test-Path $regFile) {
-        foreach ($r in @(Get-Content $regFile -Raw | ConvertFrom-Json)) {
-            if ($null -eq $r) { continue }
+        # Windows PowerShell 5.1 : ConvertFrom-Json émet un tableau JSON comme UN seul objet
+        # (pas d'énumération). @(... | ConvertFrom-Json) donnait donc un tableau contenant le
+        # tableau : pour une famille sans registre (« [] »), $r était un tableau vide et
+        # $r.Exists levait PropertyNotFoundStrict (StrictMode 2.0). On passe par une variable
+        # pour itérer sur les éléments eux-mêmes (même résultat sous PowerShell 7).
+        $savedRegistry = Get-Content $regFile -Raw | ConvertFrom-Json
+        foreach ($r in @($savedRegistry)) {
+            if ($null -eq $r -or -not $r.PSObject.Properties['Exists']) { continue }
             if ($r.Exists) {
                 Set-RegistrySetting -Path $r.Path -Name $r.Name -Value $r.Value -Kind $r.Kind
                 Write-HardeningLog -Level OK -Message "Registre restauré : $($r.Path)\$($r.Name) = $($r.Value)"

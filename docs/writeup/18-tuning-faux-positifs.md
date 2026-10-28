@@ -99,17 +99,39 @@ l'inverse, un administrateur ou un script qui utilise `reg add` déclenchera 920
 **Leçon** : régler un faux positif, c'est d'abord lister **tous** les événements produits par
 l'action et toutes les règles qui les voient, puis régler chacune.
 
-## 5. Constat C : la fille de niveau 0 sous la native 92041 n'a pas suffi
+## 5. Constat C : la fille sous 92041 visait un champ absent (corrigé)
 
-Une règle 100232 (`if_sid 92041`, niveau 0) a été essayée pour faire taire 92041 dans ce cas :
-l'alerte 92041 a continué. La règle a été retirée du manager et n'est pas dans le dépôt.
+Une règle 100232 (`if_sid 92041`, niveau 0) a été essayée pour faire taire 92041 : l'alerte a
+continué. La règle a été retirée du manager et n'est pas dans le dépôt. Premier réflexe : « on ne
+peut pas surcharger une règle native par une fille ». **C'était faux**, et l'erreur est
+instructive.
 
-Le même mécanisme fonctionne pour 100231 sous notre 100230. Différence probable (déduction, à
-vérifier) : 92041 se déclenche sur un événement **EID 1**, qui n'a pas de champ `targetObject`
-(propre aux événements registre). Si 100232 filtrait sur ce champ, comme 100231, elle ne pouvait
-jamais correspondre ; pour EID 1, il faut filtrer sur `win.eventdata.commandLine` ou
-`win.eventdata.image`. À vérifier en relisant le contenu de 100232 avant de conclure que le
-mécanisme lui-même est en cause.
+Contenu de 100232, relu après coup :
+
+```xml
+<rule id="100232" level="0">
+  <if_sid>92041</if_sid>
+  <field name="win.eventdata.targetObject" type="pcre2">(?i)(MicrosoftEdgeAutoLaunch|msedge_cleanup)</field>
+  ...
+</rule>
+```
+
+Deux causes, vérifiées :
+
+1. **Mauvais champ.** 92041 se déclenche sur un événement Sysmon **EID 1** (création de
+   processus). `targetObject` n'existe que sur les événements **registre** (EID 12-14). Sur un
+   EID 1, le champ est absent, la condition ne peut jamais être vraie, la fille n'est jamais
+   retenue et 92041 reste le résultat. Le mécanisme de surcharge par une fille de niveau 0
+   fonctionne ; c'est la condition qui était inapplicable. Pour EID 1, il aurait fallu filtrer
+   sur `win.eventdata.commandLine` ou `win.eventdata.image`.
+2. **Artefact de la méthode de test.** 92041 et 67027 voient le lancement de `reg.exe`, que
+   seul notre test produisait (§ 4). Le vrai Edge écrit sa valeur sans `reg.exe` : ces deux
+   alertes ne sont pas du bruit réel d'Edge, et il n'y avait rien à régler sur 92041 pour ce cas.
+
+**Conclusion** : la liste blanche 100231 suffit vraisemblablement pour le bruit réel d'Edge (à
+confirmer sur une écriture réelle d'Edge). Leçons : vérifier qu'un champ **existe** sur
+l'événement visé avant d'écrire une condition dessus, et se demander si la méthode de test
+produit des événements que l'acteur réel ne produit pas.
 
 Autre outil, si une fille ne suffit pas : **redéfinir** la règle native dans `local_rules.xml`
 avec `overwrite="yes"` (procédure de la documentation, qui préserve la modification lors des
@@ -125,6 +147,7 @@ Source : https://documentation.wazuh.com/current/user-manual/ruleset/rules/custo
 3. Pour Windows : valider **en live**, logtest ne reproduit pas le décodage EventChannel.
 4. Une action produit plusieurs événements : régler **chaque branche**.
 5. Si une fille ne prend pas, vérifier d'abord que ses champs **existent** sur l'événement visé.
+6. Se demander si le test produit des événements que l'acteur réel ne produit pas (`reg.exe` ici).
 
 ## 7. Résultats dans notre lab
 
@@ -132,7 +155,7 @@ Source : https://documentation.wazuh.com/current/user-manual/ruleset/rules/custo
 |---|---|---|---|
 | 2026-10-28 | 100231, liste blanche Edge sous 100230 | Edge silencieux, valeur de test toujours en niveau 12 | ✅ validé en live, commité |
 | 2026-10-28 | test de 100230/100231 via `wazuh-logtest` sur `full_log` | aucune règle Sysmon déclenchée | ❌ méthode non fidèle (constat A) |
-| 2026-10-28 | 100232, fille niveau 0 sous 92041 | 92041 toujours en alerte | ❌ retirée ; cause à vérifier (constat C) |
+| 2026-10-28 | 100232, fille niveau 0 sous 92041 | 92041 toujours en alerte | ❌ retirée ; cause trouvée : champ `targetObject` absent d'un EID 1, et 92041 n'est qu'un artefact du test `reg.exe` (constat C) |
 | à faire | observer une vraie écriture d'Edge (sans `reg.exe`) ; décider du sort de 92041 (expression trop large) | — | ⏳ |
 | à faire | bornage `RunNotification` (sihost.exe) sur 100230, `IPC\$` sur 100240, `wazuh-agent.exe` sur 100220 | — | ⏳ |
 

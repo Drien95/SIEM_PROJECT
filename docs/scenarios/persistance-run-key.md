@@ -105,7 +105,7 @@ Méthode de diagnostic, utile pour toute règle « muette » :
 |---|---|---|
 | Supprimer la valeur et le programme visé après qualification | retire la persistance | manuel |
 | Borner le nom de clé dans 100230 : `(?i)\\\\CURRENTVERSION\\\\RUN(ONCE)?\\\\` (échappement de 92300) | supprime le faux positif `RunNotification` | ⏳ à valider avec `wazuh-logtest` |
-| Liste blanche (règle enfant de 100230 au niveau 0) pour les installeurs de confiance | réduit le bruit | ⏳ phase 2 |
+| Liste blanche (règle enfant de 100230 au niveau 0) pour les installeurs de confiance | réduit le bruit | ✅ 100231 pour Microsoft Edge, validée le 2026-10-28 ([writeup 18](../writeup/18-tuning-faux-positifs.md)) ; autres cas en phase 2 |
 | Niveau 12 réservé aux `details` suspects, niveau 3 pour le reste | priorise sans perdre l'historique | ⏳ phase 2, à valider |
 | Étendre à `RunOnce`, aux clés `Winlogon` et au dossier Démarrage | couvre les variantes de T1547.001 | ⏳ à étudier (filtre Sysmon à élargir) |
 

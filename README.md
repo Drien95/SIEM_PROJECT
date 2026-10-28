@@ -65,6 +65,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [15 · Détection d'un accès aux identifiants (LSASS)](docs/writeup/15-detection-acces-identifiants-lsass.md) (EN COURS, à rédiger par l'auteur) | Squelette : télémétrie Sysmon, règle 100220, faux positif, protection LSA |
 | [16 · Mouvement latéral SMB](docs/writeup/16-scenario-mouvement-lateral-smb.md) | Accès refusé par le filtrage UAC à distance, vu par quatre règles ; libellé « RDP » trompeur de 92657 ; exclusion `IPC$` inopérante dans la native 67017 ; règle locale 100240 |
 | [17 · Effacement du journal Security](docs/writeup/17-scenario-effacement-journaux.md) (EN COURS, à rédiger par l'auteur) | Squelette : détection native 63103, règle locale 100250, valeur d'une collecte centralisée |
+| [18 · Tuning des faux positifs](docs/writeup/18-tuning-faux-positifs.md) | Liste blanche 100231 (Edge) sous 100230 ; logtest non fidèle pour EventChannel ; une action, plusieurs événements ; fille de niveau 0 sous une native |
 | [Annexe · Simulateur de paquets](docs/writeup/annexe-simulateur-paquets.md) | Simulateur façon Packet Tracer (ARP, DHCP, NAT, syslog, agent, Kali), avec vidéos |
 
 ## Documents de référence

@@ -208,6 +208,18 @@ Utilisées par la [fiche](scenarios/mouvement-lateral-smb.md) et le [writeup 16]
   parents 60001 et 60017 dans https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0575-win-base_rules.xml ;
   60117 dans https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0580-win-security_rules.xml
 
+## Tuning des faux positifs
+
+Utilisées par le [writeup 18](writeup/18-tuning-faux-positifs.md) :
+
+- Règles personnalisées et modification d'une règle native (`overwrite="yes"`) :
+  https://documentation.wazuh.com/current/user-manual/ruleset/rules/custom.html
+- `wazuh-logtest` (options, dont `-l` pour la location) :
+  https://documentation.wazuh.com/current/user-manual/reference/tools/wazuh-logtest.html
+- Règles natives (ruleset v4.14.0) : 92041 dans
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0800-sysmon_id_1.xml ;
+  67027 dans https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0955-WEF-baseline_rules.xml
+
 ## Vulnerability Detection
 
 Utilisées par le [writeup 14](writeup/14-vulnerability-detection.md) (brouillon) :

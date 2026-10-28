@@ -141,6 +141,20 @@
   </rule>
 </group>
 
+<group name="sysmon,windows,">
+  <!-- Liste blanche de 100230 : auto-démarrage de Microsoft Edge (bénin).
+       Enfant de niveau 0 : quand l'écriture Run concerne MicrosoftEdgeAutoLaunch ou
+       msedge_cleanup, l'événement s'arrête ici, sans alerte. Toute autre écriture Run garde
+       l'alerte 100230 (niveau 12).
+       Validée en live le 2026-10-28 (~22:30) : clé Edge → niveau 0 ; clé de test non Edge →
+       100230 niveau 12. Voir docs/writeup/18-tuning-faux-positifs.md. -->
+  <rule id="100231" level="0">
+    <if_sid>100230</if_sid>
+    <field name="win.eventdata.targetObject" type="pcre2">(?i)(MicrosoftEdgeAutoLaunch|msedge_cleanup)</field>
+    <description>Persistance Run-key : auto-demarrage Microsoft Edge connu (benin) - ignore</description>
+  </rule>
+</group>
+
 <group name="lateral_movement,windows,">
   <!-- Mouvement latéral SMB depuis le segment d'attaque (événement Security 5140). MITRE T1021.002.
        Enfant de la native 67017 (0955-WEF-baseline_rules.xml, niveau 3, T1021.002 : accès à un

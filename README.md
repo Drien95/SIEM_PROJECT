@@ -37,6 +37,7 @@ avec la date de validation en live et le document qui la prouve.
 | 5 | Accès à LSASS (Sysmon EID 10) | T1003.001 | 61612 (0) → **100220** (12) | 2026-10-25 | [15](docs/writeup/15-detection-acces-identifiants-lsass.md) (EN COURS) | à écrire (configuration et règle dans [`configs/`](configs/)) |
 | 5b | Persistance par clé Run (Sysmon EID 13) | T1547.001 | 92300 native (0) → **100230** (12) | 2026-10-25 | [11](docs/writeup/11-scenario-persistance-run-key.md) | [persistance-run-key.md](docs/scenarios/persistance-run-key.md) |
 | 6 | Mouvement latéral SMB vers les partages d'administration | T1021.002 | 4624 → 92657 (6) ; 5140 refusé sur `C$` → 60104 (5) ; 5140 `IPC$` → 67017 (3) → **100240** (12) | 2026-10-28 | [16](docs/writeup/16-scenario-mouvement-lateral-smb.md) | [mouvement-lateral-smb.md](docs/scenarios/mouvement-lateral-smb.md) |
+| 7 | Effacement du journal Security | T1070.001 | 1102 → 63103 (5) → **100250** (12) | 2026-10-28 | [17](docs/writeup/17-scenario-effacement-journaux.md) (à rédiger par l'auteur) | à écrire (règle dans [`configs/`](configs/)) |
 | — | Conformité : SCA, benchmark CIS Windows 11 | (posture) | 482 checks, score 24 %, check 26003 corrigé Failed → Passed | 2026-10-25 | [12](docs/writeup/12-sca-cis-windows11.md) | [integrations/sca.md](docs/integrations/sca.md) |
 
 Remédiation CIS outillée par familles (dry-run, sauvegarde, garde-fou anti-verrouillage, rollback, rescan SCA), validée sur la VM le 2026-10-25 (retour arrière validé le 2026-10-28) : [scripts/hardening/](scripts/hardening/README.md), récit et faux échec SCA lié à la langue dans le [writeup 13](docs/writeup/13-durcissement-cis-automatise.md).
@@ -63,6 +64,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [14 · Vulnerability Detection](docs/writeup/14-vulnerability-detection.md) | Module évalué jusqu'à sa limite : flux incrémental en échec en 4.14.9, contournement hors ligne (10 Go chargés), Inventory pourtant vide ; diagnostic maillon par maillon |
 | [15 · Détection d'un accès aux identifiants (LSASS)](docs/writeup/15-detection-acces-identifiants-lsass.md) (EN COURS, à rédiger par l'auteur) | Squelette : télémétrie Sysmon, règle 100220, faux positif, protection LSA |
 | [16 · Mouvement latéral SMB](docs/writeup/16-scenario-mouvement-lateral-smb.md) | Accès refusé par le filtrage UAC à distance, vu par quatre règles ; libellé « RDP » trompeur de 92657 ; exclusion `IPC$` inopérante dans la native 67017 ; règle locale 100240 |
+| [17 · Effacement du journal Security](docs/writeup/17-scenario-effacement-journaux.md) (EN COURS, à rédiger par l'auteur) | Squelette : détection native 63103, règle locale 100250, valeur d'une collecte centralisée |
 | [Annexe · Simulateur de paquets](docs/writeup/annexe-simulateur-paquets.md) | Simulateur façon Packet Tracer (ARP, DHCP, NAT, syslog, agent, Kali), avec vidéos |
 
 ## Documents de référence

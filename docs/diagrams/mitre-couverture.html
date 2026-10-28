@@ -58,7 +58,7 @@ code { font-family: var(--font-mono); font-size: .9em; }
   <header>
     <span class="eyebrow">SIEM_PROJECT · Wazuh 4.14.9 · vue d'ensemble au 2026-10-28</span>
     <h1>Couverture MITRE ATT&amp;CK du lab</h1>
-    <p>Une colonne par tactique, dans l'ordre d'une attaque. Chaque tuile relie la technique à la règle Wazuh qui la voit et au writeup qui le prouve. Vert : détection validée en live. Bleu : règle en place et vue en action, pas encore dans un scénario d'attaque. Gris : prévu dans la roadmap. En bas, les 14 tactiques de la matrice Enterprise : 6 couvertes, 1 partielle, 6 trous.</p>
+    <p>Une colonne par tactique, dans l'ordre d'une attaque. Chaque tuile relie la technique à la règle Wazuh qui la voit et au writeup qui le prouve. Vert : détection validée en live. Bleu : règle en place et vue en action, pas encore dans un scénario d'attaque. Gris : prévu dans la roadmap. En bas, les 14 tactiques de la matrice Enterprise : 7 couvertes, 1 partielle, 5 trous.</p>
   </header>
 
   <figure id="mitre">
@@ -85,22 +85,24 @@ const TACTICS = [
   { id: "TA0003", n: "Persistance", t: [
     { id: "T1547.001", n: "Run Keys", r: "92300 → 100230 (12)", sc: "sc. 5b · writeup 11", s: "ok" },
     { id: "T1053.005", n: "Scheduled Task", r: "Sysmon, 4698", sc: "scénario 5", s: "plan" } ] },
+  { id: "TA0005", n: "Évasion des défenses", t: [
+    { id: "T1070.001", n: "Clear Event Logs", r: "63103 → 100250 (12)", sc: "sc. 7 · writeup 17", s: "ok" } ] },
   { id: "TA0006", n: "Accès aux identifiants", t: [
-    { id: "T1110", n: "Brute Force", r: "60204 (10) · blocage IP", sc: "sc. 1 · writeups 06-07", s: "ok" },
+    { id: "T1110", n: "Brute Force", r: "60204 (10) · blocage", sc: "sc. 1 · writeups 06-07", s: "ok" },
     { id: "T1110.001", n: "Password Guessing", r: "60122 (5) ×N", sc: "sc. 1 · writeup 06", s: "ok" },
-    { id: "T1003.001", n: "LSASS Memory", r: "100220 (12) · EID 10", sc: "sc. 5 · writeup 15 (en cours)", s: "ok" } ] },
+    { id: "T1003.001", n: "LSASS Memory", r: "100220 (12) · EID 10", sc: "sc. 5 · writeup 15", s: "ok" } ] },
   { id: "TA0007", n: "Découverte", t: [
-    { id: "T1046", n: "Network Service Discovery", r: "100303 · 100210 (10)", sc: "sc. 2 et 4 · writeups 08, 10", s: "ok" } ] },
+    { id: "T1046", n: "Network Service Disc.", r: "100303 · 100210 (10)", sc: "sc. 2, 4 · wr. 08, 10", s: "ok" } ] },
   { id: "TA0008", n: "Mouvement latéral", t: [
     { id: "T1021.002", n: "SMB / Admin Shares", r: "67017 → 100240 (12)", sc: "sc. 6 · writeup 16", s: "ok" } ] },
   { id: "TA0011", n: "Commande et contrôle", t: [
     { id: "T1105", n: "Ingress Tool Transfer *", r: "554 → 87105 (12)", sc: "sc. 3 · writeup 09", s: "ok" },
-    { id: "T1071", n: "Application Layer Protocol", r: "Suricata (capteur prêt)", sc: "à définir", s: "plan" } ] }
+    { id: "T1071", n: "App. Layer Protocol", r: "Suricata (prêt)", sc: "à définir", s: "plan" } ] }
 ];
 const ST = { ok: ["--ok", "--ok-bg", "validé en live"], rule: ["--rule", "--rule-bg", "règle en place"], plan: ["--plan", "--canvas", "prévu"] };
 
 (function () {
-  const o = [], x0 = 30, colW = 182.8, gap = 10, top = 70, tileH = 112;
+  const o = [], x0 = 30, colW = 158.75, gap = 10, top = 70, tileH = 112;
   o.push(T(30, 40, "Techniques couvertes, par tactique", "b", `style="font-size: 18px"`));
   // légende
   let lx = 1370;
@@ -136,7 +138,7 @@ const ST = { ok: ["--ok", "--ok-bg", "validé en live"], rule: ["--rule", "--rul
   const ALL = [
     ["TA0043", ["Reconnais-", "sance"], "gap"], ["TA0042", ["Ressources"], "na"], ["TA0001", ["Accès initial"], "ok"],
     ["TA0002", ["Exécution"], "part"], ["TA0003", ["Persistance"], "ok"], ["TA0004", ["Élévation de", "privilèges"], "gap"],
-    ["TA0005", ["Évasion des", "défenses"], "gap"], ["TA0006", ["Accès aux", "identifiants"], "ok"], ["TA0007", ["Découverte"], "ok"],
+    ["TA0005", ["Évasion des", "défenses"], "ok"], ["TA0006", ["Accès aux", "identifiants"], "ok"], ["TA0007", ["Découverte"], "ok"],
     ["TA0008", ["Mouvement", "latéral"], "ok"], ["TA0009", ["Collecte"], "gap"], ["TA0011", ["Commande et", "contrôle"], "ok"],
     ["TA0010", ["Exfiltration"], "gap"], ["TA0040", ["Impact"], "gap"]
   ];
@@ -146,7 +148,7 @@ const ST = { ok: ["--ok", "--ok-bg", "validé en live"], rule: ["--rule", "--rul
     o.push(T(x + 8, y + 20, id, "mono b", `style="font-size: 11.5px; fill: var(${col})"`));
     lines.forEach((l, j) => o.push(T(x + 8, y + 42 + j * 16, l, "sm", `style="font-size: 11.5px"`)));
   });
-  o.push(T(30, sy + 128, "Pistes pour les trous : effacement du journal Security (T1070.001, native 60117) · suppression des clichés instantanés (T1490). * T1105 : déduit, arrivée de fichier simulée.", "sm muted"));
+  o.push(T(30, sy + 128, "Pistes pour les trous : suppression des clichés instantanés (T1490, Impact) · collecte et exfiltration à étudier. * T1105 : déduit, arrivée de fichier simulée.", "sm muted"));
 
   // bandeau bas : chaîne d'un incident joué
   const by = 680;

@@ -200,6 +200,14 @@ Utilisées par la [fiche](scenarios/mouvement-lateral-smb.md) et le [writeup 16]
 - Tactiques de la matrice Enterprise : https://attack.mitre.org/tactics/enterprise/
 - Techniques citées dans [docs/mitre.md](mitre.md) : liens directs dans le document.
 
+## Scénario 7 : effacement du journal Security
+
+- T1070.001 Clear Windows Event Logs : https://attack.mitre.org/techniques/T1070/001/
+- Règles natives (ruleset v4.14.0) : 63103 dans
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0610-win-ms_logs_rules.xml ;
+  parents 60001 et 60017 dans https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0575-win-base_rules.xml ;
+  60117 dans https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0580-win-security_rules.xml
+
 ## Vulnerability Detection
 
 Utilisées par le [writeup 14](writeup/14-vulnerability-detection.md) (brouillon) :

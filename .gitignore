@@ -26,3 +26,4 @@ install_tools/
 
 # Site MkDocs généré
 site/
+__pycache__/

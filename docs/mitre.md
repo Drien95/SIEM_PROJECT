@@ -35,13 +35,14 @@ dans la roadmap. « Déduit » : correspondance établie par nous, absente des s
 | **T1105** Ingress Tool Transfer (déduit, simulé) | Command and Control (TA0011) | [scénario 3](scenarios/malware-fim-virustotal.md), [writeup 09](writeup/09-scenario-fim-virustotal.md) | 554 (5) FIM → **87105** (12) VirusTotal, natives | FIM de l'agent + API VirusTotal | ✅ validé 2026-10-22 (voir § 3) |
 | **T1003.001** OS Credential Dumping: LSASS Memory | Credential Access (TA0006) | scénario 5, [writeup 15](writeup/15-detection-acces-identifiants-lsass.md) (en cours) | 61612 (0) native → **100220** (12) locale | Sysmon EID 10, agent Windows | ✅ validé 2026-10-25 |
 | **T1547.001** Registry Run Keys / Startup Folder | Persistence (TA0003) | [scénario 5b](scenarios/persistance-run-key.md), [writeup 11](writeup/11-scenario-persistance-run-key.md) | 92300 (0) native → **100230** (12) locale | Sysmon EID 13, agent Windows | ✅ validé 2026-10-25 (faux positif `RunNotification` connu) |
+| **T1021.002** Remote Services: SMB/Windows Admin Shares | Lateral Movement (TA0008) | [scénario 6](scenarios/mouvement-lateral-smb.md), [writeup 16](writeup/16-scenario-mouvement-lateral-smb.md) | 67017 (3) native → **100240** (12) locale ; 60104 (5) pour le refus ; 92657 (6) pour la connexion | journal Security (4624, 5140), agent | ✅ validé 2026-10-28 (accès `C$` refusé par le filtrage UAC à distance) |
 | **T1059.001** PowerShell | Execution (TA0002) | [writeup 04](writeup/04-agent-windows-sysmon.md) | **100100** (8) locale | Sysmon EID 1, agent Windows | 🔵 règle en place (9 alertes sur activité normale) |
 | T1204.002 Malicious File (déduit) | Execution (TA0002) | suite du scénario 3 | Sysmon EID 1 sur un fichier signalé par VirusTotal | Sysmon, agent | ⏳ prévu |
 | T1053.005 Scheduled Task | Persistence (TA0003) | scénario 5 (suite) | Sysmon, événement 4698 | Sysmon, journal Security | ⏳ prévu |
 | T1071 Application Layer Protocol (déduit) | Command and Control (TA0011) | à définir | signatures Suricata de trafic C2 | réseau : Suricata | ⏳ prévu |
 
-En chiffres : **7 techniques validées en live** (5 techniques et 2 sous-techniques, dont T1046
-vue par deux capteurs indépendants), réparties sur **5 tactiques** ; 1 technique en règle
+En chiffres : **8 techniques validées en live** (5 techniques et 3 sous-techniques, dont T1046
+vue par deux capteurs indépendants), réparties sur **6 tactiques** ; 1 technique en règle
 seule ; 3 prévues.
 
 ## 3. Le cas du scénario 3 (EICAR) : quelle technique ?
@@ -79,15 +80,16 @@ https://attack.mitre.org/techniques/T1204/002/.
 | Defense Evasion | TA0005 | ❌ | — |
 | Credential Access | TA0006 | ✅ | T1110, T1110.001, T1003.001 |
 | Discovery | TA0007 | ✅ | T1046 (100303, 100210) |
-| Lateral Movement | TA0008 | ❌ | — |
+| Lateral Movement | TA0008 | ✅ | T1021.002 (100240), depuis le 2026-10-28 |
 | Collection | TA0009 | ❌ | — |
 | Command and Control | TA0011 | ✅ (simulé) | T1105 (87105) |
 | Exfiltration | TA0010 | ❌ | — |
 | Impact | TA0040 | ❌ | — |
 
-Bilan : **5 tactiques couvertes** sur 14, une partielle, **7 trous** (Reconnaissance, Privilege
-Escalation, Defense Evasion, Lateral Movement, Collection, Exfiltration, Impact), Resource
-Development étant hors de portée.
+Bilan : **6 tactiques couvertes** sur 14, une partielle, **6 trous** (Reconnaissance, Privilege
+Escalation, Defense Evasion, Collection, Exfiltration, Impact), Resource Development étant hors
+de portée. La chaîne du scénario 1 se prolonge désormais jusqu'au mouvement latéral :
+T1110 → T1078 → T1021.002.
 
 Nuances, pour ne pas surestimer :
 
@@ -105,11 +107,11 @@ Nuances, pour ne pas surestimer :
 
 | Priorité | Tactique visée | Scénario proposé | Télémétrie probable (à valider) |
 |---|---|---|---|
-| 1 | **Lateral Movement** (TA0008) | suite du scénario 1 : avec le compte obtenu par brute force, exécution à distance par partage SMB d'administration (T1021.002, éventuellement T1569.002 service) depuis Kali | Security 4624 type 3, 5140/5145 (partages), 7045 (service créé), Sysmon EID 1 ; règles natives à identifier dans le ruleset |
-| 2 | **Defense Evasion** (TA0005) | effacement du journal Security (T1070.001, `wevtutil cl Security`) et désactivation de Defender (T1562.001) | événement 1102 du journal Security ; journal Defender ; la famille 03 (audit, ligne de commande 4688) aide |
-| 3 | **Impact** (TA0040) | précurseur de rançongiciel : suppression des clichés instantanés (T1490, `vssadmin delete shadows`) | Sysmon EID 1 et 4688 avec ligne de commande ; règle locale probable |
+| ✅ | **Lateral Movement** (TA0008) | fait : [scénario 6](scenarios/mouvement-lateral-smb.md) (T1021.002), 2026-10-28. Suite possible : exécution par service (T1569.002) avec le compte Administrateur intégré | 7045 (service créé), Sysmon EID 1 |
+| 1 | **Defense Evasion** (TA0005) | effacement du journal Security (T1070.001, `wevtutil cl Security`) et désactivation de Defender (T1562.001) | événement 1102 : règle native 60117 (niveau 9, `0580-win-security_rules.xml`, à vérifier en live) ; journal Defender ; la famille 03 (audit, ligne de commande 4688) aide |
+| 2 | **Impact** (TA0040) | précurseur de rançongiciel : suppression des clichés instantanés (T1490, `vssadmin delete shadows`) | Sysmon EID 1 et 4688 avec ligne de commande ; règle locale probable |
 
-La piste 1 a l'intérêt de **prolonger une chaîne déjà jouée** (T1110 → T1078 → T1021.002) : un
+Le mouvement latéral a **prolongé une chaîne déjà jouée** (T1110 → T1078 → T1021.002) : un
 incident complet, de la tentative à la propagation, est exactement ce qu'un analyste attend.
 
 Sources : https://attack.mitre.org/techniques/T1021/002/, https://attack.mitre.org/techniques/T1569/002/,
@@ -123,6 +125,8 @@ https://attack.mitre.org/techniques/T1078/, https://attack.mitre.org/techniques/
 |---|---|---|---|
 | 60122 (native) | T1531 Account Access Removal (Impact) | un échec de connexion ne supprime aucun accès | T1110 / T1110.001 |
 | 87702 (native pfSense) | T1110 Brute Force | des blocages répétés signalent surtout un scan | T1046 (notre 100303) |
+| 92657 (native) | T1550.002, T1078.002, **T1021.001** (RDP) ; libellé « possible RDP » | se déclenche sur toute connexion réseau NTLM avec un nom de poste, quel que soit le protocole | selon les champs : ici SMB, donc T1021.002 (scénario 6) |
+| 67017 (native) | T1021.002, commentaire « sans IPC$ et NetLogon » | l'exclusion `IPC$` ne fonctionne pas (`$` = ancre de fin en OS_Regex, déduction) | à corriger dans nos enfants (`IPC\$`, à valider) |
 | 87105 (native VirusTotal) | T1203 Exploitation for Client Execution | même étiquette pour tout fichier détecté, sans exploitation ni exécution | T1105 puis T1204.002 selon ce qu'on observe (§ 3) |
 
 Sources : https://attack.mitre.org/ (matrice Enterprise),

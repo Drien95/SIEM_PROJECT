@@ -14,6 +14,7 @@ prérequis, attaque, détection attendue contre observée, lecture SOC, remédia
 | 3 | [Fichier malveillant : FIM + VirusTotal](malware-fim-virustotal.md) | T1203 (natif), T1105 | agent Windows (FIM) + API VirusTotal | 554, 87105 | [09](../writeup/09-scenario-fim-virustotal.md) |
 | 4 | [Scan vu par un IDS : Suricata sur pfSense](suricata-nids.md) | T1046 | Suricata (EVE JSON en syslog) | 86601, 100210 | [10](../writeup/10-scenario-suricata-nids.md) |
 | 5b | [Persistance par clé Run](persistance-run-key.md) | T1547.001 | agent Windows (Sysmon EID 13) | 92300 (niv. 0), 100230 | [11](../writeup/11-scenario-persistance-run-key.md) |
+| 6 | [Mouvement latéral SMB](mouvement-lateral-smb.md) | T1021.002 | agent Windows (Security 4624, 5140) | 92657, 60104, 67017, 100240 | [16](../writeup/16-scenario-mouvement-lateral-smb.md) |
 
 ## Préparés, pas encore joués
 

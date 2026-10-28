@@ -140,3 +140,24 @@
     <mitre><id>T1547.001</id></mitre>
   </rule>
 </group>
+
+<group name="lateral_movement,windows,">
+  <!-- Mouvement latéral SMB depuis le segment d'attaque (événement Security 5140). MITRE T1021.002.
+       Enfant de la native 67017 (0955-WEF-baseline_rules.xml, niveau 3, T1021.002 : accès à un
+       partage réseau). On élève au niveau 12 quand la source est 10.10.20.0/24 : aucun trafic
+       SMB légitime ne vient de ce segment dans le lab.
+       Prérequis : audit « Partage de fichiers » (GUID 0CCE9224) en succès et échec.
+       Validée en live le 2026-10-28 20:37 (scénario 6, docs/scenarios/mouvement-lateral-smb.md).
+       Contenu reconstruit d'après la règle appliquée sur le manager et l'alerte observée.
+       LIMITE : 67017 veut exclure IPC$ (negate "IPC$|NetLogon"), mais en OS_Regex `$` est
+       l'ancre de fin : « IPC$ » ne correspond donc jamais à la valeur « \\*\IPC$ » et IPC$,
+       touché à chaque connexion SMB, passe quand même (déduction cohérente avec l'alerte
+       observée). Tuning proposé, à valider avec wazuh-logtest :
+         <field name="win.eventdata.shareName" negate="yes">IPC\$</field> -->
+  <rule id="100240" level="12">
+    <if_sid>67017</if_sid>
+    <field name="win.eventdata.ipAddress">^10\.10\.20\.</field>
+    <description>Mouvement lateral SMB : acces a un partage depuis le segment d attaque ($(win.eventdata.ipAddress)) - compte $(win.eventdata.subjectUserName) - partage $(win.eventdata.shareName)</description>
+    <mitre><id>T1021.002</id></mitre>
+  </rule>
+</group>

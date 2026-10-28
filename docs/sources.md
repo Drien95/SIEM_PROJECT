@@ -178,6 +178,28 @@ https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/sca/windows/cis_win11_enterp
 - Politique de verrouillage de comptes :
   https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-10/security/threat-protection/security-policy-settings/account-lockout-policy
 
+## Scénario 6 : mouvement latéral SMB
+
+Utilisées par la [fiche](scenarios/mouvement-lateral-smb.md) et le [writeup 16](writeup/16-scenario-mouvement-lateral-smb.md) :
+
+- T1021.002 SMB/Windows Admin Shares (partages `C$`, `ADMIN$`, `IPC$` « accessibles
+  uniquement aux administrateurs ») : https://attack.mitre.org/techniques/T1021/002/
+- Restrictions UAC à distance, `LocalAccountTokenFilterPolicy` (0 par défaut = jeton filtré ;
+  comptes de domaine non concernés) :
+  https://learn.microsoft.com/en-us/troubleshoot/windows-server/windows-security/user-account-control-and-remote-restriction
+  (exception du compte RID 500 : absente de cette page, à valider)
+- Règles natives (vérifiées dans le ruleset v4.14.0) : 67017 dans
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0955-WEF-baseline_rules.xml ;
+  92652 et 92657 dans https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0840-win_event_channel.xml ;
+  60103, 60104 et 60117 (événement 1102) dans https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0580-win-security_rules.xml
+- Syntaxe OS_Regex (`$` = fin du texte, `\$` = dollar littéral) :
+  https://documentation.wazuh.com/current/user-manual/ruleset/ruleset-xml-syntax/regex.html
+
+## Cartographie MITRE
+
+- Tactiques de la matrice Enterprise : https://attack.mitre.org/tactics/enterprise/
+- Techniques citées dans [docs/mitre.md](mitre.md) : liens directs dans le document.
+
 ## Vulnerability Detection
 
 Utilisées par le [writeup 14](writeup/14-vulnerability-detection.md) (brouillon) :

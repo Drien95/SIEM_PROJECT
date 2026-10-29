@@ -103,7 +103,18 @@ fille 100271 l'a remplacée, comme prévu.
 **Faux positifs : pas encore mesurables.** Les sept autres 60228 des dernières 24 h (six le
 2026-10-28 à 19:46, une le 2026-10-29 à 14:35) sont des tâches légitimes, mais elles sont
 **antérieures** au chargement de 100271 (15:01) : leur absence de 100271 ne prouve rien.
-Vérification rétrospective (créateur et compte d'exécution de ces tâches) : voir § 7.
+On a donc rejoué la logique de la règle sur ces alertes (`alerts.json` du jour, et
+`ossec-alerts-28.json.gz` de la veille, lu avec `zcat` : les jours passés sont compressés).
+
+| Tâche (60228) | Créateur | Tourne en SYSTEM | 100271 ? |
+|---|---|---|---|
+| `\OneDrive Standalone Update Task-S-1-5-21-…-1001` (29/10 14:35) | `analyste` (`…-1001`) | non | non ✅ |
+| 5 × `\SoftLanding\…\SoftLanding*Task-…` (28/10 18:46) | `analyste` (`…-1001`) | non | non ✅ |
+
+**0 faux positif sur 6 tâches légitimes vérifiées** (la 7e de la capture n'a pas été retrouvée
+dans les archives). Ces six tâches sont créées par l'utilisateur lui-même : avec la seule
+condition « créateur ≠ SYSTEM », elles auraient **toutes** sonné. C'est la condition sur
+`S-1-5-18` dans le XML qui les écarte : les deux conditions sont nécessaires.
 
 ## 7. Limites et suites
 
@@ -114,8 +125,7 @@ Vérification rétrospective (créateur et compte d'exécution de ces tâches) :
   sont pas couverts ; un compte administrateur explicite non plus (`/ru Administrateur`).
 - **Modification d'une tâche existante** (4702) : non couverte. Détourner une tâche légitime
   déjà en SYSTEM est plus discret que d'en créer une.
-- **Faux positifs à mesurer** : rejouer la logique de 100271 sur les 60228 passées (`subjectUserSid`,
-  présence de `S-1-5-18` dans `taskContent`), puis laisser tourner la règle quelques jours.
+- **Échantillon de faux positifs réduit** : 6 tâches sur 2 jours de lab. À remesurer sur la durée.
 
 ## 8. Lien SOC
 

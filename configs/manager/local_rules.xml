@@ -240,7 +240,7 @@
        famille 03). Native 60228 (niveau 4, T1053) = toute création de tâche. Fille : le XML de la
        tâche contient S-1-5-18 (SYSTEM) ET le créateur n'est pas SYSTEM (exclut installeurs/MAJ).
        Couvre aussi Register-ScheduledTask (sans schtasks.exe). Validée en live le 2026-10-29 15:03 ;
-       taux de faux positifs à mesurer (les 60228 antérieures précèdent la règle). -->
+       rejouée a posteriori sur 6 tâches légitimes (OneDrive, SoftLanding) : 0 faux positif. -->
   <rule id="100271" level="12">
     <if_sid>60228</if_sid>
     <field name="win.eventdata.taskContent" type="pcre2">S-1-5-18</field>

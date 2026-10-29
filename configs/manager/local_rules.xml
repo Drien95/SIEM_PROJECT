@@ -113,6 +113,19 @@
   </rule>
 </group>
 
+<group name="sysmon,sysmon_event_10,">
+  <!-- 100221 : liste blanche de 100220 (accès LSASS). Outils légitimes vus en live le 2026-10-28
+       (0x1410 / 0x1fffff) : WmiPrvSE, agent Wazuh, Defender (MsMpEng), VMware Tools. Chemins complets
+       ancrés (un binaire renommé ailleurs ne passe pas) ; antislashs doublés dans les champs
+       eventchannel de Wazuh, d'où \\+. taskmgr.exe volontairement exclu : un dump
+       LSASS par le Gestionnaire des tâches est une technique réelle (T1003.001). Writeup 25. -->
+  <rule id="100221" level="0">
+    <if_sid>100220</if_sid>
+    <field name="win.eventdata.sourceImage" type="pcre2">(?i)^C:\\+Windows\\+System32\\+wbem\\+WmiPrvSE\.exe$|^C:\\+Program Files \(x86\)\\+ossec-agent\\+wazuh-agent\.exe$|^C:\\+ProgramData\\+Microsoft\\+Windows Defender\\+Platform\\+[0-9.-]+\\+MsMpEng\.exe$|^C:\\+Program Files\\+VMware\\+VMware Tools\\+vmtoolsd\.exe$</field>
+    <description>Acces LSASS par un outil legitime connu ($(win.eventdata.sourceImage)) : ignore</description>
+  </rule>
+</group>
+
 <group name="sysmon,windows,persistence,">
   <!-- Persistance par clé Run (Sysmon EID 13). MITRE T1547.001.
        La native 92300 (0860-sysmon_id_13.xml) reconnaît toute écriture dans

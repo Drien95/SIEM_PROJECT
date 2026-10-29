@@ -9,23 +9,52 @@ hide:
 
 # Évaluer un SIEM en conditions réelles
 
-<p class="tagline">Un laboratoire SOC isolé autour de Wazuh 4.14 : déployer, collecter, détecter, puis prouver chaque détection en rejouant des techniques MITRE ATT&CK.</p>
+<p class="tagline">Un laboratoire isolé autour de Wazuh 4.14 : déployer, collecter, détecter, puis prouver chaque détection en rejouant de vraies techniques d'attaque.</p>
 
 </div>
 
-J'ai construit un laboratoire pour **évaluer le SIEM/XDR open source Wazuh** du point de vue
-d'un analyste SOC. Chaque scénario est relié à MITRE ATT&CK, documenté en « attendu contre
-observé », et complété par une règle sur mesure quand la règle native ne suffisait pas. Les
-attaques sont jouées uniquement contre les machines du lab, sur des réseaux isolés.
+## Le projet en une minute
+
+**Le problème.** Un SIEM promet de tout voir. Avant de le croire, il faut savoir ce qu'il détecte
+vraiment, ce qu'il rate et ce qu'il coûte à régler.<br>
+**Ce que j'ai construit.** Un lab de 4 machines (pare-feu pfSense avec IDS Suricata, Wazuh,
+Windows 11 avec Sysmon, Kali sur un réseau séparé), 14 attaques jouées contre mes propres
+machines, 26 règles locales écrites, des tickets de triage et une boucle de réglage des
+faux positifs.<br>
+**Les résultats.** 17 techniques MITRE ATT&CK détectées en live, sur 13 des 14 tactiques ;
+2 sources de bruit éliminées sur leur cause (une 3e en validation), dont une règle native qui
+sonnait 93 fois par jour au niveau critique ; un verdict argumenté sur Wazuh, limites comprises.
 
 <div class="kpis" markdown>
-<div><strong>9</strong><span>techniques ATT&CK détectées en live</span></div>
-<div><strong>7 / 14</strong><span>tactiques couvertes</span></div>
-<div><strong>13</strong><span>règles locales écrites</span></div>
-<div><strong>18</strong><span>writeups</span></div>
+<div><strong>17</strong><span>techniques ATT&CK détectées en live</span></div>
+<div><strong>13 / 14</strong><span>tactiques couvertes</span></div>
+<div><strong>26</strong><span>règles locales, dont 3 listes blanches</span></div>
+<div><strong>26</strong><span>writeups</span></div>
 </div>
 
-![Couverture MITRE ATT&CK du lab](diagrams/mitre-couverture.png)
+![Topologie du lab : WAN, LAN et réseau d'attaque séparés par pfSense](diagrams/topologie-lab.png)
+
+### Trois documents pour juger sur pièces
+
+| Document | Ce qu'il montre |
+|---|---|
+| [Scénario 11 : archive puis exfiltration](writeup/22-scenario-collection-exfiltration.md) | une attaque jouée, une règle native qui ne voit rien, une corrélation maison qui sonne au niveau 14 |
+| [Ticket de triage 01](triage/ticket-01-exfiltration-100282.md) | la même alerte, qualifiée à l'aveugle à partir des seules données du SIEM : chronologie, verdict, manques |
+| [Writeup 26 : du triage au tuning](writeup/26-du-triage-au-tuning.md) | les manques du ticket deviennent des règles ; deux hypothèses sur quatre étaient fausses, et c'est documenté |
+
+### Selon ce que vous cherchez
+
+- **Conformité, GRC, audit** : [chaque détection reliée à PCI DSS v4, SOC 2 et CIS](conformite.md),
+  avec les constats utiles à un auditeur.
+- **Data, BI** : [volumes d'alertes et faux positifs, chiffres à l'appui](analyse-alertes.md).
+- **Le verdict sur l'outil** : [rapport d'évaluation de Wazuh](evaluation-wazuh.md), forces,
+  limites et à qui le recommander.
+
+### Ce que ce lab ne prouve pas
+
+Pas d'Active Directory, une seule machine Windows, pas de volume réel, et l'attaquant (moi)
+connaît les règles. Le détail est dans le [rapport d'évaluation](evaluation-wazuh.md#5-ce-que-ce-lab-ne-prouve-pas) :
+c'est ce qui permet de prendre le reste au sérieux.
 
 ## Parcourir le projet
 
@@ -44,7 +73,7 @@ attaques sont jouées uniquement contre les machines du lab, sur des réseaux is
 
     ---
 
-    Sept scénarios, du brute force à l'effacement des journaux, chacun prouvé en live.
+    Quatorze scénarios, du scan à l'exfiltration, chacun prouvé en live.
 
     [:octicons-arrow-right-24: Vue d'ensemble](scenarios/README.md)
 
@@ -67,9 +96,7 @@ attaques sont jouées uniquement contre les machines du lab, sur des réseaux is
 
 </div>
 
-## Le lab en un schéma
-
-![Topologie du lab](diagrams/topologie-lab.png)
+## Le lab
 
 | Élément | Rôle | Adresse |
 |---|---|---|
@@ -83,6 +110,8 @@ Le chemin d'un événement, du poste au dashboard :
 ![Pipeline Wazuh](diagrams/pipeline-wazuh.png)
 
 ## Scénarios joués
+
+![Couverture MITRE ATT&CK du lab](diagrams/mitre-couverture.png)
 
 | # | Technique | Tactique | Source | Détection (niveau) | Writeup |
 |---|---|---|---|---|---|

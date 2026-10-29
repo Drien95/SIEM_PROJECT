@@ -1,14 +1,40 @@
-# SIEM_PROJECT — Base de connaissance Wazuh
+# SIEM_PROJECT : évaluer Wazuh en conditions réelles
 
-Laboratoire complet pour **évaluer le SIEM/XDR Wazuh** comme le ferait un analyste SOC. On y
-monte une infrastructure isolée, on y branche des sources de journaux, puis on joue de vraies
-attaques pour vérifier ce que Wazuh détecte, comment il corrèle et comment il réagit.
+Site de documentation : **https://drien95.github.io/SIEM_PROJECT/**
 
-> **Statut au 2026-10-22** : le lab est monté et durci. Il comprend pfSense CE 2.9.0,
-> Wazuh 4.14.9 (OVA), un agent Windows 11 avec Sysmon, et Kali sur un réseau d'attaque séparé.
-> **Six scénarios d'attaque** et un volet de conformité (SCA) ont été joués et validés en live, et une réponse active bloque
-> automatiquement l'attaquant. Suite : voir la [roadmap](docs/roadmap.md).
-> Toute affirmation non testée est marquée « à valider ».
+## Le projet en une minute
+
+**Le problème.** Un SIEM promet de tout voir. Avant de le croire, il faut savoir ce qu'il
+détecte vraiment, ce qu'il rate et ce qu'il coûte à régler.
+
+**Ce que j'ai construit.** Un lab isolé de 4 machines (pare-feu pfSense avec IDS Suricata,
+Wazuh 4.14.9, Windows 11 avec Sysmon, Kali sur un réseau séparé), 14 attaques jouées contre mes
+propres machines, 26 règles locales écrites, des tickets de triage et une boucle de réglage des
+faux positifs.
+
+**Les résultats.** **17 techniques MITRE ATT&CK détectées en live, sur 13 des 14 tactiques** ;
+2 sources de bruit éliminées sur leur cause (une 3e en validation), dont une règle native qui
+sonnait 93 fois par jour au niveau critique ; un verdict argumenté sur Wazuh, limites comprises.
+
+Trois documents pour juger sur pièces :
+
+| Document | Ce qu'il montre |
+|---|---|
+| [Scénario 11 : archive puis exfiltration](docs/writeup/22-scenario-collection-exfiltration.md) | une attaque jouée, une règle native qui ne voit rien, une corrélation maison qui sonne au niveau 14 |
+| [Ticket de triage 01](docs/triage/ticket-01-exfiltration-100282.md) | la même alerte, qualifiée à l'aveugle à partir des seules données du SIEM |
+| [Writeup 26 : du triage au tuning](docs/writeup/26-du-triage-au-tuning.md) | les manques du ticket deviennent des règles ; deux hypothèses sur quatre étaient fausses |
+
+Selon ce que vous cherchez :
+
+- **Conformité, GRC, audit** : [chaque détection reliée à PCI DSS v4, SOC 2 et CIS](docs/conformite.md).
+- **Data, BI** : [volumes d'alertes et faux positifs, chiffres à l'appui](docs/analyse-alertes.md).
+- **Le verdict sur l'outil** : [rapport d'évaluation de Wazuh](docs/evaluation-wazuh.md).
+
+**Ce que ce lab ne prouve pas** : pas d'Active Directory, une seule machine Windows, pas de
+volume réel, et l'attaquant (moi) connaît les règles. Détail dans le
+[rapport d'évaluation, section 5](docs/evaluation-wazuh.md#5-ce-que-ce-lab-ne-prouve-pas).
+
+> Toute affirmation non testée dans le lab est marquée « à valider » ou « déduit ».
 
 ## Le lab en un coup d'œil
 
@@ -90,6 +116,9 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [docs/installation.md](docs/installation.md) | Prérequis, installation (OVA / all-in-one), agents, dépannage |
 | [docs/roadmap.md](docs/roadmap.md) | Roadmap en trois phases (largeur, profondeur, livrable), compétence SOC visée et statut de chaque étape |
 | [mkdocs.yml](mkdocs.yml) | Site de documentation (MkDocs Material), page d'accueil [docs/index.md](docs/index.md), déployé sur GitHub Pages par `.github/workflows/deploy-docs.yml` |
+| [docs/evaluation-wazuh.md](docs/evaluation-wazuh.md) | Rapport d'évaluation de Wazuh 4.14.9 : grille, forces, limites, ce que le lab ne prouve pas, à qui le recommander |
+| [docs/conformite.md](docs/conformite.md) | Lecture conformité : détections reliées à PCI DSS v4.0.1, SOC 2 et CIS Controls v8, constats pour un auditeur |
+| [docs/analyse-alertes.md](docs/analyse-alertes.md) | Lecture data : volumes d'alertes, sources de bruit, méthode de tuning, pièges de données |
 | [docs/portfolio/README.md](docs/portfolio/README.md) | Squelette de portfolio : pitch, lab, scénarios, règles locales, constats, limites, compétences |
 | [docs/mitre.md](docs/mitre.md) | Couverture MITRE ATT&CK : règle → technique → tactique, couverture des 14 tactiques et trous, pistes, étiquettes natives à corriger |
 | [docs/detection.md](docs/detection.md) | Capacités de détection, intégrations, règles personnalisées, scénarios de test |

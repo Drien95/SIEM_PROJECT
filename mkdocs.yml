@@ -84,6 +84,10 @@ not_in_nav: |
 
 nav:
   - Accueil: index.md
+  - En bref:
+      - Rapport d'évaluation de Wazuh: evaluation-wazuh.md
+      - Lecture conformité: conformite.md
+      - Lecture data: analyse-alertes.md
   - Le lab:
       - Feuille de route: roadmap.md
       - Architecture: architecture.md

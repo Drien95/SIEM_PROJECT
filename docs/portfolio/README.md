@@ -107,14 +107,16 @@ Ce qui fait la valeur du projet : ce que les outils ne disent pas d'eux-mêmes.
 
 ## 6. Limites et suite
 
+Les limites du banc d'essai (pas d'Active Directory, une seule machine, pas de volume réel,
+attaquant qui connaît les règles) sont détaillées dans le
+[rapport d'évaluation, section 5](../evaluation-wazuh.md#5-ce-que-ce-lab-ne-prouve-pas).
+
 - **Vulnerability Detection** : aucun résultat exploitable dans cette version ; cause non établie.
-- **Tuning** à poursuivre : `RunNotification` sur 100230, `IPC$` sur 100240, `wazuh-agent.exe`
-  sur 100220 ; règle sur les refus d'accès aux partages d'administration.
-- **Trous MITRE** : Reconnaissance, Privilege Escalation, Collection, Exfiltration, Impact ;
-  Execution seulement partielle.
-- **Échelle** : un seul poste Windows, hors domaine ; pas d'Active Directory.
-- Phase 2 restante : triage et réponse à incident de bout en bout, threat hunting, tableaux de
-  bord et MTTD ([roadmap](../roadmap.md)).
+- **Tuning** à poursuivre : validation de 100221 (LSASS), `RunNotification` sur 100230, `IPC$`
+  sur 100240.
+- **MITRE** : 13 tactiques sur 14 ; Resource Development hors de portée d'un SIEM interne.
+- Suite : preuve réseau de l'exfiltration (journal pfSense des flux autorisés), Script Block
+  Logging PowerShell (4104), étiquetage conformité des règles locales ([conformité](../conformite.md)).
 
 ## 7. Compétences démontrées
 

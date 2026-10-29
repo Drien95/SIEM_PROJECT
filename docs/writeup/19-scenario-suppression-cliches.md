@@ -96,7 +96,14 @@ a des clichés produit exactement le même événement.
 
 ## 6. Résultat
 
-Alerte lue dans `/var/ossec/logs/alerts/alerts.json` :
+Dans le dashboard (*Threat Hunting*, requête `rule.id:100260`, dernières 24 h) : **un seul hit**,
+l'alerte du test, et aucune autre sur la journée. La règle n'a pas de faux positif connu.
+
+![Threat Hunting : 1 hit pour rule.id:100260, niveau 12, SIEM-Win11, 15:36:51 heure locale](../homelab/screenshots/97-wazuh-100260-suppression-cliches.png)
+
+*L'horodatage du dashboard est en heure locale (UTC+1), alors que `alerts.json` est en UTC.*
+
+Détail de l'alerte, lu dans `/var/ossec/logs/alerts/alerts.json` :
 
 | Champ | Valeur |
 |---|---|

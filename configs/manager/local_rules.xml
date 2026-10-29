@@ -339,3 +339,20 @@
     </mitre>
   </rule>
 </group>
+
+<group name="sysmon,sysmon_process-anomalies,">
+  <!-- 100120 : liste blanche de la native 61618 (« Suspicious Process - svchost.exe », niveau 12, T1055).
+       services.exe démarre avant Sysmon (lancé par lui) : parentImage absent, GUID parent nul, donc
+       l'exception native 61619 (parent services.exe) ne s'applique jamais (ticket de triage 01/02).
+       On ignore UNIQUEMENT : svchost de System32 + GUID parent nul + « -k groupe » + compte de service.
+       Un svchost lancé par un programme connu de Sysmon (GUID parent non nul) continue d'alerter.
+       « é » de Système / RÉSEAU : .{1,2} au cas où pcre2 travaille en octets (à valider). -->
+  <rule id="100120" level="0">
+    <if_sid>61618</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)^C:\\+Windows\\+System32\\+svchost\.exe$</field>
+    <field name="win.eventdata.parentProcessGuid" type="pcre2">^\{0{8}-0{4}-0{4}-0{4}-0{12}\}$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)^C:\\+Windows\\+System32\\+svchost\.exe -k \S+</field>
+    <field name="win.eventdata.user" type="pcre2">(?i)^(AUTORITE NT|NT AUTHORITY)\\+(Syst.{1,2}me|SYSTEM|SERVICE LOCAL|LOCAL SERVICE|SERVICE R.{1,2}SEAU|NETWORK SERVICE)$</field>
+    <description>svchost.exe de service (parent services.exe anterieur a Sysmon) : ignore</description>
+  </rule>
+</group>

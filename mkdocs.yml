@@ -144,6 +144,7 @@ nav:
   - Triage:
       - Tickets: triage/README.md
       - 01 · Exfiltration (100282): triage/ticket-01-exfiltration-100282.md
+      - 02 · Tâche SYSTEM (100271): triage/ticket-02-tache-system-100271.md
   - Intégrations:
       - pfSense: integrations/pfsense.md
       - Suricata: integrations/suricata.md

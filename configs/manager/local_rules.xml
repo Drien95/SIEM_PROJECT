@@ -218,3 +218,36 @@
     </mitre>
   </rule>
 </group>
+
+<group name="local,sysmon,privilege_escalation,">
+  <!-- Scénario 10 : tâche planifiée créée pour s'exécuter en SYSTEM (élévation admin → SYSTEM,
+       aussi persistance). MITRE T1053.005. Capteur 1 : Sysmon EID 1 (schtasks.exe /create … /ru SYSTEM).
+       Aucune native sur schtasks dans 0800-sysmon_id_1.xml (vérifié 2026-10-29).
+       Validée en live le 2026-10-29 15:03 (writeup 21). -->
+  <rule id="100270" level="12">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\schtasks\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)/create.+/ru\s+"?(nt\s*authority\\)?system\b</field>
+    <description>Tâche planifiée créée pour s'exécuter en SYSTEM sur $(win.system.computer) par $(win.eventdata.user)</description>
+    <mitre>
+      <id>T1053.005</id>
+    </mitre>
+  </rule>
+</group>
+
+<group name="local,windows,privilege_escalation,">
+  <!-- Capteur 2 : événement 4698 (audit « Autres événements d'accès à l'objet », déjà actif via la
+       famille 03). Native 60228 (niveau 4, T1053) = toute création de tâche. Fille : le XML de la
+       tâche contient S-1-5-18 (SYSTEM) ET le créateur n'est pas SYSTEM (exclut installeurs/MAJ).
+       Couvre aussi Register-ScheduledTask (sans schtasks.exe). Validée en live le 2026-10-29 15:03 ;
+       taux de faux positifs à mesurer (les 60228 antérieures précèdent la règle). -->
+  <rule id="100271" level="12">
+    <if_sid>60228</if_sid>
+    <field name="win.eventdata.taskContent" type="pcre2">S-1-5-18</field>
+    <field name="win.eventdata.subjectUserSid" type="pcre2" negate="yes">^S-1-5-18$</field>
+    <description>Tâche planifiée $(win.eventdata.taskName) en SYSTEM créée par $(win.eventdata.subjectUserName) (4698)</description>
+    <mitre>
+      <id>T1053.005</id>
+    </mitre>
+  </rule>
+</group>

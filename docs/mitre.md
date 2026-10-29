@@ -40,11 +40,11 @@ dans la roadmap. « Déduit » : correspondance établie par nous, absente des s
 | **T1490** Inhibit System Recovery | Impact (TA0040) | scénario 8, [writeup 19](writeup/19-scenario-suppression-cliches.md) | 61603 (0) native → **100260** (12) locale ; aucune native ne vise la suppression | Sysmon EID 1, agent Windows | ✅ validé 2026-10-29 |
 | **T1059.001** PowerShell (+ **T1027** Obfuscated Files or Information) | Execution (TA0002) | scénario 9, [writeup 20](writeup/20-scenario-powershell-encode.md) | 61603 (0) native → **100101** (12) locale ; natives 92057 / 92071 conditionnées au parent | Sysmon EID 1, agent Windows | ✅ validé 2026-10-29 (100100 supprimée : masquait les natives) |
 | T1204.002 Malicious File (déduit) | Execution (TA0002) | suite du scénario 3 | Sysmon EID 1 sur un fichier signalé par VirusTotal | Sysmon, agent | ⏳ prévu |
-| T1053.005 Scheduled Task | Persistence (TA0003) | scénario 5 (suite) | Sysmon, événement 4698 | Sysmon, journal Security | ⏳ prévu |
+| **T1053.005** Scheduled Task | Privilege Escalation (TA0004) (aussi Persistence, Execution) | scénario 10, [writeup 21](writeup/21-scenario-tache-planifiee-system.md) | 61603 (0) → **100270** (12) ; 60228 (4) native → **100271** (12) | Sysmon EID 1 + journal Security (4698), agent | ✅ validé 2026-10-29 (faux positifs à mesurer) |
 | T1071 Application Layer Protocol (déduit) | Command and Control (TA0011) | à définir | signatures Suricata de trafic C2 | réseau : Suricata | ⏳ prévu |
 
-En chiffres : **12 techniques validées en live** (7 techniques et 5 sous-techniques, dont T1046
-vue par deux capteurs indépendants), réparties sur **9 tactiques** ; 3 prévues.
+En chiffres : **13 techniques validées en live** (7 techniques et 6 sous-techniques, dont T1046
+vue par deux capteurs indépendants), réparties sur **10 tactiques** ; 2 prévues.
 
 ## 3. Le cas du scénario 3 (EICAR) : quelle technique ?
 
@@ -77,7 +77,7 @@ https://attack.mitre.org/techniques/T1204/002/.
 | Initial Access | TA0001 | ✅ | T1078 (100400) |
 | Execution | TA0002 | ✅ | T1059.001 (100101), depuis le 2026-10-29 |
 | Persistence | TA0003 | ✅ | T1547.001 (100230) |
-| Privilege Escalation | TA0004 | ❌ | — |
+| Privilege Escalation | TA0004 | ✅ | T1053.005 (100270, 100271), depuis le 2026-10-29 |
 | Defense Evasion | TA0005 | ✅ | T1070.001 (100250), depuis le 2026-10-28 |
 | Credential Access | TA0006 | ✅ | T1110, T1110.001, T1003.001 |
 | Discovery | TA0007 | ✅ | T1046 (100303, 100210) |
@@ -87,8 +87,8 @@ https://attack.mitre.org/techniques/T1204/002/.
 | Exfiltration | TA0010 | ❌ | — |
 | Impact | TA0040 | ✅ | T1490 (100260), depuis le 2026-10-29 |
 
-Bilan : **9 tactiques couvertes** sur 14, **4 trous** (Reconnaissance, Privilege
-Escalation, Collection, Exfiltration), Resource Development étant hors
+Bilan : **10 tactiques couvertes** sur 14, **3 trous** (Reconnaissance, Collection,
+Exfiltration), Resource Development étant hors
 de portée. La chaîne du scénario 1 se prolonge désormais jusqu'au mouvement latéral :
 T1110 → T1078 → T1021.002.
 

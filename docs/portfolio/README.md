@@ -11,7 +11,7 @@ J'ai construit un laboratoire isolé pour **évaluer le SIEM/XDR open source Waz
 point de vue d'un analyste SOC : déployer, collecter, détecter, puis **prouver** chaque détection
 en rejouant des techniques d'attaque contre mes propres machines. Chaque scénario est relié à
 MITRE ATT&CK, documenté (attendu contre observé) et, quand la règle native ne suffisait pas,
-complété par une règle sur mesure. Le résultat : 12 techniques détectées en live sur 9 tactiques,
+complété par une règle sur mesure. Le résultat : 13 techniques détectées en live sur 10 tactiques,
 une remédiation CIS outillée, et une liste de constats sur ce que Wazuh fait bien, mal ou pas.
 
 `[À COMPLÉTER : une phrase personnelle sur la motivation, l'objectif de carrière]`

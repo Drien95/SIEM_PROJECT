@@ -96,8 +96,9 @@ Le chemin d'un événement, du poste au dashboard :
 | 7 | <span class="badge">T1070.001</span> Effacement du journal Security | Defense Evasion | journal Security (1102) | 63103 (5) → **100250** (12) | [17](writeup/17-scenario-effacement-journaux.md) (en cours) |
 | 8 | <span class="badge">T1490</span> Suppression des clichés instantanés | Impact | Sysmon EID 1 | 61603 (0) → **100260** (12) | [19](writeup/19-scenario-suppression-cliches.md) |
 | 9 | <span class="badge">T1059.001</span> <span class="badge">T1027</span> PowerShell encodé | Execution | Sysmon EID 1 | 61603 (0) → **100101** (12) ; 100100 supprimée (masquait les natives) | [20](writeup/20-scenario-powershell-encode.md) |
+| 10 | <span class="badge">T1053.005</span> Tâche planifiée en SYSTEM | Privilege Escalation | Sysmon EID 1 + 4698 | **100270** (12) ; 60228 (4) → **100271** (12) | [21](writeup/21-scenario-tache-planifiee-system.md) |
 
-Trous restants : <span class="badge gap">Reconnaissance</span> <span class="badge gap">Privilege Escalation</span>
+Trous restants : <span class="badge gap">Reconnaissance</span>
 <span class="badge gap">Collection</span> <span class="badge gap">Exfiltration</span>
 (détail dans [MITRE ATT&CK](mitre.md)).
 

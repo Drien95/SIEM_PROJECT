@@ -262,6 +262,7 @@
     <mitre>
       <id>T1053.005</id>
     </mitre>
+    <group>sched_task_chain,</group>
   </rule>
 </group>
 
@@ -369,6 +370,30 @@
     <description>Audit Windows desactive par $(win.eventdata.subjectUserName) : $(win.eventdata.auditPolicyChanges) (sous-categorie $(win.eventdata.subcategoryGuid)) - T1562.002</description>
     <mitre>
       <id>T1562.002</id>
+    </mitre>
+  </rule>
+</group>
+
+<group name="windows,scheduled_task,">
+  <!-- 100272 : tâche planifiée supprimée (4699). Aucune native ne vise le 4699
+       (0580-win-security_rules.xml v4.14.0). Groupe sched_task_chain partagé avec 100271. -->
+  <rule id="100272" level="3">
+    <if_sid>60103</if_sid>
+    <field name="win.system.eventID">^4699$</field>
+    <description>Tache planifiee $(win.eventdata.taskName) supprimee par $(win.eventdata.subjectUserName) (4699)</description>
+    <group>sched_task_chain,</group>
+  </rule>
+  <!-- 100273 : tâche SYSTEM créée (100271) puis supprimée (100272) en moins de 60 s, même taskName :
+       tremplin vers SYSTEM avec nettoyage (ticket de triage 02). Même montage que 100282
+       (frequency 2 + if_matched_group). T1053.005 + T1070. -->
+  <rule id="100273" level="13" frequency="2" timeframe="60">
+    <if_matched_group>sched_task_chain</if_matched_group>
+    <field name="win.system.eventID">^4699$</field>
+    <same_field>win.eventdata.taskName</same_field>
+    <description>Tache SYSTEM $(win.eventdata.taskName) creee puis supprimee en moins de 60 s par $(win.eventdata.subjectUserName) : execution furtive</description>
+    <mitre>
+      <id>T1053.005</id>
+      <id>T1070</id>
     </mitre>
   </rule>
 </group>

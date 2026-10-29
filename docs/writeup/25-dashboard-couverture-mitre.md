@@ -50,6 +50,14 @@ Choix de requêtes, chacun issu d'un premier essai raté :
 
 ![Dashboard : compteur, timeline des règles locales, alertes par tactique, table des règles](../homelab/screenshots/103-wazuh-dashboard-couverture-mitre.png)
 
+Version finale, échelles logarithmiques :
+
+![Dashboard en échelle logarithmique](../homelab/screenshots/104-wazuh-dashboard-couverture-mitre-log.png)
+
+Effet de bord de l'échelle log : une tactique à **1** alerte (Exfiltration, Initial Access,
+Lateral Movement) a une barre de longueur nulle, puisque log(1) = 0. Elle reste listée, mais
+sans barre visible.
+
 ## 3. Ce que le dashboard révèle : 489 alertes LSASS
 
 La table et la timeline montrent un pic de la **100220** (accès LSASS, niveau 12) : **489**

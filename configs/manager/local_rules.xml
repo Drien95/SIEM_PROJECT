@@ -310,3 +310,19 @@
     </mitre>
   </rule>
 </group>
+
+<group name="windows,windows_defender,local,">
+  <!-- 100290 : Defender (event 1116, native 62123) bloque un telechargement via certutil -urlcache (LOLBin).
+       MITRE T1105 Ingress Tool Transfer. La native 62123 n'a pas de MITRE et sa description reste vide :
+       elle lit severityName/processName alors que l'event fournit « severity Name »/« process Name » (writeup 24).
+       Prérequis : canal Microsoft-Windows-Windows Defender/Operational collecté (configs/manager/shared/default/agent.conf). -->
+  <rule id="100290" level="12">
+    <if_sid>62123</if_sid>
+    <field name="win.eventdata.path" type="pcre2">(?i)certutil\.exe.*-urlcache</field>
+    <description>Defender a bloque un telechargement d'outil par certutil -urlcache (T1105) : $(win.eventdata.path)</description>
+    <options>no_full_log</options>
+    <mitre>
+      <id>T1105</id>
+    </mitre>
+  </rule>
+</group>

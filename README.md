@@ -78,6 +78,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [22 · Scénario 11 : archive puis exfiltration](docs/writeup/22-scenario-collection-exfiltration.md) | Outils livrés avec Windows ; native 92067 hors champ ; niveaux gradués ; première corrélation (`frequency`, `same_field`) et sa limite |
 | [23 · Scénario 12 : scan de vulnérabilités](docs/writeup/23-scenario-reconnaissance-vuln-scan.md) | ET Open muettes ; signature Suricata maison ; alerte levée mais trop lourde pour syslog ; profil réseau Windows passé en Public |
 | [24 · Scénario 13 : téléchargement certutil](docs/writeup/24-scenario-telechargement-certutil.md) | Defender bloque, Wazuh aveugle tant que le canal Defender n'est pas collecté ; description native vide (noms de champs) ; règle 100290 |
+| [25 · Dashboard de couverture MITRE](docs/writeup/25-dashboard-couverture-mitre.md) | 4 visualisations ; pic de 489 alertes LSASS = artefact de mise au point ; liste blanche 100221 ; archives coupées depuis le 25/10 |
 | [Annexe · Simulateur de paquets](docs/writeup/annexe-simulateur-paquets.md) | Simulateur façon Packet Tracer (ARP, DHCP, NAT, syslog, agent, Kali), avec vidéos |
 
 ## Documents de référence

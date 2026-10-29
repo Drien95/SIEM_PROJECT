@@ -71,6 +71,7 @@ Toutes dans [`configs/manager/local_rules.xml`](../../configs/manager/local_rule
 | 100210 | 10 | scan réseau signalé par Suricata (signatures ET SCAN, T1046) |
 | 100211 | 10 | scan de vulnérabilités : signature Suricata locale SMBv1 depuis l'extérieur (T1595.002) |
 | 100220 | 12 | accès au processus LSASS vu par Sysmon (T1003.001) |
+| 100221 | 0 | liste blanche de 100220 : WmiPrvSE, agent Wazuh, Defender, VMware Tools |
 | 100230 | 12 | écriture dans une clé Run (T1547.001) |
 | 100231 | 0 | liste blanche de 100230 : auto-démarrage de Microsoft Edge |
 | 100240 | 12 | accès à un partage SMB depuis le segment d'attaque (T1021.002) |

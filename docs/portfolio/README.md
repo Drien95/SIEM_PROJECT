@@ -39,12 +39,18 @@ une remédiation CIS outillée, et une liste de constats sur ce que Wazuh fait b
 |---|---|---|---|---|---|---|
 | 1 | T1110 Brute Force, T1110.001 Password Guessing, T1078 Valid Accounts | Credential Access, Initial Access | journal Security Windows (4625, 4624) | 60122 (5) → 60204 (10) + réponse active (IP bloquée 180 s) → **100400** (12) | [06](../writeup/06-scenario-brute-force-smb.md), [07](../writeup/07-regles-et-reponse-active.md) | ✅ live |
 | 2 | T1046 Network Service Discovery | Discovery | `filterlog` pfSense (syslog) | 100302 (5) → **100303** (10) | [08](../writeup/08-scenario-scan-nmap.md) | ✅ live |
-| 3 | T1105 Ingress Tool Transfer (déduit, simulé) | Command and Control | FIM de l'agent + VirusTotal | 554 (5) → 87105 (12) | [09](../writeup/09-scenario-fim-virustotal.md) | ✅ live |
+| 3 | T1105 Ingress Tool Transfer (déduit, simulé ; réel au scénario 13) | Command and Control | FIM de l'agent + VirusTotal | 554 (5) → 87105 (12) | [09](../writeup/09-scenario-fim-virustotal.md) | ✅ live |
 | 4 | T1046 Network Service Discovery | Discovery | Suricata sur pfSense (EVE JSON) | 86601 (3) → **100210** (10) | [10](../writeup/10-scenario-suricata-nids.md) | ✅ live |
 | 5 | T1003.001 LSASS Memory | Credential Access | Sysmon EID 10 | 61612 (0) → **100220** (12) | [15](../writeup/15-detection-acces-identifiants-lsass.md) | ✅ live, récit `[À COMPLÉTER]` |
 | 5b | T1547.001 Registry Run Keys | Persistence | Sysmon EID 13 | 92300 (0) → **100230** (12), liste blanche **100231** | [11](../writeup/11-scenario-persistance-run-key.md), [18](../writeup/18-tuning-faux-positifs.md) | ✅ live |
 | 6 | T1021.002 SMB/Windows Admin Shares | Lateral Movement | journal Security (4624, 5140) | 92657 (6), 60104 (5), 67017 (3) → **100240** (12) | [16](../writeup/16-scenario-mouvement-lateral-smb.md) | ✅ live |
 | 7 | T1070.001 Clear Windows Event Logs | Defense Evasion | journal Security (1102) | 63103 (5) → **100250** (12) | [17](../writeup/17-scenario-effacement-journaux.md) | ✅ live, récit `[À COMPLÉTER]` |
+| 8 | T1490 Inhibit System Recovery | Impact | Sysmon EID 1 | 61603 (0) → **100260** (12) | [19](../writeup/19-scenario-suppression-cliches.md) | ✅ live |
+| 9 | T1059.001 PowerShell, T1027 Obfuscation | Execution | Sysmon EID 1 | 61603 (0) → **100101** (12) | [20](../writeup/20-scenario-powershell-encode.md) | ✅ live |
+| 10 | T1053.005 Scheduled Task (SYSTEM) | Privilege Escalation | Sysmon EID 1 + Security 4698 | **100270** (12), 60228 (4) → **100271** (12) | [21](../writeup/21-scenario-tache-planifiee-system.md) | ✅ live |
+| 11 | T1560.001 Archive via Utility, T1048.003 Exfiltration HTTP | Collection, Exfiltration | Sysmon EID 1 | **100280** (8), **100281** (10) → corrélation **100282** (14) | [22](../writeup/22-scenario-collection-exfiltration.md) | ✅ live |
+| 12 | T1595.002 Vulnerability Scanning | Reconnaissance | Suricata, signature locale sid 1000010 | 86601 (3) → **100211** (10) | [23](../writeup/23-scenario-reconnaissance-vuln-scan.md) | ✅ live |
+| 13 | T1105 Ingress Tool Transfer (certutil réel) | Command and Control | journal Microsoft Defender | 62123 (12) → **100290** (12) | [24](../writeup/24-scenario-telechargement-certutil.md) | ✅ live |
 
 Hors ATT&CK (posture) : SCA / CIS Windows 11 ([writeup 12](../writeup/12-sca-cis-windows11.md)),
 durcissement automatisé ([writeup 13](../writeup/13-durcissement-cis-automatise.md)),
@@ -63,11 +69,16 @@ Toutes dans [`configs/manager/local_rules.xml`](../../configs/manager/local_rule
 | 100101 | 12 | PowerShell à commande encodée en Base64 (T1059.001, T1027) ; remplace 100100, supprimée car elle masquait des natives |
 | 100200 | 10 | alerte Suricata de sévérité 1 |
 | 100210 | 10 | scan réseau signalé par Suricata (signatures ET SCAN, T1046) |
+| 100211 | 10 | scan de vulnérabilités : signature Suricata locale SMBv1 depuis l'extérieur (T1595.002) |
 | 100220 | 12 | accès au processus LSASS vu par Sysmon (T1003.001) |
 | 100230 | 12 | écriture dans une clé Run (T1547.001) |
 | 100231 | 0 | liste blanche de 100230 : auto-démarrage de Microsoft Edge |
 | 100240 | 12 | accès à un partage SMB depuis le segment d'attaque (T1021.002) |
 | 100250 | 12 | effacement du journal Security (T1070.001) |
+| 100260 | 12 | suppression des clichés instantanés (T1490) |
+| 100270, 100271 | 12 | tâche planifiée créée pour s'exécuter en SYSTEM (T1053.005) |
+| 100280-100282 | 8 à 14 | archive, envoi HTTP, puis corrélation des deux en 5 min (T1560.001, T1048.003) |
+| 100290 | 12 | Defender bloque un téléchargement par `certutil -urlcache` (T1105) |
 | 100300-100303 | 0 à 10 | journaux `filterlog` de pfSense : autorisé, bloqué, blocages répétés (scan, T1046) |
 | 100400 | 12 | connexion réussie juste après une rafale d'échecs : brute force abouti (T1110, T1078) |
 
@@ -87,6 +98,7 @@ Ce qui fait la valeur du projet : ce que les outils ne disent pas d'eux-mêmes.
 | **Vulnerability Detection 4.14.9** : flux chargé, aucun résultat | savoir qu'un module est instable est un résultat d'évaluation | [writeup 14](../writeup/14-vulnerability-detection.md) |
 | **Libellés et étiquettes natifs imprécis** (« possible RDP » sur du SMB, T1531 sur un échec de connexion, T1203 sur tout fichier VirusTotal) | lire les champs, pas le titre | [mitre.md](../mitre.md) |
 | Règles natives **muettes** : sœurs évaluées d'abord (92300, 60117), exclusion `IPC$` inopérante dans 67017 | comprendre l'arbre des règles avant d'écrire la sienne | [writeups 11](../writeup/11-scenario-persistance-run-key.md), [16](../writeup/16-scenario-mouvement-lateral-smb.md) |
+| Un **blocage Defender** était **invisible** pour Wazuh (canal non collecté) ; la règle native ensuite **vide sa description** (noms de champs) | l'EDR arrête, le SIEM doit le savoir ; lire les champs réels | [writeup 24](../writeup/24-scenario-telechargement-certutil.md) |
 | Effacer le journal local **n'efface pas** ce que le SIEM a déjà reçu | raison d'être d'une collecte centralisée | [writeup 17](../writeup/17-scenario-effacement-journaux.md) |
 
 ## 6. Limites et suite

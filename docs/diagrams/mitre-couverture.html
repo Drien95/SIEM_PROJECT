@@ -102,7 +102,7 @@ const TACTICS = [
   { id: "TA0009", n: "Collecte", t: [
     { id: "T1560.001", n: "Archive via Utility", r: "100280 (8)", sc: "sc. 11 · writeup 22", s: "ok" } ] },
   { id: "TA0011", n: "Commande et contrôle", t: [
-    { id: "T1105", n: "Ingress Tool Transfer *", r: "554 → 87105 (12)", sc: "sc. 3 · writeup 09", s: "ok" },
+    { id: "T1105", n: "Ingress Tool Transfer", r: "62123 → 100290 (12)", sc: "sc. 13 · writeup 24 (+ sc. 3)", s: "ok" },
     { id: "T1071", n: "App. Layer Protocol", r: "Suricata (prêt)", sc: "à définir", s: "plan" } ] },
   { id: "TA0010", n: "Exfiltration", t: [
     { id: "T1048.003", n: "Exfil. HTTP non C2", r: "100281 · 100282 (14)", sc: "sc. 11 · writeup 22", s: "ok" } ] },
@@ -160,7 +160,7 @@ const ST = { ok: ["--ok", "--ok-bg", "validé en live"], rule: ["--rule", "--rul
     o.push(T(x + 8, y + 20, id, "mono b", `style="font-size: 11.5px; fill: var(${col})"`));
     lines.forEach((l, j) => o.push(T(x + 8, y + 42 + j * 16, l, "sm", `style="font-size: 11.5px"`)));
   });
-  o.push(T(30, sy + 128, "13 tactiques sur 14 couvertes en live. Resource Development se passe chez l'attaquant : hors de portée d'un SIEM interne. * T1105 : déduit, arrivée de fichier simulée (EICAR).", "sm muted"));
+  o.push(T(30, sy + 128, "13 tactiques sur 14 couvertes en live. Resource Development se passe chez l'attaquant : hors de portée d'un SIEM interne. T1105 : téléchargement certutil réel depuis Kali, bloqué par Defender.", "sm muted"));
 
   // bandeau bas : chaîne d'un incident joué
   const by = 970;

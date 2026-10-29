@@ -99,6 +99,7 @@ Le chemin d'un événement, du poste au dashboard :
 | 10 | <span class="badge">T1053.005</span> Tâche planifiée en SYSTEM | Privilege Escalation | Sysmon EID 1 + 4698 | **100270** (12) ; 60228 (4) → **100271** (12) | [21](writeup/21-scenario-tache-planifiee-system.md) |
 | 11 | <span class="badge">T1560.001</span> <span class="badge">T1048.003</span> Archive puis exfiltration HTTP | Collection, Exfiltration | Sysmon EID 1 | **100280** (8), **100281** (10) → corrélation **100282** (14) | [22](writeup/22-scenario-collection-exfiltration.md) |
 | 12 | <span class="badge">T1595.002</span> Scan de vulnérabilités (SMBv1) | Reconnaissance | Suricata, signature locale | 86601 (3) → **100211** (10) | [23](writeup/23-scenario-reconnaissance-vuln-scan.md) |
+| 13 | <span class="badge">T1105</span> Téléchargement d'outil par certutil (bloqué par Defender) | Command and Control | journal Defender | 62123 (12) → **100290** (12) | [24](writeup/24-scenario-telechargement-certutil.md) |
 
 Trous restants : aucun hors Resource Development (hors de portée d'un SIEM interne).
 
@@ -114,11 +115,16 @@ Source : [`configs/manager/local_rules.xml`](https://github.com/Drien95/SIEM_PRO
 | 100101 | 12 | PowerShell à commande encodée en Base64 (T1059.001, T1027) ; remplace 100100, supprimée car elle masquait des natives |
 | 100200 | 10 | alerte Suricata de sévérité 1 |
 | 100210 | 10 | scan réseau signalé par Suricata (ET SCAN, T1046) |
+| 100211 | 10 | scan de vulnérabilités : signature Suricata locale SMBv1 depuis l'extérieur (T1595.002) |
 | 100220 | 12 | accès au processus LSASS vu par Sysmon (T1003.001) |
 | 100230 | 12 | écriture dans une clé Run (T1547.001) |
 | 100231 | 0 | liste blanche de 100230 : auto-démarrage de Microsoft Edge |
 | 100240 | 12 | accès à un partage SMB depuis le segment d'attaque (T1021.002) |
 | 100250 | 12 | effacement du journal Security (T1070.001) |
+| 100260 | 12 | suppression des clichés instantanés (T1490) |
+| 100270, 100271 | 12 | tâche planifiée créée pour s'exécuter en SYSTEM (T1053.005) |
+| 100280-100282 | 8 à 14 | archive, envoi HTTP, puis corrélation des deux en 5 min (T1560.001, T1048.003) |
+| 100290 | 12 | Defender bloque un téléchargement par `certutil -urlcache` (T1105) |
 | 100300 | 0 | journaux `filterlog` de pfSense (base) |
 | 100301 | 3 | pfSense : trafic autorisé |
 | 100302 | 5 | pfSense : paquet bloqué |

@@ -132,6 +132,8 @@ nav:
           - Writeup 22: writeup/22-scenario-collection-exfiltration.md
       - 12 · Scan de vulnérabilités (Reconnaissance):
           - Writeup 23: writeup/23-scenario-reconnaissance-vuln-scan.md
+      - 13 · Téléchargement certutil (Command and Control):
+          - Writeup 24: writeup/24-scenario-telechargement-certutil.md
   - Posture et tuning:
       - 12 · SCA et CIS Windows 11: writeup/12-sca-cis-windows11.md
       - 13 · Durcissement CIS automatisé: writeup/13-durcissement-cis-automatise.md

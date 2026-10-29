@@ -32,7 +32,8 @@ dans la roadmap. « Déduit » : correspondance établie par nous, absente des s
 | **T1078** Valid Accounts | Initial Access (TA0001) | [writeup 07, § 1.4](writeup/07-regles-et-reponse-active.md) | **100400** (12) locale « succès après rafale » ; 92652 (6) native | journal Security (4624 après 4625), agent | ✅ validé 2026-10-22 (capture 88) |
 | **T1046** Network Service Discovery | Discovery (TA0007) | [scénario 2](scenarios/scan-nmap.md), [writeup 08](writeup/08-scenario-scan-nmap.md) | 100300 (0) → 100302 (5) → **100303** (10), locales | réseau : `filterlog` pfSense en syslog | ✅ validé 2026-10-22 |
 | **T1046** Network Service Discovery | Discovery (TA0007) | [scénario 4](scenarios/suricata-nids.md), [writeup 10](writeup/10-scenario-suricata-nids.md) | 86601 (3) native → **100210** (10) locale, signatures ET SCAN | réseau : Suricata sur pfSense, EVE JSON en syslog | ✅ validé 2026-10-22 |
-| **T1105** Ingress Tool Transfer (déduit, simulé) | Command and Control (TA0011) | [scénario 3](scenarios/malware-fim-virustotal.md), [writeup 09](writeup/09-scenario-fim-virustotal.md) | 554 (5) FIM → **87105** (12) VirusTotal, natives | FIM de l'agent + API VirusTotal | ✅ validé 2026-10-22 (voir § 3) |
+| **T1105** Ingress Tool Transfer | Command and Control (TA0011) | scénario 13, [writeup 24](writeup/24-scenario-telechargement-certutil.md) | Defender 1116 → 62123 (12) native → **100290** (12) locale ; native Sysmon 92075 non déclenchée (certutil bloqué avant démarrage) | journal Microsoft Defender (canal collecté depuis le 2026-10-29), agent | ✅ validé 2026-10-29 (transfert réel depuis Kali, bloqué par Defender) |
+| **T1105** Ingress Tool Transfer (déduit, simulé, scénario 3) | Command and Control (TA0011) | [scénario 3](scenarios/malware-fim-virustotal.md), [writeup 09](writeup/09-scenario-fim-virustotal.md) | 554 (5) FIM → **87105** (12) VirusTotal, natives | FIM de l'agent + API VirusTotal | ✅ validé 2026-10-22 (voir § 3) |
 | **T1003.001** OS Credential Dumping: LSASS Memory | Credential Access (TA0006) | scénario 5, [writeup 15](writeup/15-detection-acces-identifiants-lsass.md) (en cours) | 61612 (0) native → **100220** (12) locale | Sysmon EID 10, agent Windows | ✅ validé 2026-10-25 |
 | **T1547.001** Registry Run Keys / Startup Folder | Persistence (TA0003) | [scénario 5b](scenarios/persistance-run-key.md), [writeup 11](writeup/11-scenario-persistance-run-key.md) | 92300 (0) native → **100230** (12) locale | Sysmon EID 13, agent Windows | ✅ validé 2026-10-25 (faux positif `RunNotification` connu) |
 | **T1021.002** Remote Services: SMB/Windows Admin Shares | Lateral Movement (TA0008) | [scénario 6](scenarios/mouvement-lateral-smb.md), [writeup 16](writeup/16-scenario-mouvement-lateral-smb.md) | 67017 (3) native → **100240** (12) locale ; 60104 (5) pour le refus ; 92657 (6) pour la connexion | journal Security (4624, 5140), agent | ✅ validé 2026-10-28 (accès `C$` refusé par le filtrage UAC à distance) |
@@ -86,7 +87,7 @@ https://attack.mitre.org/techniques/T1204/002/.
 | Discovery | TA0007 | ✅ | T1046 (100303, 100210) |
 | Lateral Movement | TA0008 | ✅ | T1021.002 (100240), depuis le 2026-10-28 |
 | Collection | TA0009 | ✅ | T1560.001 (100280), depuis le 2026-10-29 |
-| Command and Control | TA0011 | ✅ (simulé) | T1105 (87105) |
+| Command and Control | TA0011 | ✅ | T1105 (100290, téléchargement certutil réel), depuis le 2026-10-29 ; aussi 87105 (simulé) |
 | Exfiltration | TA0010 | ✅ | T1048.003 (100281, corrélation 100282), depuis le 2026-10-29 |
 | Impact | TA0040 | ✅ | T1490 (100260), depuis le 2026-10-29 |
 

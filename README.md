@@ -43,6 +43,7 @@ avec la date de validation en live et le document qui la prouve.
 | 10 | Tâche planifiée créée pour tourner en SYSTEM | T1053.005 | Sysmon EID 1 → **100270** (12) ; 4698 → 60228 (4) → **100271** (12)  | 2026-10-29 | [21](docs/writeup/21-scenario-tache-planifiee-system.md) | — (règles dans [`configs/`](configs/)) |
 | 11 | Archive (`tar.exe`) puis exfiltration HTTP (`curl.exe`) vers Kali | T1560.001, T1048.003 | **100280** (8) ; **100281** (10) ; corrélation **100282** (14) même poste en 5 min ; native 92067 hors champ | 2026-10-29 | [22](docs/writeup/22-scenario-collection-exfiltration.md) | — (règles dans [`configs/`](configs/)) |
 | 12 | Scan de vulnérabilités `nmap --script vuln` sur le SMB de Win11 | T1595.002 | signature Suricata **locale** sid 1000010 (SMBv1 depuis l'extérieur) → 86601 (3) → **100211** (10) ; ET Open muettes ; alertes EVE allégées pour passer en syslog | 2026-10-29 | [23](docs/writeup/23-scenario-reconnaissance-vuln-scan.md) | — (règles dans [`configs/`](configs/)) |
+| 13 | Téléchargement d'outil `certutil -urlcache` depuis Kali | T1105 | Defender bloque (`Ceprolad.A`) ; canal Defender ajouté à `agent.conf` → 62123 (12, description vide) → **100290** (12) ; Sysmon 92075 muette (processus jamais créé) | 2026-10-29 | [24](docs/writeup/24-scenario-telechargement-certutil.md) | — (règles dans [`configs/`](configs/)) |
 | — | Conformité : SCA, benchmark CIS Windows 11 | (posture) | 482 checks, score 24 %, check 26003 corrigé Failed → Passed | 2026-10-25 | [12](docs/writeup/12-sca-cis-windows11.md) | [integrations/sca.md](docs/integrations/sca.md) |
 
 Remédiation CIS outillée par familles (dry-run, sauvegarde, garde-fou anti-verrouillage, rollback, rescan SCA), validée sur la VM le 2026-10-25 (retour arrière validé le 2026-10-28) : [scripts/hardening/](scripts/hardening/README.md), récit et faux échec SCA lié à la langue dans le [writeup 13](docs/writeup/13-durcissement-cis-automatise.md).
@@ -76,6 +77,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [21 · Scénario 10 : tâche planifiée en SYSTEM](docs/writeup/21-scenario-tache-planifiee-system.md) | Native 60228 trop large ; deux capteurs (Sysmon, 4698) ; exclusion des tâches créées par SYSTEM ; recherche vide ≠ absence |
 | [22 · Scénario 11 : archive puis exfiltration](docs/writeup/22-scenario-collection-exfiltration.md) | Outils livrés avec Windows ; native 92067 hors champ ; niveaux gradués ; première corrélation (`frequency`, `same_field`) et sa limite |
 | [23 · Scénario 12 : scan de vulnérabilités](docs/writeup/23-scenario-reconnaissance-vuln-scan.md) | ET Open muettes ; signature Suricata maison ; alerte levée mais trop lourde pour syslog ; profil réseau Windows passé en Public |
+| [24 · Scénario 13 : téléchargement certutil](docs/writeup/24-scenario-telechargement-certutil.md) | Defender bloque, Wazuh aveugle tant que le canal Defender n'est pas collecté ; description native vide (noms de champs) ; règle 100290 |
 | [Annexe · Simulateur de paquets](docs/writeup/annexe-simulateur-paquets.md) | Simulateur façon Packet Tracer (ARP, DHCP, NAT, syslog, agent, Kali), avec vidéos |
 
 ## Documents de référence

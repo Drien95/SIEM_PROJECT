@@ -235,6 +235,15 @@ Utilisées par le [writeup 14](writeup/14-vulnerability-detection.md) (brouillon
 - Catalogue CTI (`cti.wazuh.com`, `vd_1.0.0/consumers/vd_4.8.0`, `last_snapshot_link`) :
   relevé dans le lab, procédure officielle hors ligne à retrouver (à valider).
 
+## Scénario 13 : téléchargement certutil et Microsoft Defender (writeup 24)
+
+- T1105 Ingress Tool Transfer : https://attack.mitre.org/techniques/T1105/
+- certutil comme LOLBin (téléchargement `-urlcache`) : https://lolbas-project.github.io/lolbas/Binaries/Certutil/
+- Règles natives Defender 62123 / 62124 (champs `severityName`, `processName`) :
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0600-win-wdefender_rules.xml
+- Règle native Sysmon 92075 (certutil `-urlcache` vers `.dll`/`.exe`) :
+  https://github.com/wazuh/wazuh/blob/v4.14.0/ruleset/rules/0800-sysmon_id_1.xml
+
 ## À explorer
 
 - Guide de preuve de concept Wazuh, pour des scénarios officiels reproductibles.

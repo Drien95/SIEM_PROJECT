@@ -38,6 +38,7 @@ avec la date de validation en live et le document qui la prouve.
 | 5b | Persistance par clé Run (Sysmon EID 13) | T1547.001 | 92300 native (0) → **100230** (12) | 2026-10-25 | [11](docs/writeup/11-scenario-persistance-run-key.md) | [persistance-run-key.md](docs/scenarios/persistance-run-key.md) |
 | 6 | Mouvement latéral SMB vers les partages d'administration | T1021.002 | 4624 → 92657 (6) ; 5140 refusé sur `C$` → 60104 (5) ; 5140 `IPC$` → 67017 (3) → **100240** (12) | 2026-10-28 | [16](docs/writeup/16-scenario-mouvement-lateral-smb.md) | [mouvement-lateral-smb.md](docs/scenarios/mouvement-lateral-smb.md) |
 | 7 | Effacement du journal Security | T1070.001 | 1102 → 63103 (5) → **100250** (12) | 2026-10-28 | [17](docs/writeup/17-scenario-effacement-journaux.md) (à rédiger par l'auteur) | à écrire (règle dans [`configs/`](configs/)) |
+| 8 | Suppression des clichés instantanés (précurseur rançongiciel) | T1490 | Sysmon EID 1 → 61603 (0) → **100260** (12) ; aucune règle native | 2026-10-29 | [19](docs/writeup/19-scenario-suppression-cliches.md) | — (règle dans [`configs/`](configs/)) |
 | — | Conformité : SCA, benchmark CIS Windows 11 | (posture) | 482 checks, score 24 %, check 26003 corrigé Failed → Passed | 2026-10-25 | [12](docs/writeup/12-sca-cis-windows11.md) | [integrations/sca.md](docs/integrations/sca.md) |
 
 Remédiation CIS outillée par familles (dry-run, sauvegarde, garde-fou anti-verrouillage, rollback, rescan SCA), validée sur la VM le 2026-10-25 (retour arrière validé le 2026-10-28) : [scripts/hardening/](scripts/hardening/README.md), récit et faux échec SCA lié à la langue dans le [writeup 13](docs/writeup/13-durcissement-cis-automatise.md).
@@ -66,6 +67,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [16 · Mouvement latéral SMB](docs/writeup/16-scenario-mouvement-lateral-smb.md) | Accès refusé par le filtrage UAC à distance, vu par quatre règles ; libellé « RDP » trompeur de 92657 ; exclusion `IPC$` inopérante dans la native 67017 ; règle locale 100240 |
 | [17 · Effacement du journal Security](docs/writeup/17-scenario-effacement-journaux.md) (EN COURS, à rédiger par l'auteur) | Squelette : détection native 63103, règle locale 100250, valeur d'une collecte centralisée |
 | [18 · Tuning des faux positifs](docs/writeup/18-tuning-faux-positifs.md) | Liste blanche 100231 (Edge) sous 100230 ; logtest non fidèle pour EventChannel ; une action, plusieurs événements ; fille de niveau 0 sous une native |
+| [19 · Scénario 8 : suppression des clichés instantanés](docs/writeup/19-scenario-suppression-cliches.md) | Trou du ruleset natif (aucune règle sur `vssadmin delete shadows`), règle 100260 sous 61603, détection de l'intention plutôt que du résultat |
 | [Annexe · Simulateur de paquets](docs/writeup/annexe-simulateur-paquets.md) | Simulateur façon Packet Tracer (ARP, DHCP, NAT, syslog, agent, Kali), avec vidéos |
 
 ## Documents de référence

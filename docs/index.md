@@ -94,9 +94,10 @@ Le chemin d'un événement, du poste au dashboard :
 | 5b | <span class="badge">T1547.001</span> Persistance par clé Run | Persistence | Sysmon EID 13 | 92300 (0) → **100230** (12), liste blanche 100231 | [11](writeup/11-scenario-persistance-run-key.md) |
 | 6 | <span class="badge">T1021.002</span> Mouvement latéral SMB | Lateral Movement | journal Security (4624, 5140) | 67017 (3) → **100240** (12) | [16](writeup/16-scenario-mouvement-lateral-smb.md) |
 | 7 | <span class="badge">T1070.001</span> Effacement du journal Security | Defense Evasion | journal Security (1102) | 63103 (5) → **100250** (12) | [17](writeup/17-scenario-effacement-journaux.md) (en cours) |
+| 8 | <span class="badge">T1490</span> Suppression des clichés instantanés | Impact | Sysmon EID 1 | 61603 (0) → **100260** (12) | [19](writeup/19-scenario-suppression-cliches.md) |
 
 Trous restants : <span class="badge gap">Reconnaissance</span> <span class="badge gap">Privilege Escalation</span>
-<span class="badge gap">Collection</span> <span class="badge gap">Exfiltration</span> <span class="badge gap">Impact</span>
+<span class="badge gap">Collection</span> <span class="badge gap">Exfiltration</span>
 (détail dans [MITRE ATT&CK](mitre.md)).
 
 ## Règles locales écrites pour le lab

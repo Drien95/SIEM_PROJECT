@@ -122,6 +122,8 @@ nav:
           - Fiche: scenarios/mouvement-lateral-smb.md
       - 7 · Effacement des journaux:
           - Writeup 17 (en cours): writeup/17-scenario-effacement-journaux.md
+      - 8 · Suppression des clichés (Impact):
+          - Writeup 19: writeup/19-scenario-suppression-cliches.md
   - Posture et tuning:
       - 12 · SCA et CIS Windows 11: writeup/12-sca-cis-windows11.md
       - 13 · Durcissement CIS automatisé: writeup/13-durcissement-cis-automatise.md

@@ -191,3 +191,21 @@
     <mitre><id>T1070.001</id></mitre>
   </rule>
 </group>
+
+<group name="local,sysmon,impact,">
+  <!-- Scénario 8 : suppression des clichés instantanés, précurseur de rançongiciel. MITRE T1490
+       (Inhibit System Recovery, tactique Impact). Aucune règle native du ruleset 4.14 ne vise
+       cette commande (grep « vssadmin|delete…shadow » vide hors 0585, qui ne traite que des
+       erreurs du service VSS dans le journal Application).
+       Parent : 61603 (Sysmon EID 1, niveau 0). Variantes couvertes : vssadmin delete shadows,
+       vssadmin resize shadowstorage, wmic shadowcopy delete, PowerShell Win32_ShadowCopy.
+       Validée en live le 2026-10-29 14:36 (writeup 19). -->
+  <rule id="100260" level="12">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)vssadmin.*(delete\s+shadows|resize\s+shadowstorage)|shadowcopy.*delete|win32_shadowcopy</field>
+    <description>Suppression des clichés instantanés sur $(win.system.computer) (précurseur rançongiciel)</description>
+    <mitre>
+      <id>T1490</id>
+    </mitre>
+  </rule>
+</group>

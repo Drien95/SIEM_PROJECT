@@ -13,21 +13,18 @@ theme:
     logo: material/shield-search
     repo: fontawesome/brands/github
   favicon: assets/favicon.svg
-  # Charte « Dossier technique » (mêmes jetons que le portfolio) : couleurs dans docs/stylesheets/dossier.css.
-  custom_dir: overrides
-  font: false
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: custom
-      accent: custom
+      primary: indigo
+      accent: teal
       toggle:
         icon: material/weather-night
         name: Passer en mode sombre
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: custom
-      accent: custom
+      primary: indigo
+      accent: teal
       toggle:
         icon: material/weather-sunny
         name: Passer en mode clair
@@ -50,10 +47,7 @@ hooks:
   - hooks/repo_links.py
 
 extra_css:
-  - stylesheets/dossier.css
-
-extra_javascript:
-  - javascripts/dossier.js
+  - assets/extra.css
 
 markdown_extensions:
   - admonition

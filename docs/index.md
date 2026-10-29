@@ -5,40 +5,22 @@ hide:
   - toc
 ---
 
-<section class="dt-hero" aria-label="Présentation du projet">
-<div class="dt-hero-main">
-<p class="dt-prompt">$ <span>/var/ossec/bin/wazuh-control status</span></p>
-<p class="dt-status">lab en service · 7 scénarios prouvés en live</p>
-<h1>Évaluer un SIEM en conditions réelles</h1>
-<p class="dt-role">Lab SOC isolé autour de Wazuh 4.14</p>
-<p class="dt-lede">Déployer, collecter, détecter, puis <b>prouver chaque détection</b> en rejouant des techniques <b>MITRE ATT&amp;CK</b> contre les machines du lab, sur des réseaux isolés. Chaque scénario est documenté en « attendu contre observé » et complété par une règle sur mesure quand la règle native ne suffisait pas.</p>
-<div class="dt-cta">
-<a class="dt-btn primary" href="scenarios/">Voir les scénarios</a>
-<a class="dt-btn" href="mitre/">Couverture ATT&amp;CK</a>
-<a class="dt-btn" href="architecture/">Architecture du lab</a>
-</div>
-</div>
-<div class="dt-hero-log">
-<div class="dt-panel">
-<div class="dt-panel-head"><span class="label">alerts.json · règles locales</span><span class="label">niveau</span></div>
-<ul class="dt-log">
-<li><span class="id">100400</span><span class="lvl hi">12</span><span class="d"><a href="writeup/07-regles-et-reponse-active/">Connexion réussie après une rafale d'échecs</a></span></li>
-<li><span class="id">100220</span><span class="lvl hi">12</span><span class="d"><a href="writeup/15-detection-acces-identifiants-lsass/">Accès au processus LSASS</a></span></li>
-<li><span class="id">100230</span><span class="lvl hi">12</span><span class="d"><a href="writeup/11-scenario-persistance-run-key/">Écriture dans une clé Run</a></span></li>
-<li><span class="id">100240</span><span class="lvl hi">12</span><span class="d"><a href="writeup/16-scenario-mouvement-lateral-smb/">Partage SMB ouvert depuis le segment d'attaque</a></span></li>
-<li><span class="id">100250</span><span class="lvl hi">12</span><span class="d"><a href="writeup/17-scenario-effacement-journaux/">Journal Security effacé</a></span></li>
-<li><span class="id">100303</span><span class="lvl">10</span><span class="d"><a href="writeup/08-scenario-scan-nmap/">Blocages répétés pfSense : scan de ports</a></span></li>
-<li><span class="id">100210</span><span class="lvl">10</span><span class="d"><a href="writeup/10-scenario-suricata-nids/">Scan signalé par Suricata</a></span></li>
-</ul>
-</div>
-</div>
-</section>
+<div class="hero" markdown>
 
-<div class="dt-marquee" aria-label="Outils et domaines du lab"><div class="track"><span>Wazuh 4.14</span><span>Sysmon</span><span>Suricata</span><span>pfSense</span><span>MITRE ATT&amp;CK</span><span>FIM</span><span>VirusTotal</span><span>SCA · CIS</span><span>Réponse active</span><span>Tuning des faux positifs</span><span>Windows 11</span><span>Kali Linux</span></div></div>
+# Évaluer un SIEM en conditions réelles
+
+<p class="tagline">Un laboratoire SOC isolé autour de Wazuh 4.14 : déployer, collecter, détecter, puis prouver chaque détection en rejouant des techniques MITRE ATT&CK.</p>
+
+</div>
+
+J'ai construit un laboratoire pour **évaluer le SIEM/XDR open source Wazuh** du point de vue
+d'un analyste SOC. Chaque scénario est relié à MITRE ATT&CK, documenté en « attendu contre
+observé », et complété par une règle sur mesure quand la règle native ne suffisait pas. Les
+attaques sont jouées uniquement contre les machines du lab, sur des réseaux isolés.
 
 <div class="kpis" markdown>
 <div><strong>9</strong><span>techniques ATT&CK détectées en live</span></div>
-<div><strong>7<em> / 14</em></strong><span>tactiques couvertes</span></div>
+<div><strong>7 / 14</strong><span>tactiques couvertes</span></div>
 <div><strong>13</strong><span>règles locales écrites</span></div>
 <div><strong>18</strong><span>writeups</span></div>
 </div>

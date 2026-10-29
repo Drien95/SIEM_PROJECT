@@ -84,7 +84,8 @@ On ne modifie **jamais** les fichiers de `/var/ossec/ruleset/` : une mise à jou
    n'apparaît dans `/var/ossec/logs/ossec.log`.
 
 Exemple déjà en place dans le lab : la règle **100100** (writeup 04) est enfant de 61603
-(Sysmon EID 1, niveau 0) et monte au niveau 8 quand l'image lancée est `powershell.exe`.
+(Sysmon EID 1, niveau 0) et monte au niveau 8 quand l'image lancée est `powershell.exe`. Elle a depuis été supprimée, car elle
+masquait des règles natives sœurs ([writeup 20](20-scenario-powershell-encode.md)).
 
 *Exercice proposé (à faire, à valider)* : une règle enfant de 60122 qui monte au niveau 8 quand
 le compte visé est `Administrateur`, avec `<field name="win.eventdata.targetUserName">`.

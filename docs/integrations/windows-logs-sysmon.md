@@ -96,7 +96,7 @@ a pas de fusion.
 | Bloc | Effet |
 |---|---|
 | `ProcessAccess onmatch="include"` sur `lsass.exe` | événement 10 limité aux accès à LSASS |
-| `ProcessCreate onmatch="exclude"` vide | événement 1 pour **tous** les processus (rien n'est exclu) : la règle 100100 continue de fonctionner (déduit de la sémantique `exclude`) |
+| `ProcessCreate onmatch="exclude"` vide | événement 1 pour **tous** les processus (rien n'est exclu) : la règle 100101 (PowerShell encodé) continue de fonctionner (déduit de la sémantique `exclude`) |
 | `RegistryEvent onmatch="include"` sur `\CurrentVersion\Run` | événements 12 à 14 limités aux clés Run ([scénario 5b](../scenarios/persistance-run-key.md)) |
 
 Conséquence : les autres événements que journalisait SwiftOnSecurity (réseau, fichiers, DNS…)
@@ -106,7 +106,7 @@ ne sont plus produits. À réévaluer avant les prochains scénarios.
 
 | Événement | Règle de base | Détections natives | Règles locales du lab |
 |---|---|---|---|
-| 1 (création de processus) | 61603 (niveau 0) | `0800-sysmon_id_1.xml` (92000+) | 100100 (PowerShell, niveau 8) |
+| 1 (création de processus) | 61603 (niveau 0) | `0800-sysmon_id_1.xml` (92000+) | 100101 (PowerShell encodé, niveau 12) ; 100100 supprimée le 2026-10-29 ([writeup 20](../writeup/20-scenario-powershell-encode.md)) |
 | 10 (accès à un processus) | 61612 (niveau 0) | `0945-sysmon_id_10.xml` : 92900 (niveau 12), 92910, 92920 | 100220 (niveau 12) |
 | 13 (valeur de registre écrite) | 61615 (niveau 0) | `0860-sysmon_id_13.xml` : **92300** (clé Run, niveau 0), 92301-92303 | 100230 (niveau 12, enfant de 92300) |
 

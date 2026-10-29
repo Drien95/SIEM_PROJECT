@@ -95,6 +95,7 @@ Le chemin d'un événement, du poste au dashboard :
 | 6 | <span class="badge">T1021.002</span> Mouvement latéral SMB | Lateral Movement | journal Security (4624, 5140) | 67017 (3) → **100240** (12) | [16](writeup/16-scenario-mouvement-lateral-smb.md) |
 | 7 | <span class="badge">T1070.001</span> Effacement du journal Security | Defense Evasion | journal Security (1102) | 63103 (5) → **100250** (12) | [17](writeup/17-scenario-effacement-journaux.md) (en cours) |
 | 8 | <span class="badge">T1490</span> Suppression des clichés instantanés | Impact | Sysmon EID 1 | 61603 (0) → **100260** (12) | [19](writeup/19-scenario-suppression-cliches.md) |
+| 9 | <span class="badge">T1059.001</span> <span class="badge">T1027</span> PowerShell encodé | Execution | Sysmon EID 1 | 61603 (0) → **100101** (12) ; 100100 supprimée (masquait les natives) | [20](writeup/20-scenario-powershell-encode.md) |
 
 Trous restants : <span class="badge gap">Reconnaissance</span> <span class="badge gap">Privilege Escalation</span>
 <span class="badge gap">Collection</span> <span class="badge gap">Exfiltration</span>
@@ -107,7 +108,7 @@ Source : [`configs/manager/local_rules.xml`](https://github.com/Drien95/SIEM_PRO
 
 | Règle | Niveau | Détecte |
 |---|---|---|
-| 100100 | 8 | exécution de PowerShell vue par Sysmon (T1059.001) |
+| 100101 | 12 | PowerShell à commande encodée en Base64 (T1059.001, T1027) ; remplace 100100, supprimée car elle masquait des natives |
 | 100200 | 10 | alerte Suricata de sévérité 1 |
 | 100210 | 10 | scan réseau signalé par Suricata (ET SCAN, T1046) |
 | 100220 | 12 | accès au processus LSASS vu par Sysmon (T1003.001) |

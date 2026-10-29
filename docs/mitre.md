@@ -38,14 +38,13 @@ dans la roadmap. « Déduit » : correspondance établie par nous, absente des s
 | **T1021.002** Remote Services: SMB/Windows Admin Shares | Lateral Movement (TA0008) | [scénario 6](scenarios/mouvement-lateral-smb.md), [writeup 16](writeup/16-scenario-mouvement-lateral-smb.md) | 67017 (3) native → **100240** (12) locale ; 60104 (5) pour le refus ; 92657 (6) pour la connexion | journal Security (4624, 5140), agent | ✅ validé 2026-10-28 (accès `C$` refusé par le filtrage UAC à distance) |
 | **T1070.001** Indicator Removal: Clear Windows Event Logs | Defense Evasion (TA0005) | scénario 7, [writeup 17](writeup/17-scenario-effacement-journaux.md) (à rédiger) | 63103 (5) native → **100250** (12) locale | journal Security (1102), agent | ✅ validé 2026-10-28 |
 | **T1490** Inhibit System Recovery | Impact (TA0040) | scénario 8, [writeup 19](writeup/19-scenario-suppression-cliches.md) | 61603 (0) native → **100260** (12) locale ; aucune native ne vise la suppression | Sysmon EID 1, agent Windows | ✅ validé 2026-10-29 |
-| **T1059.001** PowerShell | Execution (TA0002) | [writeup 04](writeup/04-agent-windows-sysmon.md) | **100100** (8) locale | Sysmon EID 1, agent Windows | 🔵 règle en place (9 alertes sur activité normale) |
+| **T1059.001** PowerShell (+ **T1027** Obfuscated Files or Information) | Execution (TA0002) | scénario 9, [writeup 20](writeup/20-scenario-powershell-encode.md) | 61603 (0) native → **100101** (12) locale ; natives 92057 / 92071 conditionnées au parent | Sysmon EID 1, agent Windows | ✅ validé 2026-10-29 (100100 supprimée : masquait les natives) |
 | T1204.002 Malicious File (déduit) | Execution (TA0002) | suite du scénario 3 | Sysmon EID 1 sur un fichier signalé par VirusTotal | Sysmon, agent | ⏳ prévu |
 | T1053.005 Scheduled Task | Persistence (TA0003) | scénario 5 (suite) | Sysmon, événement 4698 | Sysmon, journal Security | ⏳ prévu |
 | T1071 Application Layer Protocol (déduit) | Command and Control (TA0011) | à définir | signatures Suricata de trafic C2 | réseau : Suricata | ⏳ prévu |
 
-En chiffres : **10 techniques validées en live** (6 techniques et 4 sous-techniques, dont T1046
-vue par deux capteurs indépendants), réparties sur **8 tactiques** ; 1 technique en règle
-seule ; 3 prévues.
+En chiffres : **12 techniques validées en live** (7 techniques et 5 sous-techniques, dont T1046
+vue par deux capteurs indépendants), réparties sur **9 tactiques** ; 3 prévues.
 
 ## 3. Le cas du scénario 3 (EICAR) : quelle technique ?
 
@@ -76,7 +75,7 @@ https://attack.mitre.org/techniques/T1204/002/.
 | Reconnaissance | TA0043 | ❌ | — (voir la note sur T1046 ci-dessous) |
 | Resource Development | TA0042 | — | hors de portée d'un SIEM interne (se passe chez l'attaquant) |
 | Initial Access | TA0001 | ✅ | T1078 (100400) |
-| Execution | TA0002 | 🔵 partielle | T1059.001 (100100), pas encore dans un scénario |
+| Execution | TA0002 | ✅ | T1059.001 (100101), depuis le 2026-10-29 |
 | Persistence | TA0003 | ✅ | T1547.001 (100230) |
 | Privilege Escalation | TA0004 | ❌ | — |
 | Defense Evasion | TA0005 | ✅ | T1070.001 (100250), depuis le 2026-10-28 |
@@ -88,7 +87,7 @@ https://attack.mitre.org/techniques/T1204/002/.
 | Exfiltration | TA0010 | ❌ | — |
 | Impact | TA0040 | ✅ | T1490 (100260), depuis le 2026-10-29 |
 
-Bilan : **8 tactiques couvertes** sur 14, une partielle, **4 trous** (Reconnaissance, Privilege
+Bilan : **9 tactiques couvertes** sur 14, **4 trous** (Reconnaissance, Privilege
 Escalation, Collection, Exfiltration), Resource Development étant hors
 de portée. La chaîne du scénario 1 se prolonge désormais jusqu'au mouvement latéral :
 T1110 → T1078 → T1021.002.

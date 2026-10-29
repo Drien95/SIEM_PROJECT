@@ -241,6 +241,10 @@ Dans la VM : lancer `powershell.exe`, ce qui crée un événement Sysmon 1. La r
 [configs/manager/local_rules.xml](../../configs/manager/local_rules.xml). Dashboard, *Threat
 Hunting* : `rule.id:100100`, ou `data.win.system.channel:"Microsoft-Windows-Sysmon/Operational"`.
 
+> **Mise à jour du 2026-10-29 :** la règle 100100 a été **supprimée**. Évaluée avant les règles
+> natives sœurs sous 61603, elle masquait des détections natives (dont 92057). Remplacée par la
+> 100101, plus étroite : voir le [writeup 20](20-scenario-powershell-encode.md).
+
 ### 5.4 Ce que Sysmon a remonté dans la première minute
 
 Alertes du canal Sysmon dans `alerts.json`, regroupées par règle (comptage Python sur le

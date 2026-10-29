@@ -36,8 +36,9 @@ Statuts : ✅ fait · 🔄 en cours · ⏳ à venir. Mis à jour le 2026-10-25.
 | 8 | **Mouvement latéral SMB** depuis Kali vers les partages d'administration : refus par le filtrage UAC à distance, 92657 / 60104 / 67017 natives, règle locale **100240** (niveau 12) | T1021.002 | prolonger une chaîne d'attaque, critiquer les libellés et exclusions des règles natives | ✅ | [fiche](scenarios/mouvement-lateral-smb.md), [writeup 16](writeup/16-scenario-mouvement-lateral-smb.md) |
 | 9 | **Effacement du journal Security** : événement 1102, native 63103 (niveau 5), règle locale **100250** (niveau 12) | T1070.001 | couvrir la tactique Defense Evasion | ✅ | [writeup 17](writeup/17-scenario-effacement-journaux.md) (à rédiger par l'auteur), [`local_rules.xml`](../configs/manager/local_rules.xml) |
 
-Déjà en place hors scénario d'attaque : la règle locale **100100** (exécution de PowerShell
-vue par Sysmon, T1059.001), validée sur de l'activité normale ([writeup 04](writeup/04-agent-windows-sysmon.md)).
+La règle locale **100100** (tout lancement de PowerShell, [writeup 04](writeup/04-agent-windows-sysmon.md)) a été
+supprimée le 2026-10-29 : elle masquait des règles natives. Remplacée par **100101** (PowerShell encodé,
+[writeup 20](writeup/20-scenario-powershell-encode.md)).
 
 ## Phase 2 : profondeur, le travail d'un SOC
 
@@ -46,7 +47,7 @@ vue par Sysmon, T1059.001), validée sur de l'activité normale ([writeup 04](wr
 | Detection engineering | règles enfants (`if_sid`), corrélations (`if_matched_sid`, `same_field`), tests `wazuh-logtest` puis en live ; corriger les étiquettes MITRE fausses (60122 porte T1531) | écrire, tester et maintenir des détections | 🔄 (100100, 100210, 100220, 100230, 100231, 100240, 100250, 100300-100303, 100400 faites ; décodeur `json` restreint pour Suricata) |
 | Réduction des faux positifs | mesurer le bruit (ANONYMOUS LOGON, 60106, Sysmon de bas niveau, `RunNotification` sur 100230, `IPC$` sur 100240), ajuster niveaux et exceptions sans perdre les vraies attaques | régler un SIEM, justifier chaque exception | 🔄 (cas documentés : [writeup 11](writeup/11-scenario-persistance-run-key.md) ; liste blanche 100231 validée, [writeup 18](writeup/18-tuning-faux-positifs.md)) |
 | Fiabilité des mesures de conformité | faux « Failed » du SCA sur Windows en français (checks auditpol 26139-26165) ; politique SCA maison par GUID | ne pas croire un score sans vérifier la réalité technique | 🔄 (constat : [writeup 13](writeup/13-durcissement-cis-automatise.md)) |
-| Cartographie MITRE ATT&CK | tenir la [couverture](mitre.md) à jour, repérer les trous par tactique | raisonner en techniques, pas en outils | 🔄 (cartographie faite le 2026-10-28, 7 tactiques sur 14 ; 8 le 2026-10-29 avec Impact T1490) |
+| Cartographie MITRE ATT&CK | tenir la [couverture](mitre.md) à jour, repérer les trous par tactique | raisonner en techniques, pas en outils | 🔄 (cartographie faite le 2026-10-28, 7 tactiques sur 14 ; 9 le 2026-10-29 avec Impact T1490 et Execution T1059.001) |
 | Triage et réponse à incident de bout en bout | dérouler un incident complet : alerte, qualification, périmètre, confinement, éradication, rapport | suivre un playbook, écrire un compte rendu d'incident | ⏳ |
 | Threat hunting | chercher sans alerte : hypothèse, requête dans Threat Hunting, conclusion, éventuellement nouvelle règle | chasser à partir d'une hypothèse | ⏳ |
 | Dashboards et métriques | tableau de bord par scénario, mesure du délai de détection (**MTTD**) et de réponse (MTTR) | mesurer l'efficacité d'un SOC | ⏳ |

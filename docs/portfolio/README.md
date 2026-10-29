@@ -11,7 +11,7 @@ J'ai construit un laboratoire isolé pour **évaluer le SIEM/XDR open source Waz
 point de vue d'un analyste SOC : déployer, collecter, détecter, puis **prouver** chaque détection
 en rejouant des techniques d'attaque contre mes propres machines. Chaque scénario est relié à
 MITRE ATT&CK, documenté (attendu contre observé) et, quand la règle native ne suffisait pas,
-complété par une règle sur mesure. Le résultat : 10 techniques détectées en live sur 8 tactiques,
+complété par une règle sur mesure. Le résultat : 12 techniques détectées en live sur 9 tactiques,
 une remédiation CIS outillée, et une liste de constats sur ce que Wazuh fait bien, mal ou pas.
 
 `[À COMPLÉTER : une phrase personnelle sur la motivation, l'objectif de carrière]`
@@ -60,7 +60,7 @@ Toutes dans [`configs/manager/local_rules.xml`](../../configs/manager/local_rule
 
 | Règle | Niveau | Détecte |
 |---|---|---|
-| 100100 | 8 | exécution de PowerShell vue par Sysmon (T1059.001) |
+| 100101 | 12 | PowerShell à commande encodée en Base64 (T1059.001, T1027) ; remplace 100100, supprimée car elle masquait des natives |
 | 100200 | 10 | alerte Suricata de sévérité 1 |
 | 100210 | 10 | scan réseau signalé par Suricata (signatures ET SCAN, T1046) |
 | 100220 | 12 | accès au processus LSASS vu par Sysmon (T1003.001) |

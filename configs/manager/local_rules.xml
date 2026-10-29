@@ -5,19 +5,6 @@
   /var/ossec/bin/wazuh-logtest avant déploiement.
 -->
 
-<group name="local,sysmon,">
-  <!-- Sysmon EID 1 (parent natif 61603, niveau 0) : exécution de PowerShell.
-       MITRE T1059.001. Idée reprise d'UsmanPrime (Sysmon EID 1 élevé au niveau 8). -->
-  <rule id="100100" level="8">
-    <if_sid>61603</if_sid>
-    <field name="win.eventdata.image" type="pcre2">(?i)\\powershell\.exe$</field>
-    <description>Sysmon : exécution de PowerShell sur $(win.system.computer)</description>
-    <mitre>
-      <id>T1059.001</id>
-    </mitre>
-  </rule>
-</group>
-
 <group name="local,suricata,">
   <!-- Suricata sur pfSense : les lignes EVE arrivent par syslog et sont décodées par notre
        décodeur « json » restreint (local_decoder.xml), puis par les natives 86600/86601. -->
@@ -206,6 +193,28 @@
     <description>Suppression des clichés instantanés sur $(win.system.computer) (précurseur rançongiciel)</description>
     <mitre>
       <id>T1490</id>
+    </mitre>
+  </rule>
+</group>
+
+<group name="local,sysmon,execution,">
+  <!-- Scénario 9 : PowerShell à commande encodée (-e, -ec, -enc, -EncodedCommand suivi d'un bloc
+       Base64). MITRE T1059.001 + T1027. Comble le trou des natives 92057 (exige parent
+       powershell.exe) et 92071 (exige parent WMI) : lancement depuis cmd.exe, une macro, ou parent
+       inconnu de Sysmon (parentProcessGuid à zéros, parentImage absent).
+       Remplace l'ancienne 100100 (« tout PowerShell », niveau 8), SUPPRIMÉE le 2026-10-29 : bruyante,
+       et surtout, évaluée avant les natives sœurs sous 61603, elle les masquait (prouvé : 92057 jamais
+       déclenchée avec parent powershell.exe, 100100/100101 prenant l'événement).
+       Même limite pour 100101 : elle passe aussi avant 92057 (constaté 14:53:18), au même niveau 12,
+       et sa description affiche le parent. Validée en live le 2026-10-29 (writeup 20). -->
+  <rule id="100101" level="12">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(powershell|pwsh)\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\s[-/]e(c|n\w*|a)?\s+[A-Za-z0-9+/=]{16,}</field>
+    <description>PowerShell lancé avec une commande encodée en Base64 sur $(win.system.computer) (parent : $(win.eventdata.parentImage))</description>
+    <mitre>
+      <id>T1059.001</id>
+      <id>T1027</id>
     </mitre>
   </rule>
 </group>

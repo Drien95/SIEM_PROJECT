@@ -293,3 +293,20 @@
     </mitre>
   </rule>
 </group>
+
+<group name="local,suricata,recon,">
+  <!-- Scénario 12 : sonde de scanner de vulnérabilités, signature Suricata LOCALE sid 1000010
+       (configs/suricata/local.rules : SMBv1 Negotiate depuis $EXTERNAL_NET vers le 445).
+       MITRE T1595.002 (Active Scanning: Vulnerability Scanning). Fille de 86601, à côté de 100200
+       (sévérité 1) et 100210 (ET SCAN) : la signature est en priority:2 pour ne pas être prise par
+       100200. Prérequis pfSense : alertes EVE SANS payload ni packet dump (sinon la ligne syslog est
+       trop lourde et n'arrive jamais). Validée en live le 2026-10-29 15:58 (writeup 23). -->
+  <rule id="100211" level="10">
+    <if_sid>86601</if_sid>
+    <field name="alert.signature" type="pcre2">^LAB RECON</field>
+    <description>Reconnaissance : scan de vulnérabilités depuis $(src_ip) vers $(dest_ip) - $(alert.signature)</description>
+    <mitre>
+      <id>T1595.002</id>
+    </mitre>
+  </rule>
+</group>

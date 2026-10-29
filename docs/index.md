@@ -98,8 +98,9 @@ Le chemin d'un événement, du poste au dashboard :
 | 9 | <span class="badge">T1059.001</span> <span class="badge">T1027</span> PowerShell encodé | Execution | Sysmon EID 1 | 61603 (0) → **100101** (12) ; 100100 supprimée (masquait les natives) | [20](writeup/20-scenario-powershell-encode.md) |
 | 10 | <span class="badge">T1053.005</span> Tâche planifiée en SYSTEM | Privilege Escalation | Sysmon EID 1 + 4698 | **100270** (12) ; 60228 (4) → **100271** (12) | [21](writeup/21-scenario-tache-planifiee-system.md) |
 | 11 | <span class="badge">T1560.001</span> <span class="badge">T1048.003</span> Archive puis exfiltration HTTP | Collection, Exfiltration | Sysmon EID 1 | **100280** (8), **100281** (10) → corrélation **100282** (14) | [22](writeup/22-scenario-collection-exfiltration.md) |
+| 12 | <span class="badge">T1595.002</span> Scan de vulnérabilités (SMBv1) | Reconnaissance | Suricata, signature locale | 86601 (3) → **100211** (10) | [23](writeup/23-scenario-reconnaissance-vuln-scan.md) |
 
-Trous restants : <span class="badge gap">Reconnaissance</span>
+Trous restants : aucun hors Resource Development (hors de portée d'un SIEM interne).
 
 (détail dans [MITRE ATT&CK](mitre.md)).
 

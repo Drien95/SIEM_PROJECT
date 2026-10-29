@@ -41,12 +41,13 @@ dans la roadmap. « Déduit » : correspondance établie par nous, absente des s
 | **T1059.001** PowerShell (+ **T1027** Obfuscated Files or Information) | Execution (TA0002) | scénario 9, [writeup 20](writeup/20-scenario-powershell-encode.md) | 61603 (0) native → **100101** (12) locale ; natives 92057 / 92071 conditionnées au parent | Sysmon EID 1, agent Windows | ✅ validé 2026-10-29 (100100 supprimée : masquait les natives) |
 | T1204.002 Malicious File (déduit) | Execution (TA0002) | suite du scénario 3 | Sysmon EID 1 sur un fichier signalé par VirusTotal | Sysmon, agent | ⏳ prévu |
 | **T1053.005** Scheduled Task | Privilege Escalation (TA0004) (aussi Persistence, Execution) | scénario 10, [writeup 21](writeup/21-scenario-tache-planifiee-system.md) | 61603 (0) → **100270** (12) ; 60228 (4) native → **100271** (12) | Sysmon EID 1 + journal Security (4698), agent | ✅ validé 2026-10-29 (0 faux positif sur 6 tâches légitimes rejouées) |
+| **T1595.002** Active Scanning: Vulnerability Scanning | Reconnaissance (TA0043) | scénario 12, [writeup 23](writeup/23-scenario-reconnaissance-vuln-scan.md) | signature Suricata **locale** sid 1000010 → 86601 (3) → **100211** (10) | réseau : Suricata sur pfSense, EVE en syslog (alertes allégées) | ✅ validé 2026-10-29 |
 | **T1560.001** Archive via Utility | Collection (TA0009) | scénario 11, [writeup 22](writeup/22-scenario-collection-exfiltration.md) | 61603 (0) → **100280** (8) locale ; native 92067 hors champ (parent PowerShell + SysWOW64/Temp) | Sysmon EID 1, agent Windows | ✅ validé 2026-10-29 |
 | **T1048.003** Exfiltration Over Unencrypted Non-C2 Protocol | Exfiltration (TA0010) | idem | 61603 (0) → **100281** (10) ; corrélation **100282** (14) archive + envoi en 5 min | Sysmon EID 1, agent Windows | ✅ validé 2026-10-29 (via 100282) |
 | T1071 Application Layer Protocol (déduit) | Command and Control (TA0011) | à définir | signatures Suricata de trafic C2 | réseau : Suricata | ⏳ prévu |
 
-En chiffres : **15 techniques validées en live** (7 techniques et 8 sous-techniques, dont T1046
-vue par deux capteurs indépendants), réparties sur **12 tactiques** ; 2 prévues.
+En chiffres : **16 techniques validées en live** (7 techniques et 9 sous-techniques, dont T1046
+vue par deux capteurs indépendants), réparties sur **13 tactiques** ; 2 prévues.
 
 ## 3. Le cas du scénario 3 (EICAR) : quelle technique ?
 
@@ -74,7 +75,7 @@ https://attack.mitre.org/techniques/T1204/002/.
 
 | Tactique | ID | Couverte ? | Par |
 |---|---|---|---|
-| Reconnaissance | TA0043 | ❌ | — (voir la note sur T1046 ci-dessous) |
+| Reconnaissance | TA0043 | ✅ | T1595.002 (100211, signature Suricata locale), depuis le 2026-10-29 |
 | Resource Development | TA0042 | — | hors de portée d'un SIEM interne (se passe chez l'attaquant) |
 | Initial Access | TA0001 | ✅ | T1078 (100400) |
 | Execution | TA0002 | ✅ | T1059.001 (100101), depuis le 2026-10-29 |
@@ -89,7 +90,7 @@ https://attack.mitre.org/techniques/T1204/002/.
 | Exfiltration | TA0010 | ✅ | T1048.003 (100281, corrélation 100282), depuis le 2026-10-29 |
 | Impact | TA0040 | ✅ | T1490 (100260), depuis le 2026-10-29 |
 
-Bilan : **12 tactiques couvertes** sur 14, **1 trou** (Reconnaissance), Resource Development étant hors
+Bilan : **13 tactiques couvertes** sur 14, **aucun trou** hors Resource Development, Resource Development étant hors
 de portée. La chaîne du scénario 1 se prolonge désormais jusqu'au mouvement latéral :
 T1110 → T1078 → T1021.002.
 

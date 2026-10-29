@@ -6,3 +6,9 @@ alert icmp any any -> 192.168.1.0/24 any (msg:"LAB test ICMP echo"; itype:8; sid
 
 # Scan SYN : plus de 20 SYN de la même source en 10 s
 alert tcp any any -> $HOME_NET any (msg:"LAB scan SYN probable"; flags:S,12; threshold:type both, track by_src, count 20, seconds 10; sid:1000002; rev:1;)
+
+# Scénario 12 (writeup 23) : sonde SMBv1 venue de l'extérieur du LAN (scanner de vulnérabilités :
+# scripts nmap smb-vuln-*, scanners MS17-010). Windows 11 refuse SMBv1 : aucune raison légitime.
+# Octets : en-tête NetBIOS (4 octets) puis \xFFSMB + commande 0x72 (Negotiate).
+# Déployée sur pfSense : Services > Suricata > ATTACK > Rules > custom.rules. Validée le 2026-10-29.
+alert tcp $EXTERNAL_NET any -> $HOME_NET 445 (msg:"LAB RECON SMBv1 negotiate depuis l'exterieur (sonde de scanner de vulnerabilites)"; flow:to_server,established; content:"|FF|SMB|72|"; offset:4; depth:5; classtype:attempted-recon; priority:2; sid:1000010; rev:1;)

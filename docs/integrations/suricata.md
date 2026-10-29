@@ -26,6 +26,12 @@ toutes les machines derrière lui, sans rien installer sur elles.
    - *Block Offenders* : **désactivé** (IDS, alerte seule).
    - *EVE JSON Log* : activé, *EVE Output Type* = **Syslog**, *EVE Logged Info* : au minimum
      *Alerts*.
+   - **Alertes allégées** (constat du 2026-10-29, [writeup 23](../writeup/23-scenario-reconnaissance-vuln-scan.md)) :
+     *EVE Log Alert Payload Data Formats* = **NO**, décocher *Log a packet dump with alerts* et
+     *Include App Layer metadata*. Avec le payload (4 ko, Base64 + texte) et le paquet embarqués,
+     une alerte sur un flux qui transporte des données (SMB) devient trop lourde pour syslog :
+     levée sur pfSense, **jamais reçue** par Wazuh. Les alertes sur des SYN sans contenu (scénario
+     4) passaient, ce qui masquait le problème.
 4. Onglet **ATTACK Categories** : activer au moins `emerging-scan` (signatures `ET SCAN`).
 5. **System > Advanced > Networking** : cocher la désactivation du *Hardware Checksum
    Offloading*, du *TCP Segmentation Offloading* et du *Large Receive Offloading*, puis
@@ -120,6 +126,7 @@ Dans [`configs/manager/local_rules.xml`](../../configs/manager/local_rules.xml),
 |---|---|---|---|---|
 | 100200 | 10 | `alert.severity` = 1 (sévérité la plus haute) | — | en place, pas encore vue en action |
 | **100210** | **10** | `alert.signature` contient `ET SCAN` | T1046 | ✅ validée le 2026-10-22 |
+| **100211** | **10** | `alert.signature` commence par `LAB RECON` (signature locale sid 1000010, SMBv1) | T1595.002 | ✅ validée le 2026-10-29 ([writeup 23](../writeup/23-scenario-reconnaissance-vuln-scan.md)) |
 
 Recherche : `rule.groups:suricata`. Les alertes portent `agent.name: wazuh-server` (source
 syslog, sans agent) ; la source réelle est dans `location`.

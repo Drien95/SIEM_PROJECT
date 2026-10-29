@@ -1,0 +1,28 @@
+{#- Surcharge du thème Material : charte « Dossier technique » (polices, fond vivant, animations de l'accueil). -#}
+{% extends "base.html" %}
+
+{% block fonts %}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@600;700;800&family=Geist:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+{% endblock %}
+
+{% block extrahead %}
+  {%- if page and page.is_homepage %}
+  <script>document.documentElement.classList.add("is-home")</script>
+  {%- endif %}
+{% endblock %}
+
+{% block hero %}
+  <div class="dt-progress" aria-hidden="true"></div>
+  <canvas id="dt-field" aria-hidden="true"></canvas>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  {%- if page and page.is_homepage %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" integrity="sha512-7eHRwcbYkK4d9g/6tD/mhkf++eoTHwpNM9woBxtPUBWm67zeAfFC+HrdoE2GanKeocly/VxeLvIqwvCdk7qScg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" integrity="sha512-onMTRKJBKz8M1TnqqDuGBlowlH0ohFzMXYRNebz+yOcc5TQr/zAKsthzhuv0hiyUKEiQEQXEynnXCvNTOk50dg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="{{ 'javascripts/accueil.js' | url }}"></script>
+  {%- endif %}
+{% endblock %}

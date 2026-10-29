@@ -97,6 +97,7 @@ Couverture complète par tactique : [docs/mitre.md](docs/mitre.md).
 | [docs/homelab/screenshots/](docs/homelab/screenshots/README.md) | Captures d'écran du montage, numérotées |
 | [docs/diagrams/](docs/diagrams/README.md) | Schémas : réseau du lab façon Packet Tracer, règles pare-feu ATTACK, flux de détection du brute force SMB, couverture MITRE, chaîne des démons et carte complète de Wazuh, matrice des flux, chaîne Suricata vers Wazuh, arbre des règles de la clé Run, anatomie d'un check SCA, cycle de durcissement et faux échec SCA, pipeline Wazuh annoté, règle et réponse active, modèle de scénario (sources HTML et PNG) |
 | [docs/integrations/](docs/integrations/) | Un guide par intégration : Windows/Sysmon, FIM, VirusTotal, Suricata, pfSense, SCA (CIS) |
+| [docs/triage/](docs/triage/README.md) | Tickets de triage sur des alertes réelles du lab : chronologie, qui / quoi / où, verdict, actions, améliorations de détection |
 | [docs/scenarios/](docs/scenarios/README.md) | Index des scénarios : joués (brute force SMB, scan nmap, FIM + VirusTotal, Suricata, clé Run), prévus, modèle de fiche |
 | [configs/](configs/) | Configurations du lab : règles et décodeur locaux, syslog, réponse active (`block-ip-win`), agent Windows (dont la configuration Sysmon `sysmon-lab.xml`), pfSense, VirusTotal, Suricata |
 | [scripts/hardening/](scripts/hardening/README.md) | Scripts PowerShell de durcissement CIS Windows 11 par famille (mots de passe, verrouillage, audit), orchestrateur avec rapport et rescan SCA (validés sur la VM, writeup 13) |

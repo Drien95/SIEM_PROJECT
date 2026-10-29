@@ -141,6 +141,9 @@ nav:
       - 18 · Tuning des faux positifs: writeup/18-tuning-faux-positifs.md
       - 25 · Dashboard de couverture MITRE: writeup/25-dashboard-couverture-mitre.md
       - Détection (règles et méthode): detection.md
+  - Triage:
+      - Tickets: triage/README.md
+      - 01 · Exfiltration (100282): triage/ticket-01-exfiltration-100282.md
   - Intégrations:
       - pfSense: integrations/pfsense.md
       - Suricata: integrations/suricata.md

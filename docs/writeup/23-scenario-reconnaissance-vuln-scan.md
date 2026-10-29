@@ -77,7 +77,7 @@ Côté Wazuh, fille de la native 86601 :
 Sur pfSense (SSH, `tail` de `/var/log/suricata/suricata_em042044/alerts.log`) : **5 alertes**
 `[1:1000010:1] LAB RECON SMBv1…` `10.10.20.10 → 10.10.10.101:445` à 16:44 (heure pfSense), plus
 la native Suricata `SURICATA SMB malformed request dialects` (sid 2225005). **La signature
-fonctionne.** Dans Wazuh : ni 100211, ni même la ligne brute dans `archives.json`.
+fonctionne.** Dans Wazuh : pas de 100211. (Nous avions aussi relevé « aucune ligne brute dans `archives.json` », mais l'archivage était désactivé depuis le 2026-10-25, découvert au [writeup 24](24-scenario-telechargement-certutil.md) : ce constat ne prouve rien. C'est l'écoute réseau ci-dessous qui établit la non-réception.)
 
 Écoute du port syslog sur le manager pendant un scan :
 

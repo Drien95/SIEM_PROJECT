@@ -69,7 +69,7 @@ Defender juge **la ligne de commande**, avant le démarrage du processus (« Unk
 cohérente avec le message « Accès refusé » : **pas de processus, donc pas de Sysmon EID 1**, donc
 la 92075 ne peut pas sonner.
 
-Côté Wazuh : **0** alerte « Ceprolad », **0** ligne dans `archives.json`, aucune 92075.
+Côté Wazuh : **0** alerte « Ceprolad », aucune 92075. (Le « 0 ligne dans `archives.json` » relevé alors ne prouve rien : l'archivage était désactivé, voir § 8.)
 **L'EDR a arrêté l'attaque, le SIEM n'en a rien su.**
 
 Cause : la configuration centralisée
@@ -177,8 +177,10 @@ L'analyste lit directement l'outil, la source (`10.10.20.10`) et la destination 
   déclencher la signature Ceprolad (déduit).
 - **Deux alertes 100290** pour une tentative : Defender émet deux 1116 (deux formes de la
   ligne de commande, cf. `Resources` de `Get-MpThreatDetection`).
-- `archives.json` n'a renvoyé aucune ligne Defender même après correction (compteur à 0
-  alors que les alertes existent) : non expliqué, à vérifier (`logall_json` toujours actif ?).
+- **Archives désactivées.** `archives.json` n'a renvoyé aucune ligne Defender, même après
+  correction. Cause trouvée ensuite : `<logall_json>no</logall_json>` dans `ossec.conf`, fichier
+  figé depuis le 2026-10-25 18:11. Réactivé le 2026-10-29. Leçon : avant d'utiliser un « 0 » comme
+  preuve d'absence, vérifier que la source est encore écrite (date du fichier).
 
 ## 9. Lien SOC
 

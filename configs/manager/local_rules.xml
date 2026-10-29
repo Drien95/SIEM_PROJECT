@@ -356,3 +356,19 @@
     <description>svchost.exe de service (parent services.exe anterieur a Sysmon) : ignore</description>
   </rule>
 </group>
+
+<group name="windows,policy_changed,">
+  <!-- 100251 : désactivation d'audit Windows (event 4719). La native 60112 met le niveau 8 à tout
+       changement de politique d'audit, ajout comme retrait. On monte à 12 quand l'audit est RETIRÉ :
+       T1562.002 Impair Defenses: Disable Windows Event Logging. Les valeurs auditPolicyChanges sont en
+       anglais même sur Windows FR (« Success removed, Failure removed », vu en live 2026-10-29).
+       Un auditpol /set qui remet la valeur déjà en place ne produit pas de 4719 (ticket de triage 02). -->
+  <rule id="100251" level="12">
+    <if_sid>60112</if_sid>
+    <field name="win.eventdata.auditPolicyChanges" type="pcre2">(?i)removed</field>
+    <description>Audit Windows desactive par $(win.eventdata.subjectUserName) : $(win.eventdata.auditPolicyChanges) (sous-categorie $(win.eventdata.subcategoryGuid)) - T1562.002</description>
+    <mitre>
+      <id>T1562.002</id>
+    </mitre>
+  </rule>
+</group>

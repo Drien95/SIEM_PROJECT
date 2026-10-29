@@ -11,7 +11,7 @@ J'ai construit un laboratoire isolé pour **évaluer le SIEM/XDR open source Waz
 point de vue d'un analyste SOC : déployer, collecter, détecter, puis **prouver** chaque détection
 en rejouant des techniques d'attaque contre mes propres machines. Chaque scénario est relié à
 MITRE ATT&CK, documenté (attendu contre observé) et, quand la règle native ne suffisait pas,
-complété par une règle sur mesure. Le résultat : 16 techniques détectées en live sur 13 tactiques,
+complété par une règle sur mesure. Le résultat : 17 techniques détectées en live sur 13 tactiques,
 une remédiation CIS outillée, et une liste de constats sur ce que Wazuh fait bien, mal ou pas.
 
 `[À COMPLÉTER : une phrase personnelle sur la motivation, l'objectif de carrière]`
@@ -67,6 +67,7 @@ Toutes dans [`configs/manager/local_rules.xml`](../../configs/manager/local_rule
 | Règle | Niveau | Détecte |
 |---|---|---|
 | 100101 | 12 | PowerShell à commande encodée en Base64 (T1059.001, T1027) ; remplace 100100, supprimée car elle masquait des natives |
+| 100120 | 0 | liste blanche de la native 61618 : svchost de service dont le parent (services.exe) précède Sysmon |
 | 100200 | 10 | alerte Suricata de sévérité 1 |
 | 100210 | 10 | scan réseau signalé par Suricata (signatures ET SCAN, T1046) |
 | 100211 | 10 | scan de vulnérabilités : signature Suricata locale SMBv1 depuis l'extérieur (T1595.002) |
@@ -76,8 +77,10 @@ Toutes dans [`configs/manager/local_rules.xml`](../../configs/manager/local_rule
 | 100231 | 0 | liste blanche de 100230 : auto-démarrage de Microsoft Edge |
 | 100240 | 12 | accès à un partage SMB depuis le segment d'attaque (T1021.002) |
 | 100250 | 12 | effacement du journal Security (T1070.001) |
+| 100251 | 12 | désactivation d'audit Windows, 4719 « removed » (T1562.002) |
 | 100260 | 12 | suppression des clichés instantanés (T1490) |
 | 100270, 100271 | 12 | tâche planifiée créée pour s'exécuter en SYSTEM (T1053.005) |
+| 100272, 100273 | 3, 13 | tâche supprimée (4699) ; tâche SYSTEM créée puis supprimée en moins de 60 s (corrélation) |
 | 100280-100282 | 8 à 14 | archive, envoi HTTP, puis corrélation des deux en 5 min (T1560.001, T1048.003) |
 | 100290 | 12 | Defender bloque un téléchargement par `certutil -urlcache` (T1105) |
 | 100300-100303 | 0 à 10 | journaux `filterlog` de pfSense : autorisé, bloqué, blocages répétés (scan, T1046) |

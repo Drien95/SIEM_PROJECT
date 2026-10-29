@@ -38,16 +38,17 @@ dans la roadmap. « Déduit » : correspondance établie par nous, absente des s
 | **T1547.001** Registry Run Keys / Startup Folder | Persistence (TA0003) | [scénario 5b](scenarios/persistance-run-key.md), [writeup 11](writeup/11-scenario-persistance-run-key.md) | 92300 (0) native → **100230** (12) locale | Sysmon EID 13, agent Windows | ✅ validé 2026-10-25 (faux positif `RunNotification` connu) |
 | **T1021.002** Remote Services: SMB/Windows Admin Shares | Lateral Movement (TA0008) | [scénario 6](scenarios/mouvement-lateral-smb.md), [writeup 16](writeup/16-scenario-mouvement-lateral-smb.md) | 67017 (3) native → **100240** (12) locale ; 60104 (5) pour le refus ; 92657 (6) pour la connexion | journal Security (4624, 5140), agent | ✅ validé 2026-10-28 (accès `C$` refusé par le filtrage UAC à distance) |
 | **T1070.001** Indicator Removal: Clear Windows Event Logs | Defense Evasion (TA0005) | scénario 7, [writeup 17](writeup/17-scenario-effacement-journaux.md) (à rédiger) | 63103 (5) native → **100250** (12) locale | journal Security (1102), agent | ✅ validé 2026-10-28 |
+| **T1562.002** Impair Defenses: Disable Windows Event Logging | Defense Evasion (TA0005) | [writeup 26](writeup/26-du-triage-au-tuning.md) (issu du [ticket de triage 02](triage/ticket-02-tache-system-100271.md)) | 60112 (8) native → **100251** (12) locale (retrait d'audit) | journal Security (4719), agent | ✅ validé 2026-10-29 |
 | **T1490** Inhibit System Recovery | Impact (TA0040) | scénario 8, [writeup 19](writeup/19-scenario-suppression-cliches.md) | 61603 (0) native → **100260** (12) locale ; aucune native ne vise la suppression | Sysmon EID 1, agent Windows | ✅ validé 2026-10-29 |
 | **T1059.001** PowerShell (+ **T1027** Obfuscated Files or Information) | Execution (TA0002) | scénario 9, [writeup 20](writeup/20-scenario-powershell-encode.md) | 61603 (0) native → **100101** (12) locale ; natives 92057 / 92071 conditionnées au parent | Sysmon EID 1, agent Windows | ✅ validé 2026-10-29 (100100 supprimée : masquait les natives) |
 | T1204.002 Malicious File (déduit) | Execution (TA0002) | suite du scénario 3 | Sysmon EID 1 sur un fichier signalé par VirusTotal | Sysmon, agent | ⏳ prévu |
-| **T1053.005** Scheduled Task | Privilege Escalation (TA0004) (aussi Persistence, Execution) | scénario 10, [writeup 21](writeup/21-scenario-tache-planifiee-system.md) | 61603 (0) → **100270** (12) ; 60228 (4) native → **100271** (12) | Sysmon EID 1 + journal Security (4698), agent | ✅ validé 2026-10-29 (0 faux positif sur 6 tâches légitimes rejouées) |
+| **T1053.005** Scheduled Task | Privilege Escalation (TA0004) (aussi Persistence, Execution) | scénario 10, [writeup 21](writeup/21-scenario-tache-planifiee-system.md) | 61603 (0) → **100270** (12) ; 60228 (4) native → **100271** (12) ; corrélation création puis suppression en 60 s **100273** (13, [writeup 26](writeup/26-du-triage-au-tuning.md)) | Sysmon EID 1 + journal Security (4698, 4699), agent | ✅ validé 2026-10-29 (0 faux positif sur 6 tâches légitimes rejouées) |
 | **T1595.002** Active Scanning: Vulnerability Scanning | Reconnaissance (TA0043) | scénario 12, [writeup 23](writeup/23-scenario-reconnaissance-vuln-scan.md) | signature Suricata **locale** sid 1000010 → 86601 (3) → **100211** (10) | réseau : Suricata sur pfSense, EVE en syslog (alertes allégées) | ✅ validé 2026-10-29 |
 | **T1560.001** Archive via Utility | Collection (TA0009) | scénario 11, [writeup 22](writeup/22-scenario-collection-exfiltration.md) | 61603 (0) → **100280** (8) locale ; native 92067 hors champ (parent PowerShell + SysWOW64/Temp) | Sysmon EID 1, agent Windows | ✅ validé 2026-10-29 |
 | **T1048.003** Exfiltration Over Unencrypted Non-C2 Protocol | Exfiltration (TA0010) | idem | 61603 (0) → **100281** (10) ; corrélation **100282** (14) archive + envoi en 5 min | Sysmon EID 1, agent Windows | ✅ validé 2026-10-29 (via 100282) |
 | T1071 Application Layer Protocol (déduit) | Command and Control (TA0011) | à définir | signatures Suricata de trafic C2 | réseau : Suricata | ⏳ prévu |
 
-En chiffres : **16 techniques validées en live** (7 techniques et 9 sous-techniques, dont T1046
+En chiffres : **17 techniques validées en live** (7 techniques et 10 sous-techniques, dont T1046
 vue par deux capteurs indépendants), réparties sur **13 tactiques** ; 2 prévues.
 
 ## 3. Le cas du scénario 3 (EICAR) : quelle technique ?
@@ -82,7 +83,7 @@ https://attack.mitre.org/techniques/T1204/002/.
 | Execution | TA0002 | ✅ | T1059.001 (100101), depuis le 2026-10-29 |
 | Persistence | TA0003 | ✅ | T1547.001 (100230) |
 | Privilege Escalation | TA0004 | ✅ | T1053.005 (100270, 100271), depuis le 2026-10-29 |
-| Defense Evasion | TA0005 | ✅ | T1070.001 (100250), depuis le 2026-10-28 |
+| Defense Evasion | TA0005 | ✅ | T1070.001 (100250), depuis le 2026-10-28 ; T1562.002 (100251), depuis le 2026-10-29 |
 | Credential Access | TA0006 | ✅ | T1110, T1110.001, T1003.001 |
 | Discovery | TA0007 | ✅ | T1046 (100303, 100210) |
 | Lateral Movement | TA0008 | ✅ | T1021.002 (100240), depuis le 2026-10-28 |

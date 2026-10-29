@@ -113,6 +113,7 @@ Source : [`configs/manager/local_rules.xml`](https://github.com/Drien95/SIEM_PRO
 | Règle | Niveau | Détecte |
 |---|---|---|
 | 100101 | 12 | PowerShell à commande encodée en Base64 (T1059.001, T1027) ; remplace 100100, supprimée car elle masquait des natives |
+| 100120 | 0 | liste blanche de la native 61618 : svchost de service dont le parent (services.exe) précède Sysmon |
 | 100200 | 10 | alerte Suricata de sévérité 1 |
 | 100210 | 10 | scan réseau signalé par Suricata (ET SCAN, T1046) |
 | 100211 | 10 | scan de vulnérabilités : signature Suricata locale SMBv1 depuis l'extérieur (T1595.002) |
@@ -122,8 +123,10 @@ Source : [`configs/manager/local_rules.xml`](https://github.com/Drien95/SIEM_PRO
 | 100231 | 0 | liste blanche de 100230 : auto-démarrage de Microsoft Edge |
 | 100240 | 12 | accès à un partage SMB depuis le segment d'attaque (T1021.002) |
 | 100250 | 12 | effacement du journal Security (T1070.001) |
+| 100251 | 12 | désactivation d'audit Windows, 4719 « removed » (T1562.002) |
 | 100260 | 12 | suppression des clichés instantanés (T1490) |
 | 100270, 100271 | 12 | tâche planifiée créée pour s'exécuter en SYSTEM (T1053.005) |
+| 100272, 100273 | 3, 13 | tâche supprimée (4699) ; tâche SYSTEM créée puis supprimée en moins de 60 s (corrélation) |
 | 100280-100282 | 8 à 14 | archive, envoi HTTP, puis corrélation des deux en 5 min (T1560.001, T1048.003) |
 | 100290 | 12 | Defender bloque un téléchargement par `certutil -urlcache` (T1105) |
 | 100300 | 0 | journaux `filterlog` de pfSense (base) |

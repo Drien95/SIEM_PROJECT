@@ -140,6 +140,7 @@ nav:
       - 14 · Vulnerability Detection: writeup/14-vulnerability-detection.md
       - 18 · Tuning des faux positifs: writeup/18-tuning-faux-positifs.md
       - 25 · Dashboard de couverture MITRE: writeup/25-dashboard-couverture-mitre.md
+      - 26 · Du triage au tuning: writeup/26-du-triage-au-tuning.md
       - Détection (règles et méthode): detection.md
   - Triage:
       - Tickets: triage/README.md

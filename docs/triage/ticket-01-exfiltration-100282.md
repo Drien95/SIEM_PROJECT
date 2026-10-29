@@ -88,4 +88,4 @@ Pivot : toutes les alertes du poste, plus tout ce qui mentionne l'IP destination
 | Pas de preuve réseau de l'envoi | journaliser les *pass* sortants du LAN vers le segment d'attaque sur pfSense, ou garder `logall_json` actif pour Sysmon EID 3 | archives réactivées le 2026-10-29 ; journal pfSense à faire |
 | Contenu de l'archive inconnu | FIM sur `C:\Users\Public` (avec `report_changes`) | à évaluer (volume) |
 | Script invisible | activer PowerShell Script Block Logging (4104) | à faire |
-| Bruit : native **61618** (niveau 12) sur des `svchost.exe` légitimes dans la même fenêtre | liste blanche à étudier | à faire |
+| Bruit : native **61618** (niveau 12) sur des `svchost.exe` légitimes dans la même fenêtre | liste blanche **100120** | ✅ fait ([writeup 26](../writeup/26-du-triage-au-tuning.md)) |

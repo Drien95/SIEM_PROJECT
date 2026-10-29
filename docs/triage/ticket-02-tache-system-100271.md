@@ -80,7 +80,7 @@ Pivot : toutes les alertes du poste de 14:58 à 15:08 UTC.
 
 | Manque | Correction proposée | Statut |
 |---|---|---|
-| Suppression rapide de tâche non corrélée | règle de corrélation : 4698 puis 4699 (suppression) de la même tâche en moins de 60 s | à faire |
-| `auditpol /set` non alerté | règle locale sur `auditpol.exe` avec `/set` ou `/clear` (T1562.002) | à faire |
+| Suppression rapide de tâche non corrélée | corrélation **100272/100273** : 4698 puis 4699 de la même tâche en moins de 60 s | ✅ fait ([writeup 26](../writeup/26-du-triage-au-tuning.md)) |
+| `auditpol /set` non alerté | pas un trou : le `/set` remettait la valeur en place, sans 4719. Un vrai retrait déclenche 60112 ; **100251** le monte au niveau 12 (T1562.002) | ✅ fait ([writeup 26](../writeup/26-du-triage-au-tuning.md)) |
 | `schtasks /run` juste après `/create` | corrélation 100270 puis `/run` | à étudier |
-| Bruit **61618** (niveau 12) sur `svchost.exe` légitimes, 5 fois dans la fenêtre | liste blanche | à faire (vu aussi au ticket 01) |
+| Bruit **61618** (niveau 12) sur `svchost.exe` légitimes, 5 fois dans la fenêtre | liste blanche **100120** | ✅ fait |

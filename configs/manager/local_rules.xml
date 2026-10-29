@@ -251,3 +251,45 @@
     </mitre>
   </rule>
 </group>
+
+<group name="local,sysmon,exfil_chain,">
+  <!-- Scénario 11 : collection (archive) puis exfiltration (envoi HTTP). T1560.001, T1048.003.
+       Trou natif : 92067 (T1560.001) exige 92066 = parent PowerShell ET binaire dans
+       Windows\SysWOW64 ou Windows\Temp ; tar.exe (System32) n'y entre pas. Validées en live le
+       2026-10-29 15:13 (writeup 22). -->
+  <rule id="100280" level="8">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\(tar|7z|7za|7zr|rar|winrar|makecab)\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)\.(zip|7z|rar|cab|tar|tgz)\b</field>
+    <description>Collection : archive créée par $(win.eventdata.image) sur $(win.system.computer)</description>
+    <mitre>
+      <id>T1560.001</id>
+    </mitre>
+  </rule>
+
+  <rule id="100281" level="10">
+    <if_sid>61603</if_sid>
+    <field name="win.eventdata.image" type="pcre2">(?i)\\curl\.exe$</field>
+    <field name="win.eventdata.commandLine" type="pcre2">(?i)(\s(-F|--form|-T|--upload-file)\s|--data-binary\s+@|\s-d\s+@)</field>
+    <description>Exfiltration possible : curl.exe envoie un fichier depuis $(win.system.computer)</description>
+    <mitre>
+      <id>T1048.003</id>
+    </mitre>
+  </rule>
+</group>
+
+<group name="local,correlation,">
+  <!-- Corrélation : 2 événements du groupe exfil_chain sur le même poste en 300 s. Se déclenche sur
+       le 2e événement et REMPLACE son alerte (constaté : le curl sort en 100282, pas en 100281).
+       LIMITE : compte 2 événements du groupe, pas « archive puis envoi » ; deux archives
+       successives la déclencheraient aussi (voir writeup 22). -->
+  <rule id="100282" level="14" frequency="2" timeframe="300">
+    <if_matched_group>exfil_chain</if_matched_group>
+    <same_field>win.system.computer</same_field>
+    <description>Chaîne d'exfiltration : archive puis envoi depuis $(win.system.computer) en moins de 5 min</description>
+    <mitre>
+      <id>T1560.001</id>
+      <id>T1048.003</id>
+    </mitre>
+  </rule>
+</group>

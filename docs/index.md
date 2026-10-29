@@ -97,9 +97,10 @@ Le chemin d'un événement, du poste au dashboard :
 | 8 | <span class="badge">T1490</span> Suppression des clichés instantanés | Impact | Sysmon EID 1 | 61603 (0) → **100260** (12) | [19](writeup/19-scenario-suppression-cliches.md) |
 | 9 | <span class="badge">T1059.001</span> <span class="badge">T1027</span> PowerShell encodé | Execution | Sysmon EID 1 | 61603 (0) → **100101** (12) ; 100100 supprimée (masquait les natives) | [20](writeup/20-scenario-powershell-encode.md) |
 | 10 | <span class="badge">T1053.005</span> Tâche planifiée en SYSTEM | Privilege Escalation | Sysmon EID 1 + 4698 | **100270** (12) ; 60228 (4) → **100271** (12) | [21](writeup/21-scenario-tache-planifiee-system.md) |
+| 11 | <span class="badge">T1560.001</span> <span class="badge">T1048.003</span> Archive puis exfiltration HTTP | Collection, Exfiltration | Sysmon EID 1 | **100280** (8), **100281** (10) → corrélation **100282** (14) | [22](writeup/22-scenario-collection-exfiltration.md) |
 
 Trous restants : <span class="badge gap">Reconnaissance</span>
-<span class="badge gap">Collection</span> <span class="badge gap">Exfiltration</span>
+
 (détail dans [MITRE ATT&CK](mitre.md)).
 
 ## Règles locales écrites pour le lab
